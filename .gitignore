@@ -166,6 +166,6 @@ dmypy.json
 *.lib
 
 # Executables
-*.exe
+# *.exe
 *.out
 *.app
