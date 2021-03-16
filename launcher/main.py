@@ -64,7 +64,7 @@ def acquire_data(file_path):
 
 
 async def execute_heuristic(nb_process, data, exe_path):
-    running_procs = [Popen([exe_path, data, str(id)], stderr=PIPE, stdout=PIPE)
+    running_procs = [Popen([exe_path, str(id), data], stderr=PIPE, stdout=PIPE)
                      for id in range(nb_process)]
 
     results = []

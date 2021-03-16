@@ -8,7 +8,7 @@ using namespace std;
 int main(int argc, char *argv[]) {
     vector<int> peeks = {0, 1, 2, 3, 4, 5};
 
-    srand(time(NULL) % *argv[2]);
+    srand(time(NULL) % *argv[1]);
     random_shuffle(peeks.begin(), peeks.end());
 
     cout << rand()*6 << ";";
