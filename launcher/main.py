@@ -1,48 +1,78 @@
 import argparse
 import os
 import pathlib
-import multiprocessing
-import subprocess
+from subprocess import Popen, PIPE
+import time
 
-def run(data, id):
-    try:
-        process = subprocess.Popen([str(pathlib.Path(__file__).parent.absolute())+"\\test.exe", " test", str(id)],stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        print(stdout.decode("utf-8"))
-        return stdout.decode("utf-8")
-        
-    except KeyboardInterrupt:
-        return None
 
-if __name__ == "__main__":
+def get_user_parameters(path):
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("file_name", type=str,  help="You must enter the name of the file you want to use")
-    arg_parser.add_argument("process_number", type=int,  help="You must enter the number of thread you want to start")
+    arg_parser.add_argument("file_name", type=str, help="You must enter the name of the file you want to use")
+    arg_parser.add_argument("nb_process", type=int, help="You must enter the number of process you want to start")
     args = arg_parser.parse_args()
 
-    file_path = str(pathlib.Path(__file__).parent.absolute())+"\\"+args.file_name
+    if args.nb_process < 1:
+        print("Number of process must be superior to 1")
+        exit()
+
+    file_path = path+args.file_name
     if not os.path.exists(file_path):
         print("This file doesn't exist")
         exit()
 
-    file = open(file_path,"r")
-    data = {"distances":[]}
+    return args.nb_process, file_path
+
+
+def acquire_data(file_path):
+    file = open(file_path, "r")
+    data = {"distances": []}
+
     for line in file.readlines():
-        line = line[:-1]
-        cur_line_data = [float(x) for x in line.split("  ")]
+        cur_line_data = [float(x) for x in line[:-1].split()]
         data["distances"].append(cur_line_data)
 
-    with multiprocessing.Pool(processes=args.process_number) as p:
-            argsList = []
-            for i in range(args.process_number):
-                argsList.append((data,i))
-            try:
-                p.starmap(run, argsList)
-            except KeyboardInterrupt:
-                print("ctrl+C")
-                p.terminate()
+    return data
 
-    
+
+def execute_heuristic(nb_process, data, exe_path):
+    running_procs = [Popen([exe_path, data, str(id)], stderr=PIPE, stdout=PIPE)
+                     for id in range(nb_process)]
+    print([str(id) for id in range(nb_process)])
+
+    results = []
+    while running_procs:
+        for proc in running_procs:
+            retcode = proc.poll()  # check if available
+            if retcode is not None:  # Process finished.
+                running_procs.remove(proc)
+                break
+
+            else:  # No process is done, wait a bit and check again.
+                print(proc.communicate()[0].decode("utf-8")[:-2])
+                time.sleep(.1)
+                continue
+
+        # Here, `proc` has finished with return code `retcode`
+        if retcode != 0:
+            print(f"c'est louche : {retcode}")
+
+        results.append(proc.communicate()[0].decode("utf-8")[:-2])
+
+    return results
+
+
+if __name__ == "__main__":
+    path = str(pathlib.Path(__file__).parent.absolute())+"\\"
+
+    nb_process, file_path = get_user_parameters(path)
+
+    data = acquire_data(file_path)
+
+    results = execute_heuristic(nb_process, data, path+"test.exe")
+
+    for res in results:
+        print(res)
+
     # sorting part
     tasks = [(12, "4,5,8"), (2, "8,5,4"), (8, "5,8,4")]
 
