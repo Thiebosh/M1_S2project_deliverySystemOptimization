@@ -6,7 +6,10 @@ import subprocess
 
 def run(data, id):
     try:
-        return subprocess.check_output([".\\test", str(data)])
+        process = subprocess.Popen([str(pathlib.Path(__file__).parent.absolute())+"\\test.exe", " test", str(id)],stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+        print(stdout.decode("utf-8"))
+        return stdout.decode("utf-8")
         
     except KeyboardInterrupt:
         return None
@@ -17,7 +20,6 @@ if __name__ == "__main__":
     arg_parser.add_argument("process_number", type=int,  help="You must enter the number of thread you want to start")
     args = arg_parser.parse_args()
 
-    print(str(pathlib.Path(__file__).parent.absolute()))
     file_path = str(pathlib.Path(__file__).parent.absolute())+"\\"+args.file_name
     if not os.path.exists(file_path):
         print("This file doesn't exist")
@@ -30,8 +32,6 @@ if __name__ == "__main__":
         cur_line_data = [float(x) for x in line.split("  ")]
         data["distances"].append(cur_line_data)
 
-    
-    
     with multiprocessing.Pool(processes=args.process_number) as p:
             argsList = []
             for i in range(args.process_number):
