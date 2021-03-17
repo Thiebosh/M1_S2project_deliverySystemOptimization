@@ -4,33 +4,35 @@
 #include <vector>
 #include <algorithm>
 
+#include "json.hpp"
+using json = nlohmann::json;
+
 using namespace std;
 
-int main(int argc, char *argv[]) {//model
+/**
+ * This is the template model : retrieving args and sending reponses is default
+ * */
+int main(int argc, char *argv[]) {
     if (argc < 4) return -1;
 
     int id = atoi(argv[1]);
-    //json parser of argv[2]
+    json inputData = json::parse(argv[2]);
     int batch_size = atoi(argv[3]);
 
     cout << id << endl;
+    srand(time(NULL) % id);
 
     // start here
 
     vector<int> peeks;
-    for (int i = 0; i < 5; ++i) peeks.push_back(i); //replace 5 by peek tab length
+    for (int i = 0; i < inputData["peak"][0].size(); ++i) peeks.push_back(i);
 
-    // if (id == 2) {
-    //     cout << id << " is waiting" << endl;
-    //     Sleep(5000);
-    // }
-
-    srand(time(NULL) % id);
     random_shuffle(peeks.begin(), peeks.end());
+    float total_time = rand()*6;
 
     // end here
 
-    cout << rand()*6 << ";";
+    cout << total_time << ";";
     for (auto elem : peeks) cout << elem << ",";
 
     return 0;

@@ -4,10 +4,13 @@
 #include<vector>
 #include<stdlib.h>
 #include<time.h>
-#include "json.hpp"
 #include<algorithm>
+
+#include "json.hpp"
 using json = nlohmann::json;
+
 using namespace std;
+
 int n = 5;    //citynumber
 struct city {
 	int number;
@@ -36,6 +39,7 @@ float totaldis(int solution[5]) {
 }
 void findsolution(int id, json input, int nbClosest) {
 	vector<int> remainingPeaks;
+	cout << input["peak"][0].size() << endl;
 	for(int i=0; i < input["peak"][0].size(); i++){
 		remainingPeaks.push_back(i);
 	}
@@ -85,21 +89,25 @@ void findsolution(int id, json input, int nbClosest) {
 
 	}
 }
+
 int main(int argc, char* argv[]) {
-	if (argc < 4) return -1;
+    if (argc < 4) return -1;
 
     int id = atoi(argv[1]);
-	int nbClosest = atoi(argv[3]);
-	cout << id << endl;
-	srand(time(NULL) % id);
-	
-	json inputData = json::parse(argv[2]);
+    json inputData = json::parse(argv[2]);
+    int batch_size = atoi(argv[3]);
 
-	findsolution(id, inputData, nbClosest);
-	float a = totaldis(currsolution);
-	cout << "distance:" << a << endl;
-	for (int i = 0; i < 5; i++) {
-		cout << currsolution[i] << " ";
-	}
-	cout << currsolution[0];
+    cout << id << endl;
+    srand(time(NULL) % id);
+
+    // start here
+
+	findsolution(id, inputData, batch_size);
+	
+    // end here
+
+    cout << totaldis(currsolution) << ";";
+    for (auto elem : currsolution) cout << elem << ",";
+
+    return 0;
 }

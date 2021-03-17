@@ -52,7 +52,7 @@ def load_data(file_path):
     data = {"peak": [], "arc": []}
 
     try:
-        data["peak"].append(normalize_sanitize(x) for x in file.readline()[:-1].split())
+        data["peak"].append([float(x) for x in file.readline()[:-1].split()])
 
         for line in file.readlines():
             if re.match(r"^\s*$", line):  # only spaces or \t, \r, \n
@@ -69,8 +69,8 @@ def load_data(file_path):
 
 
 async def execute_heuristic(data, batch_size, exe_path, nb_process):
-    running_procs = [Popen([exe_path, str(os.getpid()+id), str(data), str(batch_size)],
-                     stderr=PIPE, stdout=PIPE, text=True)
+    running_procs = [Popen([exe_path, str(os.getpid()+id), str(data).replace("'", '"'), str(batch_size)],
+                     stdout=PIPE, stderr=PIPE, text=True)
                      for id in range(nb_process)]
 
     results = []
@@ -90,6 +90,7 @@ async def execute_heuristic(data, batch_size, exe_path, nb_process):
 
         if retcode != 0:  # execution error
             print(f"process {lines[0]} return error '{retcode}'")
+            print(lines[1:])
             continue
 
         results.append(lines[1][:-1])
