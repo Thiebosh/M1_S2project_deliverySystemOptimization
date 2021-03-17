@@ -106,15 +106,15 @@ def format_sort_result(data):
 
     for line in data:
         sep = line.split(";")
-        results.append((float(sep[0]), [int(x) for x in sep[1].split(",")]))
+        results.append((float(sep[0]), [float(x) for x in sep[1].split(",")]))
 
     return sorted(results, key=lambda x: x[0])
 
-
+ 
 if __name__ == "__main__":
     path = str(pathlib.Path(__file__).parent.absolute())+"\\"
 
     results = asyncio.run(execute_heuristic(*get_user_parameters(path)))
 
     for task in format_sort_result(results):
-        print(f"{task[1]} will take {task[0]}ms")
+        print(f"{task[1]} will take {task[0]}km")
