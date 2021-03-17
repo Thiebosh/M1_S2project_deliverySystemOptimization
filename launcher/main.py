@@ -14,9 +14,14 @@ def get_user_parameters(path):
 
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("file_name", type=str, help="You must enter the name of the file you want to use")
+    arg_parser.add_argument("batch_size", type=int, help="You must enter the number of closest peeks you want to consider")
     arg_parser.add_argument("nb_process", type=int, help="You must enter the number of process you want to start")
     arg_parser.add_argument("engine", type=int, nargs='?', default=nb_versions, help="You can specify the version of the engine you want to use")
     args = arg_parser.parse_args()
+
+    if args.batch_size < 1:
+        print("Batch size must be superior to 0")
+        exit()
 
     if args.nb_process < 1:
         print("Number of process must be superior to 0")
@@ -32,7 +37,7 @@ def get_user_parameters(path):
         print("This engine doesn't exist")
         exit()
 
-    return args.nb_process, file_path, engine_path
+    return load_data(file_path), args.batch_size, engine_path, args.nb_process
 
 
 def normalize_sanitize(arc):
@@ -42,7 +47,7 @@ def normalize_sanitize(arc):
     return arc
 
 
-def acquire_data(file_path):
+def load_data(file_path):
     file = open(file_path, "r")
     data = {"peak": [], "arc": []}
 
@@ -63,10 +68,12 @@ def acquire_data(file_path):
     return data
 
 
-async def execute_heuristic(nb_process, data, exe_path):
-    running_procs = [Popen([exe_path, str(id+1), str(data)], stderr=PIPE, stdout=PIPE, text=True)
+async def execute_heuristic(data, batch_size, exe_path, nb_process):
+    running_procs = [Popen([exe_path, str(id+1), str(data), str(batch_size)],
+                     stderr=PIPE, stdout=PIPE, text=True)
                      for id in range(nb_process)]
-    # running_procs = [run([exe_path, str(id+1), str(data)], capture_output=True, text=True)  #, timeout=1)  # en secondes
+    # running_procs = [run([exe_path, str(id+1), str(data), str(batch_size)],
+    #                  capture_output=True, text=True)  #, timeout=1) # seconds
     #                  for id in range(nb_process)]
 
     results = []
@@ -111,11 +118,7 @@ def format_sort_result(data):
 if __name__ == "__main__":
     path = str(pathlib.Path(__file__).parent.absolute())+"\\"
 
-    nb_process, file_path, engine_path = get_user_parameters(path)
-
-    data = acquire_data(file_path)
-
-    results = asyncio.run(execute_heuristic(nb_process, data, engine_path))
+    results = asyncio.run(execute_heuristic(*get_user_parameters(path)))
 
     for task in format_sort_result(results):
         print(f"{task[1]} will take {task[0]}ms")

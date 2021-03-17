@@ -7,14 +7,18 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {//model
-    if (argc < 3) return -1;
+    if (argc < 4) return -1;
 
     int id = atoi(argv[1]);
+    //json parser of argv[2]
+    int batch_size = atoi(argv[3]);
+
     cout << id << endl;
 
     // start here
 
-    vector<int> peeks = {0, 1, 2, 3, 4, 5};
+    vector<int> peeks;
+    for (int i = 0; i < 5; ++i) peeks.push_back(i); //replace 5 by peek tab length
 
     // if (id == 2) {
     //     cout << id << " is waiting" << endl;
