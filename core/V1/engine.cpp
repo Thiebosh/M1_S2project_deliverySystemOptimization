@@ -74,6 +74,8 @@ int* findsolution(int id, json input, int nbClosest) {
 	
 	return currsolution;
 }
+
+
 int main(int argc, char* argv[]) {
     if (argc < 4) return -1;
 
@@ -88,12 +90,13 @@ int main(int argc, char* argv[]) {
 
 	int* path = findsolution(id, inputData, batch_size);
 	
-    // end here
 
 	float a = totaldis(path, inputData);
 
-	cout <<a << ";";
+	cout << a << ";";
+	
 	for (int i = 0; i <  inputData["peak"][0].size(); i++) {
-		cout << inputData["arc"][*(path+i-1)][*(path+i)] <<",";
+		cout << *(path+i)<<",";
 	}
+	
 }
