@@ -69,19 +69,15 @@ def load_data(file_path):
 
 
 async def execute_heuristic(data, batch_size, exe_path, nb_process):
-    running_procs = [Popen([exe_path, str(id+1), str(data), str(batch_size)],
+    running_procs = [Popen([exe_path, str(os.getpid()+id), str(data), str(batch_size)],
                      stderr=PIPE, stdout=PIPE, text=True)
                      for id in range(nb_process)]
-    # running_procs = [run([exe_path, str(id+1), str(data), str(batch_size)],
-    #                  capture_output=True, text=True)  #, timeout=1) # seconds
-    #                  for id in range(nb_process)]
 
     results = []
     time1 = time.time()
     while running_procs:
         for proc in running_procs:
             retcode = proc.poll()  # check if available
-            # retcode = proc.returncode  # with run but blocking
             if retcode is not None:  # Process finished.
                 running_procs.remove(proc)
                 break
@@ -90,17 +86,16 @@ async def execute_heuristic(data, batch_size, exe_path, nb_process):
                 await asyncio.sleep(.4)
                 continue
 
+        lines = proc.communicate()[0].split("\n")
+
         if retcode != 0:  # execution error
-            id = proc.communicate()[0].split("\\n\\r")[0][:-1]
-            print(f"process {id} return error '{retcode}'")
-            # print(f"process {id} return error '{proc.stderr}'")
+            print(f"process {lines[0]} return error '{retcode}'")
             continue
 
-        results.append(proc.communicate()[0][2:-1])
-        # results.append(proc.stdout[2:-1])
+        results.append(lines[1][:-1])
 
     time2 = time.time()
-    print(f'heuristics execution took {(time2-time1)*1000.0:.3f} ms')
+    print(f'heuristics executions took {(time2-time1)*1000.0:.3f} ms\n')
 
     return results
 
