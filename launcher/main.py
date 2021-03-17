@@ -52,7 +52,7 @@ def load_data(file_path):
     data = {"peak": [], "arc": []}
 
     try:
-        data["peak"].append(file.readline()[:-1])
+        data["peak"].append(normalize_sanitize(x) for x in file.readline()[:-1].split())
 
         for line in file.readlines():
             if re.match(r"^\s*$", line):  # only spaces or \t, \r, \n
