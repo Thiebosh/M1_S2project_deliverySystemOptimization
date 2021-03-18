@@ -78,7 +78,7 @@ async def execute_heuristic(data, batch_size, exe_path, nb_process):
     while running_procs:
         for proc in running_procs:
             retcode = proc.poll()  # check if available
-            if retcode is not None:  # Process finished.
+            if not retcode:  # Process finished.
                 running_procs.remove(proc)
                 break
 
@@ -88,7 +88,7 @@ async def execute_heuristic(data, batch_size, exe_path, nb_process):
 
         lines = proc.communicate()[0].split("\n")
 
-        if retcode != 0:  # execution error
+        if retcode and retcode != 0:  # execution error
             print(f"process {lines[0]} return error '{retcode}'")
             print(lines[1:])
             continue
@@ -106,15 +106,15 @@ def format_sort_result(data):
 
     for line in data:
         sep = line.split(";")
-        results.append((float(sep[0]), [float(x) for x in sep[1].split(",")]))
+        results.append((float(sep[0]), [int(x) for x in sep[1].split(",")]))
 
     return sorted(results, key=lambda x: x[0])
 
- 
+
 if __name__ == "__main__":
     path = str(pathlib.Path(__file__).parent.absolute())+"\\"
 
     results = asyncio.run(execute_heuristic(*get_user_parameters(path)))
 
     for task in format_sort_result(results):
-        print(f"{task[1]} will take {task[0]}km")
+        print(f"peaks travel in '{task[1]}' order take {task[0]}km")

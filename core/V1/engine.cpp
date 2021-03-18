@@ -1,25 +1,68 @@
-#include<iostream>
-#include<string>
-#include<math.h>
-#include<vector>
-#include<stdlib.h>
-#include<time.h>
-#include<algorithm>
+#include <iostream>
+#include <string>
+#include <math.h>
+#include <vector>
+#include <stdlib.h>
+#include <time.h>
+#include <algorithm>
 
 #include "json.hpp"
-#include<algorithm>
 
+using namespace std;
 using json = nlohmann::json;
-using namespace std;  //citynumber
-struct city {
-	int number;
-	int res_link;
-	float coordinate[2];
-};
-struct dist{
+
+
+typedef struct dist_{
 	int id;
 	float distance;
-};
+} dist;
+
+
+int* findsolution(int id, json input, int nbClosest) {
+	// declare result tab
+	static int currSolution[5] = {}; //input["peak"][0].size()
+
+	// build list of unselected peaks
+	vector<int> remainingPeaks;
+	for(int i=0; i < input["peak"][0].size(); ++i) remainingPeaks.push_back(i);
+
+	// select first peak
+	int currentPeak = rand() % remainingPeaks.size();
+	currSolution[0] = remainingPeaks[currentPeak];
+	remainingPeaks.erase(remainingPeaks.begin() + currentPeak);
+
+	// select next peak while some remains unselected
+	int currRank = 1;
+	vector<dist> closestPeaks;
+	while(!remainingPeaks.empty()) {
+		closestPeaks.clear();
+
+		// gather remaining peaks and reverse sort them
+		for(auto i: remainingPeaks){
+			dist curPoint;
+			curPoint.distance = input["arc"][currentPeak][i];
+			curPoint.id = i;
+			closestPeaks.push_back(curPoint);
+		}
+		sort(closestPeaks.begin(), closestPeaks.end(), [](dist a, dist b) {return a.distance < b.distance;});
+
+		// select one of the closest remaining
+		if(nbClosest > closestPeaks.size()) nbClosest--;
+		int pos = (int)(rand() % nbClosest);
+		currentPeak =  closestPeaks[pos].id;
+		currSolution[currRank++] = currentPeak;
+
+		// remove selected from remaining
+		for(int i = 0; i < remainingPeaks.size(); i++){
+			if(remainingPeaks[i] == currentPeak){
+				remainingPeaks.erase(remainingPeaks.begin()+i);
+				break;
+			}
+		}
+	}
+
+	return currSolution;
+}
 
 
 float totaldis(int* path, json input) {
@@ -28,51 +71,6 @@ float totaldis(int* path, json input) {
 		total += (float)input["arc"][*(path+i-1)][*(path+i)];
 	}
 	return total;
-}
-
-int* findsolution(int id, json input, int nbClosest) {
-	static int currsolution[5] = {};
-
-	vector<int> remainingPeaks;
-	for(int i=0; i < input["peak"][0].size(); i++){
-		remainingPeaks.push_back(i);
-	}
-
-	int currentPeak = rand() % remainingPeaks.size();
-
-	currsolution[0] = remainingPeaks[currentPeak];
-
-	remainingPeaks.erase(remainingPeaks.begin() + currentPeak);
-	vector<dist> closestPeaks;
-	int curRank = 1;
-
-	while(remainingPeaks.size() > 1){
-		closestPeaks.clear();
-		for(auto i: remainingPeaks){
-			dist curPoint;
-			curPoint.distance = input["arc"][currentPeak][i];
-			curPoint.id = i;
-			closestPeaks.push_back(curPoint);
-		}
-		sort(closestPeaks.begin(), closestPeaks.end(), [](dist a, dist b) {return a.distance < b.distance;});
-		
-		closestPeaks.erase(closestPeaks.begin());
-		if(nbClosest > closestPeaks.size()){
-			nbClosest--;
-		}
-		int pos = (int)(rand() % nbClosest);
-		currentPeak =  closestPeaks[pos].id;
-		currsolution[curRank++] = currentPeak;
-	
-
-		for(int i = 0; i < remainingPeaks.size(); i++){
-			if(remainingPeaks[i] == currentPeak){
-				remainingPeaks.erase(remainingPeaks.begin()+i);
-			}
-		}
-	}
-	
-	return currsolution;
 }
 
 
@@ -89,14 +87,13 @@ int main(int argc, char* argv[]) {
     // start here
 
 	int* path = findsolution(id, inputData, batch_size);
-	
 
-	float a = totaldis(path, inputData);
+	float total = totaldis(path, inputData);
 
-	cout << a << ";";
-	
+	cout << total << ";";
+
 	for (int i = 0; i <  inputData["peak"][0].size(); i++) {
 		cout << *(path+i)<<",";
 	}
-	
+	return 0;
 }

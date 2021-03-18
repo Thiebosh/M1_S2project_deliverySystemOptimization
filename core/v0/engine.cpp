@@ -1,13 +1,13 @@
-#include<iostream>
+#include <iostream>
 #include <windows.h>
 #include <time.h>
 #include <vector>
 #include <algorithm>
 
 #include "json.hpp"
-using json = nlohmann::json;
 
 using namespace std;
+using json = nlohmann::json;
 
 /**
  * This is the template model : retrieving args and sending reponses is default
