@@ -18,10 +18,7 @@ typedef struct dist_{
 } dist;
 
 
-int* findsolution(int id, json input, int nbClosest) {
-	// declare result tab
-	static int currSolution[5] = {}; //input["peak"][0].size()
-
+void findsolution(int id, json input, int nbClosest, vector<int>& currSolution) {
 	// build list of unselected peaks
 	vector<int> remainingPeaks;
 	for(int i=0; i < input["peak"][0].size(); ++i) remainingPeaks.push_back(i);
@@ -60,15 +57,13 @@ int* findsolution(int id, json input, int nbClosest) {
 			}
 		}
 	}
-
-	return currSolution;
 }
 
 
-float totaldis(int* path, json input) {
+float totaldis(vector<int>& path, json input) {
 	float total = 0;
 	for (int i = 1; i <  input["peak"][0].size(); i++) {
-		total += (float)input["arc"][*(path+i-1)][*(path+i)];
+		total += (float)input["arc"][path[i-1]][path[i]];
 	}
 	return total;
 }
@@ -86,14 +81,15 @@ int main(int argc, char* argv[]) {
 
     // start here
 
-	int* path = findsolution(id, inputData, batch_size);
+	// declare result tab
+	vector<int> path(inputData["peak"][0].size()+1, 0);
+
+	findsolution(id, inputData, batch_size, path);
 
 	float total = totaldis(path, inputData);
 
 	cout << total << ";";
 
-	for (int i = 0; i <  inputData["peak"][0].size(); i++) {
-		cout << *(path+i)<<",";
-	}
+    for (int elem : path) cout << elem << ",";
 	return 0;
 }
