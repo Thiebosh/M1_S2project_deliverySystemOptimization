@@ -1,10 +1,18 @@
 import argparse
 import os
 import pathlib
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, run
 import asyncio
 import time
 import re
+
+def remove_duplicates_from_results(res):
+    returnedArray = list()
+    for data in res:
+        if data not in returnedArray:
+            returnedArray.append(data)
+    return returnedArray
+
 
 
 def get_user_parameters(path):
@@ -14,9 +22,14 @@ def get_user_parameters(path):
 
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("file_name", type=str, help="You must enter the name of the file you want to use")
+    arg_parser.add_argument("batch_size", type=int, help="You must enter the number of closest peeks you want to consider")
     arg_parser.add_argument("nb_process", type=int, help="You must enter the number of process you want to start")
     arg_parser.add_argument("engine", type=int, nargs='?', default=nb_versions, help="You can specify the version of the engine you want to use")
     args = arg_parser.parse_args()
+
+    if args.batch_size < 1:
+        print("Batch size must be superior to 0")
+        exit()
 
     if args.nb_process < 1:
         print("Number of process must be superior to 0")
@@ -32,7 +45,7 @@ def get_user_parameters(path):
         print("This engine doesn't exist")
         exit()
 
-    return args.nb_process, file_path, engine_path
+    return load_data(file_path), args.batch_size, engine_path, args.nb_process
 
 
 def normalize_sanitize(arc):
@@ -42,12 +55,12 @@ def normalize_sanitize(arc):
     return arc
 
 
-def acquire_data(file_path):
+def load_data(file_path):
     file = open(file_path, "r")
     data = {"peak": [], "arc": []}
 
     try:
-        data["peak"].append(file.readline()[:-1])
+        data["peak"].append([float(x) for x in file.readline()[:-1].split()])
 
         for line in file.readlines():
             if re.match(r"^\s*$", line):  # only spaces or \t, \r, \n
@@ -63,8 +76,9 @@ def acquire_data(file_path):
     return data
 
 
-async def execute_heuristic(nb_process, data, exe_path):
-    running_procs = [Popen([exe_path, str(id), data], stderr=PIPE, stdout=PIPE)
+async def execute_heuristic(data, batch_size, exe_path, nb_process):
+    running_procs = [Popen([exe_path, str(os.getpid()+id), str(data).replace("'", '"'), str(batch_size)],
+                     stdout=PIPE, stderr=PIPE, text=True)
                      for id in range(nb_process)]
 
     results = []
@@ -72,7 +86,7 @@ async def execute_heuristic(nb_process, data, exe_path):
     while running_procs:
         for proc in running_procs:
             retcode = proc.poll()  # check if available
-            if retcode is not None:  # Process finished.
+            if not retcode:  # Process finished.
                 running_procs.remove(proc)
                 break
 
@@ -80,14 +94,17 @@ async def execute_heuristic(nb_process, data, exe_path):
                 await asyncio.sleep(.4)
                 continue
 
-        # Here, `proc` has finished with return code `retcode`
-        # if retcode != 0:
-        #     print(f"c'est louche : {retcode}")
+        lines = proc.communicate()[0].split("\n")
 
-        results.append(proc.communicate()[0].decode("utf-8")[:-1])
+        if retcode and retcode != 0:  # execution error
+            print(f"process {lines[0]} return error '{retcode}'")
+            print(lines[1:])
+            continue
+
+        results.append(lines[1][:-1])
 
     time2 = time.time()
-    print(f'heuristics execution took {(time2-time1)*1000.0:.3f} ms')
+    print(f'heuristics executions took {(time2-time1)*1000.0:.3f} ms\n')
 
     return results
 
@@ -99,17 +116,14 @@ def format_sort_result(data):
         sep = line.split(";")
         results.append((float(sep[0]), [int(x) for x in sep[1].split(",")]))
 
-    return sorted(results, key=lambda x: x[0])
 
+    return remove_duplicates_from_results(sorted(results, key=lambda x: x[0]))
+    
 
 if __name__ == "__main__":
     path = str(pathlib.Path(__file__).parent.absolute())+"\\"
 
-    nb_process, file_path, engine_path = get_user_parameters(path)
-
-    data = acquire_data(file_path)
-
-    results = asyncio.run(execute_heuristic(nb_process, data, engine_path))
+    results = asyncio.run(execute_heuristic(*get_user_parameters(path)))
 
     for task in format_sort_result(results):
-        print(f"{task[1]} took {task[0]}")
+        print(f"peaks travel in '{task[1]}' order take {task[0]}km")
