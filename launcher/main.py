@@ -6,6 +6,14 @@ import asyncio
 import time
 import re
 
+def remove_duplicates_from_results(res):
+    returnedArray = list()
+    for data in res:
+        if data not in returnedArray:
+            returnedArray.append(data)
+    return returnedArray
+
+
 
 def get_user_parameters(path):
     path = path[:path.rfind("launcher\\")]
@@ -108,8 +116,9 @@ def format_sort_result(data):
         sep = line.split(";")
         results.append((float(sep[0]), [int(x) for x in sep[1].split(",")]))
 
-    return sorted(results, key=lambda x: x[0])
 
+    return remove_duplicates_from_results(sorted(results, key=lambda x: x[0]))
+    
 
 if __name__ == "__main__":
     path = str(pathlib.Path(__file__).parent.absolute())+"\\"
