@@ -87,10 +87,10 @@ int main(int argc, char* argv[]) {
 
 	findsolution(id, inputData, batch_size, path);
 
-	float total = totaldis(path, inputData);
+    // end here
 
-	cout << total << ";";
-
+	cout << totaldis(path, inputData) << ";";
     for (int elem : path) cout << elem << ",";
+
 	return 0;
 }
