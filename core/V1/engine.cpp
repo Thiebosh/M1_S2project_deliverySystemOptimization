@@ -57,12 +57,13 @@ void findsolution(int id, json input, int nbClosest, vector<int>& currSolution) 
 			}
 		}
 	}
+	currSolution[input["peak"][0].size()] = currSolution[0];
 }
 
 
 float totaldis(vector<int>& path, json input) {
 	float total = 0;
-	for (int i = 1; i <  input["peak"][0].size(); i++) {
+	for (int i = 1; i <  path.size(); i++) {
 		total += (float)input["arc"][path[i-1]][path[i]];
 	}
 	return total;
