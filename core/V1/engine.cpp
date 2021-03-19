@@ -6,7 +6,7 @@
 #include <time.h>
 #include <algorithm>
 
-#include "json.hpp"
+#include "../json.hpp"
 
 using namespace std;
 using json = nlohmann::json;
@@ -16,6 +16,37 @@ typedef struct dist_{
 	int id;
 	float distance;
 } dist;
+
+
+void findsolution(int id, json input, int nbClosest, vector<int>& currSolution);
+
+float totaldis(vector<int>& path, json input);
+
+
+int main(int argc, char* argv[]) {
+    if (argc < 4) return -1;
+
+    int id = atoi(argv[1]);
+    json inputData = json::parse(argv[2]);
+    int batch_size = atoi(argv[3]);
+
+    cout << id << endl;
+    srand(time(NULL) % id);
+
+    // start here
+
+	// declare result tab
+	vector<int> path(inputData["peak"].size()+1, 0);
+
+	findsolution(id, inputData, batch_size, path);
+
+    // end here
+
+	cout << totaldis(path, inputData) << ";";
+    for (int elem : path) cout << elem << ",";
+
+	return 0;
+}
 
 
 void findsolution(int id, json input, int nbClosest, vector<int>& currSolution) {
@@ -67,30 +98,4 @@ float totaldis(vector<int>& path, json input) {
 		total += (float)input["arc"][path[i-1]][path[i]];
 	}
 	return total;
-}
-
-
-int main(int argc, char* argv[]) {
-    if (argc < 4) return -1;
-
-    int id = atoi(argv[1]);
-    json inputData = json::parse(argv[2]);
-    int batch_size = atoi(argv[3]);
-
-    cout << id << endl;
-    srand(time(NULL) % id);
-
-    // start here
-
-	// declare result tab
-	vector<int> path(inputData["peak"].size()+1, 0);
-
-	findsolution(id, inputData, batch_size, path);
-
-    // end here
-
-	cout << totaldis(path, inputData) << ";";
-    for (int elem : path) cout << elem << ",";
-
-	return 0;
 }
