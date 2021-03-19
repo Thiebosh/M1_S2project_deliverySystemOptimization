@@ -24,16 +24,17 @@ int main(int argc, char *argv[]) {
 
     // start here
 
-    vector<int> peeks;
-    for (int i = 0; i < inputData["peak"].size(); ++i) peeks.push_back(i);
+    vector<int> peaks;
+    for (int i = 0; i < inputData["peak"].size(); ++i) peaks.push_back(i);
+    peaks.push_back(peaks[0]);
 
-    random_shuffle(peeks.begin(), peeks.end());
+    random_shuffle(peaks.begin(), peaks.end());
     float total_time = rand()*6;
 
     // end here
 
     cout << total_time << ";";
-    for (auto elem : peeks) cout << elem << ",";
+    for (auto elem : peaks) cout << elem << ",";
 
     return 0;
 }
