@@ -80,13 +80,26 @@ async def execute_heuristic(data, batch_size, exe_path, nb_process):
 
 
 def format_sort_result(data):
-    results = []
-
+    tmp = []
     for line in data:
-        sep = line.split(";")
-        results.append((float(sep[0]), [int(x) for x in sep[1].split(",")]))
+        dist, path = line.split(";")
+        dist = float(dist)
 
-    return remove_duplicates_from_results(sorted(results, key=lambda x: x[0]))
+        comparing = [(path in f"{x[1]},{x[1]}") for x in tmp]  # génère liste de correspondances
+
+        if len(comparing) == 0 or not comparing.__contains__(True):  # aucune correspondance
+            tmp.append((dist, path))
+
+        else:  # correspo : remplacer si plus court
+            index = comparing.index(True)
+            if tmp[index][0] > dist:
+                tmp[index] = (dist, path)
+
+    results = []
+    for dist, path in tmp:
+        results.append((dist, [int(x) for x in path.split(",")]))
+
+    return sorted(results, key=lambda x: x[0])
 
 
 def remove_duplicates_from_results(res):

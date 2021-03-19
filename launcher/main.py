@@ -14,6 +14,7 @@ if __name__ == "__main__":
     local_data, to_compute = load_data(file_name, file_path)
     results = asyncio.run(execute_heuristic(to_compute, *heuristic_inputs))
 
+    print(f"We get {len(results)} distinc(s) peaks travel(s) order(s) :")
     max_digits = 1+int(math.log10(int(results[-1][0])))  # greater nb of digits
     for distance, travel in results:
         travel = str([x+1 for x in travel])[1:-1]
