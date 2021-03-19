@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     // start here
 
     vector<int> peeks;
-    for (int i = 0; i < inputData["peak"][0].size(); ++i) peeks.push_back(i);
+    for (int i = 0; i < inputData["peak"].size(); ++i) peeks.push_back(i);
 
     random_shuffle(peeks.begin(), peeks.end());
     float total_time = rand()*6;

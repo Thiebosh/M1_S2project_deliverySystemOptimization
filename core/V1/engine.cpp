@@ -21,7 +21,7 @@ typedef struct dist_{
 void findsolution(int id, json input, int nbClosest, vector<int>& currSolution) {
 	// build list of unselected peaks
 	vector<int> remainingPeaks;
-	for(int i=0; i < input["peak"][0].size(); ++i) remainingPeaks.push_back(i);
+	for(int i=0; i < input["peak"].size(); ++i) remainingPeaks.push_back(i);
 
 	// select first peak
 	int currentPeak = rand() % remainingPeaks.size();
@@ -57,7 +57,7 @@ void findsolution(int id, json input, int nbClosest, vector<int>& currSolution) 
 			}
 		}
 	}
-	currSolution[input["peak"][0].size()] = currSolution[0];
+	currSolution[input["peak"].size()] = currSolution[0];
 }
 
 
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     // start here
 
 	// declare result tab
-	vector<int> path(inputData["peak"][0].size()+1, 0);
+	vector<int> path(inputData["peak"].size()+1, 0);
 
 	findsolution(id, inputData, batch_size, path);
 
