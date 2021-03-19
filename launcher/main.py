@@ -4,8 +4,8 @@ from parse import user_args
 from common import load_data, execute_heuristic
 import math
 import matplotlib.pyplot as plt
-
-
+import types
+import numpy as np
 
 if __name__ == "__main__":
     path = str(pathlib.Path(__file__).parent.absolute())+"\\"
@@ -33,8 +33,12 @@ if __name__ == "__main__":
 
 
     fig, axes = plt.subplots(figsize=(10,10), ncols=min(5,len(results)), sharey=True)
+    if type(axes) is not np.ndarray:
+        axes = [axes]
+
     for idGraph, axe in enumerate(axes):
         axe.set_box_aspect(1)
+        axe.title.set_text("Distance: "+str(results[idGraph][0])+"km")
         axe.set_xlim(minX-1, maxX+1)
         axe.set_ylim(minY-1,maxY+1)
         for i in range(len(results[0][1])-1):
