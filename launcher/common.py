@@ -117,7 +117,7 @@ def remove_duplicates_from_results(res):
     return returnedArray
 
 
-def make_graph(local_data, results):
+def make_graph(local_data, results, result_name):
     cities = []
     for i in range(len(results[0][1])-1):
         x = local_data[i]["x"]
@@ -157,5 +157,5 @@ def make_graph(local_data, results):
         origin = local_data[results[idGraph][1][0]]
         axe.scatter(origin["x"], origin["y"], c="blue")
 
+    fig.savefig(result_name)
     plt.show()
-    fig.savefig("savedFile.png")
