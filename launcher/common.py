@@ -5,7 +5,28 @@ import re
 import os
 import parse
 from Arc import Arc
+import copy
 
+def remove_duplicates_from_results(res):
+    returnedArray = list()
+    for data in res:
+        dataCpy = copy.deepcopy(data)
+        path = dataCpy[1]
+        path.pop()
+        pathReversed = list(reversed(path))
+        pathExists = False
+        for i in range(len(path)):
+            path.insert(0,path.pop())
+            pathReversed.insert(0,pathReversed.pop())
+            for existingData in returnedArray:
+                if existingData[1][:-1] == path or existingData[1][:-1] == pathReversed:
+                    pathExists = True
+                    break
+            if pathExists:
+                break
+        if not pathExists:
+            returnedArray.append(data)
+    return returnedArray
 
 def load_data(file_name, file_path):
     local_data = []
@@ -36,10 +57,6 @@ def load_data(file_name, file_path):
             to_compute_data["arc"][i][count] = dist
 
     return local_data, to_compute_data
-
-
-def remove_duplicates_from_results(res):
-    return res
 
 
 def format_sort_result(data):
