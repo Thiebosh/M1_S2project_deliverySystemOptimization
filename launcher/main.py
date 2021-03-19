@@ -42,7 +42,8 @@ def get_user_parameters(path):
     if not os.path.exists(engine_path):
         parser.error("This engine doesn't exist")
 
-    return args.file_name, file_path, args.batch_size, engine_path, args.nb_process
+    heuristic_inputs = (args.batch_size, engine_path, args.nb_process)
+    return args.file_name, file_path, heuristic_inputs
 
 
 class Arc:
@@ -157,13 +158,14 @@ def format_sort_result(data):
 if __name__ == "__main__":
     path = str(pathlib.Path(__file__).parent.absolute())+"\\"
 
-    file_name, file_path, batch_size, engine_path, nb_process = get_user_parameters(path)
+    file_name, file_path, heuristic_inputs = get_user_parameters(path)
 
-    local_data, to_compute_data = load_data(file_name, file_path)
+    local_data, to_compute = load_data(file_name, file_path)
 
-    print(to_compute_data)
-    results = asyncio.run(execute_heuristic(to_compute_data, batch_size, engine_path, nb_process))
-    print(results)
+    results = asyncio.run(execute_heuristic(to_compute, *heuristic_inputs))
 
-    for task in format_sort_result(results):
-        print(f"peaks travel in '{task[1]}' order take {task[0]}km")
+    results = format_sort_result(results)
+
+    print(f"We get {len(results)} distinc(s) peaks travel(s) order(s) :")
+    for distance, travel in results:
+        print(f"- {str(travel)[1:-1]} take {distance}km")
