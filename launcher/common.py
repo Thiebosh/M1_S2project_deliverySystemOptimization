@@ -18,6 +18,7 @@ def load_data(file_name, file_path):
     try:
 
         with open(file_path) as file:
+            file.readline()  # throw headers line
             all_lines = [line for line in file.readlines()]
             peaks_line= all_lines[:all_lines.index("\n")]
             travelers_line = all_lines[all_lines.index("\n")+1:]
@@ -27,11 +28,11 @@ def load_data(file_name, file_path):
 
     nb_peak = len(peaks_line)
     for count, line in enumerate(peaks_line):
-        peak_name, x, y, max_cost = parse.fileline_data(line, file_name, count)
+        peak_name, x, y, origin, link, max_cost = parse.fileline_data(line, file_name, count)
 
         local_data.append({"name": peak_name, "x": x, "y": y})
 
-        to_compute_data["peak"].append({"maxCost": max_cost})
+        to_compute_data["peak"].append({"origin": origin, "link": link, "maxCost": max_cost})
 
         arc_line = [Arc(x, y) for _ in range(nb_peak)]
         to_compute_data["arc"].append(arc_line)
@@ -48,6 +49,10 @@ def load_data(file_name, file_path):
         traveler_name, x, y, speed = parse.fileline_traveler(line, file_name, count)
         print(traveler_name, x, y, speed)
         to_compute_data["traveler"].append({"name":traveler_name,"x": x,"y": y,"speed": speed})
+
+    names = [x['name'] for x in local_data]
+    for peak in to_compute_data["peak"]:
+        peak["link"] = names.index(peak["link"])
 
     return local_data, to_compute_data
 
@@ -80,6 +85,7 @@ async def execute_heuristic(data, batch_size, exe_path, nb_process):
             print(lines[1:])
             continue
 
+        print(data)
         data = lines[1][:-1]
 
         # preprocess results rather than sleep
