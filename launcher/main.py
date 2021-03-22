@@ -16,8 +16,10 @@ if __name__ == "__main__":
 
     print(f"We get {len(results)} distinc(s) peaks travel(s) order(s) :")
     max_digits = 1+int(math.log10(int(results[-1][0])))  # greater nb of digits
+
     for distance, travel in results:
-        travel = str([x+1 for x in travel])[1:-1]
+        travel = str([local_data[x]["name"] for x in travel])[1:-1]
+        travel = travel.replace("', '", " -> ")
         print(f"- {distance:{max_digits+3}.2f}km for {travel}")  # +3 => '.xx'
 
     make_graph(local_data, results, result_name)

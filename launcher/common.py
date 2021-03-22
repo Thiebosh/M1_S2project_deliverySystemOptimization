@@ -70,64 +70,41 @@ async def execute_heuristic(data, batch_size, exe_path, nb_process):
             continue
 
         data = lines[1][:-1]
-        if data not in results:
-            results.append(data)
+
+        # preprocess results rather than sleep
+        results = make_unique(data, results)
 
     time2 = time.time()
     print(f'heuristics executions took {(time2-time1)*1000.0:.3f} ms\n')
 
-    return format_sort_result(results)
+    return sorted(format_result(results), key=lambda x: x[0])
 
 
-def format_sort_result(data):
-    tmp = []
-    for line in data:
-        dist, path = line.split(";")
-        dist = float(dist)
+def make_unique(data, current):
+    dist, path = data.split(";")
+    dist = float(dist)
 
-        comparing = [(path in f"{x[1]},{x[1]}") for x in tmp]  # génère liste de correspondances
+    # generate match list
+    comparing = [(path in f"{x[1]},{x[1]}") for x in current]
 
-        if len(comparing) == 0 or not comparing.__contains__(True):  # aucune correspondance
-            tmp.append((dist, path))
+    # no match
+    if len(comparing) == 0 or not comparing.__contains__(True):
+        current.append((dist, path))
 
-        else:  # correspo : remplacer si plus court
-            index = comparing.index(True)
-            if tmp[index][0] > dist:
-                tmp[index] = (dist, path)
+    else:  # match: replace if shorter
+        index = comparing.index(True)
+        if current[index][0] > dist:
+            current[index] = (dist, path)
 
+    return current
+
+
+def format_result(data):
     results = []
-    for dist, path in tmp:
+    for dist, path in data:
         results.append((dist, [int(x) for x in path.split(",")]))
 
-    return sorted(results, key=lambda x: x[0])
-
-
-def remove_duplicates_from_results(res):
-    returnedArray = list()
-
-    for data in res:
-        dataCpy = copy.deepcopy(data)
-        path = dataCpy[1]
-        path.pop()
-        pathReversed = list(reversed(path))
-        pathExists = False
-
-        for _ in range(len(path)):
-            path.insert(0, path.pop())
-            pathReversed.insert(0, pathReversed.pop())
-
-            for existingData in returnedArray:
-                if existingData[1][:-1] == path or existingData[1][:-1] == pathReversed:
-                    pathExists = True
-                    break
-
-            if pathExists:
-                break
-
-        if not pathExists:
-            returnedArray.append(data)
-
-    return returnedArray
+    return results
 
 
 def make_graph(local_data, results, result_name):
