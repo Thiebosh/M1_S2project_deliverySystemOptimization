@@ -71,14 +71,10 @@ def load_data(file_name, file_path):
 
     # compute arcs
     for count, peak in enumerate(local_data):
-        print("begin matrix", count)
         for i in range(nb_peak):
-            print("begin vector", count, i)
             arc = to_compute_data["arc"][i][count]
             dist = arc.set_peakDest(peak["x"], peak["y"]).compute_distance()
             to_compute_data["arc"][i][count] = dist
-            print("end   vector", count, i)
-        print("end   matrix", count)
 
     return local_data, to_compute_data
 
