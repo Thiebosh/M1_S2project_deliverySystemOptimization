@@ -51,3 +51,14 @@ def fileline_data(arc, file_name, line):
         parser.error("max_cost value must be greater or equal to 0")
 
     return args.peak_name, args.x, args.y, args.max_cost
+
+def fileline_traveler(line, file_name, lineNb):
+    parser = argparse.ArgumentParser(f"Parsing line {lineNb+1} of file '{file_name}'")
+    parser.add_argument("traveler_name", type=str)
+    parser.add_argument("x", type=float)
+    parser.add_argument("y", type=float)
+    parser.add_argument("speed", type=float)
+    args = parser.parse_args(line.replace('\n', '').split(','))
+
+    return args.traveler_name, args.x, args.y, args.speed
+
