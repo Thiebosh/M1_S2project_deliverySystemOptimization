@@ -16,12 +16,20 @@ def load_data(file_name, file_path):
     to_compute_data = {"peak": [], "arc": [],"traveler": []}
 
     try:
-
         with open(file_path) as file:
-            file.readline()  # throw headers line
             all_lines = [line for line in file.readlines()]
-            peaks_line= all_lines[:all_lines.index("\n")]
-            travelers_line = all_lines[all_lines.index("\n")+1:]
+
+        last = 0
+        data_lines = []
+        for id in [id for id, line in enumerate(all_lines) if re.match(r"^\s*$", line)]:  # empty_lines : only spaces or \t, \r, \n
+            if id != 0 and id-1 != last:
+                data_lines.append((last+1, id))
+            last = id
+
+        # throw headers lines
+        travelers_line = all_lines[data_lines[0][0]+1:data_lines[0][1]]
+        peaks_line = all_lines[data_lines[1][0]+1:data_lines[1][1]]
+
     except Exception as e:
         print(f"Data acquisition error : {e}")
         exit()
@@ -43,11 +51,8 @@ def load_data(file_name, file_path):
             dist = arc.set_peakDest(peak["x"], peak["y"]).compute_distance()
             to_compute_data["arc"][i][count] = dist
 
-
-    nb_travelers = len(travelers_line)
     for count, line in enumerate(travelers_line):
         traveler_name, x, y, speed = parse.fileline_traveler(line, file_name, count)
-        print(traveler_name, x, y, speed)
         to_compute_data["traveler"].append({"name":traveler_name,"x": x,"y": y,"speed": speed})
 
     names = [x['name'] for x in local_data]
@@ -58,7 +63,6 @@ def load_data(file_name, file_path):
 
 
 async def execute_heuristic(data, batch_size, exe_path, nb_process):
-    print(data)
     data = str(data).replace("'", '"')
     batch_size = str(batch_size)
     running_procs = [Popen([exe_path, str(os.getpid()+id), data, batch_size],
@@ -85,7 +89,6 @@ async def execute_heuristic(data, batch_size, exe_path, nb_process):
             print(lines[1:])
             continue
 
-        print(data)
         data = lines[1][:-1]
 
         # preprocess results rather than sleep

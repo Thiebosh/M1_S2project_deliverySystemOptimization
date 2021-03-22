@@ -64,4 +64,3 @@ def fileline_traveler(line, file_name, lineNb):
     args = parser.parse_args(line.replace('\n', '').split(','))
 
     return args.traveler_name, args.x, args.y, args.speed
-
