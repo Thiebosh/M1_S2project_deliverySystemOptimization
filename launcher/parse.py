@@ -40,20 +40,32 @@ def user_args(path):
     return args.file_name, file_path, heuristic_inputs, args.result_name
 
 
-def fileline_peak(arc, file_name, lineNb):
-    parser = argparse.ArgumentParser(f"Parsing line {lineNb+1} of file '{file_name}'")
+def fileline_origin(arc, file_name, lineNb):
+    parser = argparse.ArgumentParser(f"Parsing origin peak ({arc}) of line {lineNb+1} of file '{file_name}'")
     parser.add_argument("peak_name", type=str)
     parser.add_argument("x", type=float)
     parser.add_argument("y", type=float)
-    parser.add_argument("origin", type=lambda x: strtobool(x))  # wrap into bool for real object but break program
-    parser.add_argument("link", type=str)
+    args = parser.parse_args(arc.replace('\n', '').split(','))
+
+    return args.peak_name, args.x, args.y
+
+
+def fileline_dest(arc, file_name, lineNb, destNb):
+    parser = argparse.ArgumentParser(f"Parsing dest {destNb} ({arc}) of line {lineNb+1} of file '{file_name}'")
+    parser.add_argument("peak_name", type=str)
+    parser.add_argument("x", type=float)
+    parser.add_argument("y", type=float)
+    parser.add_argument("quantity", type=int, nargs='?', default=0)
     parser.add_argument("max_cost", type=float, nargs='?', default=0.0)
     args = parser.parse_args(arc.replace('\n', '').split(','))
+
+    if args.quantity < 1:
+        parser.error("quantity value must be greater or equal to 1")
 
     if args.max_cost < 0:
         parser.error("max_cost value must be greater or equal to 0")
 
-    return args.peak_name, args.x, args.y, args.origin, args.link, args.max_cost
+    return args.peak_name, args.x, args.y, args.quantity, args.max_cost
 
 
 def fileline_traveler(line, file_name, lineNb):

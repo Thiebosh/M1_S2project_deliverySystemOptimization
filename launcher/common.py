@@ -20,6 +20,7 @@ def load_data(file_name, file_path):
         with open(file_path) as file:
             all_lines = [line for line in file.readlines()]
 
+        all_lines.append("\n")  # delimit last data block
         last = -1
         data_lines = []
         for id in [id for id, line in enumerate(all_lines) if re.match(r"^\s*$", line)]:  # empty_lines : only spaces or \t, \r, \n
@@ -38,30 +39,46 @@ def load_data(file_name, file_path):
     # list travelers
     for count, line in enumerate(travelers_line):
         traveler_name, x, y, speed = parse.fileline_traveler(line, file_name, count)
-        to_compute_data["traveler"].append({"name":traveler_name, "x": x, "y": y, "speed": speed})
+        to_compute_data["traveler"].append({"name": traveler_name, "x": x, "y": y, "speed": speed})
 
     # list peaks and prepare arcs
-    nb_peak = len(peaks_line)
+    nb_peak = len(peaks_line) * 2  # TEMPORARY : one origin = one dest
     for count, line in enumerate(peaks_line):
-        peak_name, x, y, origin, link, max_cost = parse.fileline_peak(line, file_name, count)
+        origin, dests = line.split(" - ")
+
+        peak_name, x, y = parse.fileline_origin(origin, file_name, count)
 
         local_data.append({"name": peak_name, "x": x, "y": y})
 
-        to_compute_data["peak"].append({"origin": origin, "link": link, "maxCost": max_cost})
+        origin_id = len(to_compute_data["peak"])
+        to_compute_data["peak"].append({"origin": 1, "link": [], "maxCost": 0})
 
         arc_line = [Arc(x, y) for _ in range(nb_peak)]
         to_compute_data["arc"].append(arc_line)
 
-    names = [x['name'] for x in local_data]
-    for peak in to_compute_data["peak"]:
-        peak["link"] = names.index(peak["link"])
+        if type(dests) is not list:
+            dests = [dests]
+        for p_count, peak in enumerate(dests):
+            peak_name, x, y, qty, max_cost = parse.fileline_dest(peak, file_name, count, p_count)
+
+            local_data.append({"name": peak_name, "x": x, "y": y})
+
+            to_compute_data["peak"][origin_id]["link"].append(len(to_compute_data["peak"]))
+            to_compute_data["peak"].append({"origin": 0, "link": origin_id, "qty": qty, "maxCost": max_cost})
+
+            arc_line = [Arc(x, y) for _ in range(nb_peak)]
+            to_compute_data["arc"].append(arc_line)
 
     # compute arcs
     for count, peak in enumerate(local_data):
+        print("begin matrix", count)
         for i in range(nb_peak):
+            print("begin vector", count, i)
             arc = to_compute_data["arc"][i][count]
             dist = arc.set_peakDest(peak["x"], peak["y"]).compute_distance()
             to_compute_data["arc"][i][count] = dist
+            print("end   vector", count, i)
+        print("end   matrix", count)
 
     return local_data, to_compute_data
 
