@@ -7,4 +7,3 @@ pic6,10,7,0
 pic7,3,2,0
 
 traveler1,0,0,15
-traveler2,0,1,20

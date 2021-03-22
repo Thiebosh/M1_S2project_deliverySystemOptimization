@@ -1,7 +1,7 @@
 import os
 import re
 import argparse
-
+from distutils.util import strtobool
 
 def user_args(path):
     path = path[:path.rfind("launcher\\")]
@@ -14,6 +14,7 @@ def user_args(path):
     parser.add_argument("nb_process", type=int, help="You must enter the number of process you want to start")
     parser.add_argument("engine", type=int, nargs='?', default=nb_versions, help="You can specify the version of the engine you want to use")
     parser.add_argument("result_name", type=str, nargs='?', default="savedFile", help="You can specify the name of the file you want to get")
+    parser.add_argument("save_gif", type=lambda x: strtobool(x), nargs="?", default=False, help="You can specify whether you want to save gif or not")
     args = parser.parse_args()
 
     if args.batch_size < 1:
@@ -36,7 +37,7 @@ def user_args(path):
         args.result_name += ".png"
 
     heuristic_inputs = (args.batch_size, engine_path, args.nb_process)
-    return args.file_name, file_path, heuristic_inputs, args.result_name
+    return args.file_name, file_path, heuristic_inputs, args.result_name, args.save_gif
 
 
 def fileline_data(arc, file_name, line):
