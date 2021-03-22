@@ -13,52 +13,77 @@ from Arc import Arc
 
 def load_data(file_name, file_path):
     local_data = []
-    to_compute_data = {"peak": [], "arc": [],"traveler": []}
+    to_compute_data = {"traveler": [], "peak": [], "arc": []}
 
+    # read file
     try:
-
         with open(file_path) as file:
-            file.readline()  # throw headers line
             all_lines = [line for line in file.readlines()]
-            peaks_line= all_lines[:all_lines.index("\n")]
-            travelers_line = all_lines[all_lines.index("\n")+1:]
+
+        all_lines.append("\n")  # delimit last data block
+        last = -1
+        data_lines = []
+        for id in [id for id, line in enumerate(all_lines) if re.match(r"^\s*$", line)]:  # empty_lines : only spaces or \t, \r, \n
+            if id > last and id-1 != last:
+                data_lines.append((last+1, id))
+            last = id
+
+        # throw headers lines
+        travelers_line = all_lines[data_lines[0][0]+1:data_lines[0][1]]
+        peaks_line = all_lines[data_lines[1][0]+1:data_lines[1][1]]
+
     except Exception as e:
         print(f"Data acquisition error : {e}")
         exit()
 
-    nb_peak = len(peaks_line)
+    # list travelers
+    for count, line in enumerate(travelers_line):
+        traveler_name, x, y, speed = parse.fileline_traveler(line, file_name, count)
+        to_compute_data["traveler"].append({"name": traveler_name, "x": x, "y": y, "speed": speed})
+
+    # list peaks and prepare arcs
+    nb_peak = len(peaks_line) * 2  # TEMPORARY : one origin = one dest
     for count, line in enumerate(peaks_line):
-        peak_name, x, y, origin, link, max_cost = parse.fileline_data(line, file_name, count)
+        origin, dests = line.split(" - ")
+
+        peak_name, x, y = parse.fileline_origin(origin, file_name, count)
 
         local_data.append({"name": peak_name, "x": x, "y": y})
 
-        to_compute_data["peak"].append({"origin": origin, "link": link, "maxCost": max_cost})
+        origin_id = len(to_compute_data["peak"])
+        to_compute_data["peak"].append({"origin": 1, "link": [], "maxCost": 0})
 
         arc_line = [Arc(x, y) for _ in range(nb_peak)]
         to_compute_data["arc"].append(arc_line)
 
+        if type(dests) is not list:
+            dests = [dests]
+        for p_count, peak in enumerate(dests):
+            peak_name, x, y, qty, max_cost = parse.fileline_dest(peak, file_name, count, p_count)
+
+            local_data.append({"name": peak_name, "x": x, "y": y})
+
+            to_compute_data["peak"][origin_id]["link"].append(len(to_compute_data["peak"]))
+            to_compute_data["peak"].append({"origin": 0, "link": origin_id, "qty": qty, "maxCost": max_cost})
+
+            arc_line = [Arc(x, y) for _ in range(nb_peak)]
+            to_compute_data["arc"].append(arc_line)
+
+    # compute arcs
     for count, peak in enumerate(local_data):
+        print("begin matrix", count)
         for i in range(nb_peak):
+            print("begin vector", count, i)
             arc = to_compute_data["arc"][i][count]
             dist = arc.set_peakDest(peak["x"], peak["y"]).compute_distance()
             to_compute_data["arc"][i][count] = dist
-
-
-    nb_travelers = len(travelers_line)
-    for count, line in enumerate(travelers_line):
-        traveler_name, x, y, speed = parse.fileline_traveler(line, file_name, count)
-        print(traveler_name, x, y, speed)
-        to_compute_data["traveler"].append({"name":traveler_name,"x": x,"y": y,"speed": speed})
-
-    names = [x['name'] for x in local_data]
-    for peak in to_compute_data["peak"]:
-        peak["link"] = names.index(peak["link"])
+            print("end   vector", count, i)
+        print("end   matrix", count)
 
     return local_data, to_compute_data
 
 
 async def execute_heuristic(data, batch_size, exe_path, nb_process):
-    print(data)
     data = str(data).replace("'", '"')
     batch_size = str(batch_size)
     running_procs = [Popen([exe_path, str(os.getpid()+id), data, batch_size],
@@ -85,7 +110,6 @@ async def execute_heuristic(data, batch_size, exe_path, nb_process):
             print(lines[1:])
             continue
 
-        print(data)
         data = lines[1][:-1]
 
         # preprocess results rather than sleep
