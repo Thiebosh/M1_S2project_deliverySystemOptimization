@@ -40,8 +40,8 @@ def user_args(path):
     return args.file_name, file_path, heuristic_inputs, args.result_name
 
 
-def fileline_data(arc, file_name, line):
-    parser = argparse.ArgumentParser(f"Parsing line {line+1} of file '{file_name}'")
+def fileline_data(arc, file_name, lineNb):
+    parser = argparse.ArgumentParser(f"Parsing line {lineNb+1} of file '{file_name}'")
     parser.add_argument("peak_name", type=str)
     parser.add_argument("x", type=float)
     parser.add_argument("y", type=float)
@@ -54,6 +54,7 @@ def fileline_data(arc, file_name, line):
         parser.error("max_cost value must be greater or equal to 0")
 
     return args.peak_name, args.x, args.y, args.origin, args.link, args.max_cost
+
 
 def fileline_traveler(line, file_name, lineNb):
     parser = argparse.ArgumentParser(f"Parsing line {lineNb+1} of file '{file_name}'")

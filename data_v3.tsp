@@ -1,5 +1,3 @@
-
-
 name,x,y,speed
 traveler1,0,0,15
 traveler2,0,1,20

@@ -19,10 +19,10 @@ def load_data(file_name, file_path):
         with open(file_path) as file:
             all_lines = [line for line in file.readlines()]
 
-        last = 0
+        last = -1
         data_lines = []
         for id in [id for id, line in enumerate(all_lines) if re.match(r"^\s*$", line)]:  # empty_lines : only spaces or \t, \r, \n
-            if id != 0 and id-1 != last:
+            if id > last and id-1 != last:
                 data_lines.append((last+1, id))
             last = id
 
@@ -53,7 +53,7 @@ def load_data(file_name, file_path):
 
     for count, line in enumerate(travelers_line):
         traveler_name, x, y, speed = parse.fileline_traveler(line, file_name, count)
-        to_compute_data["traveler"].append({"name":traveler_name,"x": x,"y": y,"speed": speed})
+        to_compute_data["traveler"].append({"name":traveler_name, "x": x, "y": y, "speed": speed})
 
     names = [x['name'] for x in local_data]
     for peak in to_compute_data["peak"]:
