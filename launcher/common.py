@@ -17,6 +17,7 @@ def load_data(file_name, file_path):
 
     try:
         with open(file_path) as file:
+            file.readline()  # throw headers line
             all_lines = [line for line in file.readlines() if not re.match(r"^\s*$", line)]  # remove if only spaces or \t, \r, \n
     except Exception as e:
         print(f"Data acquisition error : {e}")
@@ -24,11 +25,11 @@ def load_data(file_name, file_path):
 
     nb_peak = len(all_lines)
     for count, line in enumerate(all_lines):
-        peak_name, x, y, max_cost = parse.fileline_data(line, file_name, count)
+        peak_name, x, y, origin, link, max_cost = parse.fileline_data(line, file_name, count)
 
         local_data.append({"name": peak_name, "x": x, "y": y})
 
-        to_compute_data["peak"].append({"maxCost": max_cost})
+        to_compute_data["peak"].append({"origin": origin, "link": link, "maxCost": max_cost})
 
         arc_line = [Arc(x, y) for _ in range(nb_peak)]
         to_compute_data["arc"].append(arc_line)
@@ -38,6 +39,10 @@ def load_data(file_name, file_path):
             arc = to_compute_data["arc"][i][count]
             dist = arc.set_peakDest(peak["x"], peak["y"]).compute_distance()
             to_compute_data["arc"][i][count] = dist
+
+    names = [x['name'] for x in local_data]
+    for peak in to_compute_data["peak"]:
+        peak["link"] = names.index(peak["link"])
 
     return local_data, to_compute_data
 
@@ -69,6 +74,7 @@ async def execute_heuristic(data, batch_size, exe_path, nb_process):
             print(lines[1:])
             continue
 
+        print(data)
         data = lines[1][:-1]
 
         # preprocess results rather than sleep

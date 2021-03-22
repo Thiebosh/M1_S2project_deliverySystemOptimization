@@ -1,6 +1,7 @@
 import os
 import re
 import argparse
+from distutils.util import strtobool
 
 
 def user_args(path):
@@ -44,10 +45,12 @@ def fileline_data(arc, file_name, line):
     parser.add_argument("peak_name", type=str)
     parser.add_argument("x", type=float)
     parser.add_argument("y", type=float)
-    parser.add_argument("max_cost", type=float)
+    parser.add_argument("origin", type=lambda x: strtobool(x))  # wrap into bool for real object but break program
+    parser.add_argument("link", type=str)
+    parser.add_argument("max_cost", type=float, nargs='?', default=0.0)
     args = parser.parse_args(arc.replace('\n', '').split(','))
 
     if args.max_cost < 0:
         parser.error("max_cost value must be greater or equal to 0")
 
-    return args.peak_name, args.x, args.y, args.max_cost
+    return args.peak_name, args.x, args.y, args.origin, args.link, args.max_cost
