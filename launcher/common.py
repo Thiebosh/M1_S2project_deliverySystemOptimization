@@ -3,30 +3,13 @@ import asyncio
 import time
 import re
 import os
+import copy
+import matplotlib.pyplot as plt
+import numpy as np
+
 import parse
 from Arc import Arc
-import copy
 
-def remove_duplicates_from_results(res):
-    returnedArray = list()
-    for data in res:
-        dataCpy = copy.deepcopy(data)
-        path = dataCpy[1]
-        path.pop()
-        pathReversed = list(reversed(path))
-        pathExists = False
-        for i in range(len(path)):
-            path.insert(0,path.pop())
-            pathReversed.insert(0,pathReversed.pop())
-            for existingData in returnedArray:
-                if existingData[1][:-1] == path or existingData[1][:-1] == pathReversed:
-                    pathExists = True
-                    break
-            if pathExists:
-                break
-        if not pathExists:
-            returnedArray.append(data)
-    return returnedArray
 
 def load_data(file_name, file_path):
     local_data = []
@@ -59,16 +42,6 @@ def load_data(file_name, file_path):
     return local_data, to_compute_data
 
 
-def format_sort_result(data):
-    results = []
-
-    for line in data:
-        sep = line.split(";")
-        results.append((float(sep[0]), [int(x) for x in sep[1].split(",")]))
-
-    return remove_duplicates_from_results(sorted(results, key=lambda x: x[0]))
-
-
 async def execute_heuristic(data, batch_size, exe_path, nb_process):
     data = str(data).replace("'", '"')
     batch_size = str(batch_size)
@@ -97,10 +70,82 @@ async def execute_heuristic(data, batch_size, exe_path, nb_process):
             continue
 
         data = lines[1][:-1]
-        if data not in results:
-            results.append(data)
+
+        # preprocess results rather than sleep
+        results = make_unique(data, results)
 
     time2 = time.time()
     print(f'heuristics executions took {(time2-time1)*1000.0:.3f} ms\n')
 
-    return format_sort_result(results)
+    return sorted(format_result(results), key=lambda x: x[0])
+
+
+def make_unique(data, current):
+    dist, path = data.split(";")
+    dist = float(dist)
+
+    # generate match list
+    comparing = [(path in f"{x[1]},{x[1]}") for x in current]
+
+    # no match
+    if len(comparing) == 0 or not comparing.__contains__(True):
+        current.append((dist, path))
+
+    else:  # match: replace if shorter
+        index = comparing.index(True)
+        if current[index][0] > dist:
+            current[index] = (dist, path)
+
+    return current
+
+
+def format_result(data):
+    results = []
+    for dist, path in data:
+        results.append((dist, [int(x) for x in path.split(",")]))
+
+    return results
+
+
+def make_graph(local_data, results, result_name):
+    cities = []
+    for i in range(len(results[0][1])-1):
+        x = local_data[i]["x"]
+        y = local_data[i]["y"]
+        cities.append([x, y])
+
+    minX = min([coord[0] for coord in cities])
+    maxX = max([coord[0] for coord in cities])
+    minY = min([coord[1] for coord in cities])
+    maxY = max([coord[1] for coord in cities])
+
+    nb_graph = min(5, len(results))
+    fig, axes = plt.subplots(figsize=(10, 10), ncols=nb_graph, sharey=True)
+    if type(axes) is not np.ndarray:
+        axes = [axes]
+
+    for idGraph, axe in enumerate(axes):
+        axe.set_box_aspect(1)
+        axe.title.set_text(f"{str(results[idGraph][0])}km\n{str([x+1 for x in results[idGraph][1]])[1:-1]}")
+        axe.set_xlim(minX-1, maxX+1)
+        axe.set_ylim(minY-1, maxY+1)
+
+        for i in range(len(results[0][1])-1):
+            x = local_data[i]["x"]
+            y = local_data[i]["y"]
+            axe.scatter(x, y, c="black")
+            axe.text(x, y+0.5, local_data[i]["name"])
+
+        for idCity, city in enumerate(results[idGraph][1]):
+            index = (0 if idCity == len(results[idGraph][1])-1 else idCity+1)
+            nexCity = cities[results[idGraph][1][index]]
+            city = cities[city]
+            axe.arrow(city[0], city[1], nexCity[0]-city[0], nexCity[1]-city[1],
+                      head_width=0.15*nb_graph, head_length=0.35*nb_graph,
+                      length_includes_head=True, color="red")
+
+        origin = local_data[results[idGraph][1][0]]
+        axe.scatter(origin["x"], origin["y"], c="blue")
+
+    fig.savefig(result_name)
+    plt.show()
