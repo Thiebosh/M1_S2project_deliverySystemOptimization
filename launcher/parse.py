@@ -40,7 +40,7 @@ def user_args(path):
     return args.file_name, file_path, heuristic_inputs, args.result_name
 
 
-def fileline_data(arc, file_name, lineNb):
+def fileline_peak(arc, file_name, lineNb):
     parser = argparse.ArgumentParser(f"Parsing line {lineNb+1} of file '{file_name}'")
     parser.add_argument("peak_name", type=str)
     parser.add_argument("x", type=float)

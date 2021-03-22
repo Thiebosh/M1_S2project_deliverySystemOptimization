@@ -13,8 +13,9 @@ from Arc import Arc
 
 def load_data(file_name, file_path):
     local_data = []
-    to_compute_data = {"peak": [], "arc": [],"traveler": []}
+    to_compute_data = {"traveler": [], "peak": [], "arc": []}
 
+    # read file
     try:
         with open(file_path) as file:
             all_lines = [line for line in file.readlines()]
@@ -34,9 +35,15 @@ def load_data(file_name, file_path):
         print(f"Data acquisition error : {e}")
         exit()
 
+    # list travelers
+    for count, line in enumerate(travelers_line):
+        traveler_name, x, y, speed = parse.fileline_traveler(line, file_name, count)
+        to_compute_data["traveler"].append({"name":traveler_name, "x": x, "y": y, "speed": speed})
+
+    # list peaks and prepare arcs
     nb_peak = len(peaks_line)
     for count, line in enumerate(peaks_line):
-        peak_name, x, y, origin, link, max_cost = parse.fileline_data(line, file_name, count)
+        peak_name, x, y, origin, link, max_cost = parse.fileline_peak(line, file_name, count)
 
         local_data.append({"name": peak_name, "x": x, "y": y})
 
@@ -45,19 +52,16 @@ def load_data(file_name, file_path):
         arc_line = [Arc(x, y) for _ in range(nb_peak)]
         to_compute_data["arc"].append(arc_line)
 
+    names = [x['name'] for x in local_data]
+    for peak in to_compute_data["peak"]:
+        peak["link"] = names.index(peak["link"])
+
+    # compute arcs
     for count, peak in enumerate(local_data):
         for i in range(nb_peak):
             arc = to_compute_data["arc"][i][count]
             dist = arc.set_peakDest(peak["x"], peak["y"]).compute_distance()
             to_compute_data["arc"][i][count] = dist
-
-    for count, line in enumerate(travelers_line):
-        traveler_name, x, y, speed = parse.fileline_traveler(line, file_name, count)
-        to_compute_data["traveler"].append({"name":traveler_name, "x": x, "y": y, "speed": speed})
-
-    names = [x['name'] for x in local_data]
-    for peak in to_compute_data["peak"]:
-        peak["link"] = names.index(peak["link"])
 
     return local_data, to_compute_data
 
