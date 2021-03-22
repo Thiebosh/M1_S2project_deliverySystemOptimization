@@ -3,13 +3,13 @@ import asyncio
 import math
 
 from parse import user_args
-from common import load_data, execute_heuristic, make_graph
-
+from common import load_data, execute_heuristic
+from graph import make_graph
 
 if __name__ == "__main__":
     path = str(pathlib.Path(__file__).parent.absolute())+"\\"
 
-    file_name, file_path, heuristic_inputs, result_name = user_args(path)
+    file_name, file_path, heuristic_inputs, result_name, save_gif = user_args(path)
 
     local_data, to_compute = load_data(file_name, file_path)
     results = asyncio.run(execute_heuristic(to_compute, *heuristic_inputs))
@@ -21,4 +21,4 @@ if __name__ == "__main__":
         travel = travel.replace("', '", " -> ")
         print(f"- {distance:{max_digits+3}.2f}km for {travel}")  # +3 => '.xx'
 
-    make_graph(local_data, results, result_name)
+    make_graph(local_data, results, result_name, save_gif)
