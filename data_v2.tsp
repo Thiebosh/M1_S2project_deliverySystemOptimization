@@ -5,3 +5,6 @@ pic4,7,3,0
 pic5,8,14,0
 pic6,10,7,0
 pic7,3,2,0
+
+traveler1,0,0,15
+traveler2,0,1,20
