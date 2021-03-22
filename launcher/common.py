@@ -4,9 +4,10 @@ import time
 import re
 import os
 import copy
-import matplotlib.pyplot as plt
 import numpy as np
 
+
+import graph
 import parse
 from Arc import Arc
 
@@ -144,45 +145,6 @@ def format_result(data):
     return results
 
 
-def make_graph(local_data, results, result_name):
-    cities = []
-    for i in range(len(results[0][1])-1):
-        x = local_data[i]["x"]
-        y = local_data[i]["y"]
-        cities.append([x, y])
 
-    minX = min([coord[0] for coord in cities])
-    maxX = max([coord[0] for coord in cities])
-    minY = min([coord[1] for coord in cities])
-    maxY = max([coord[1] for coord in cities])
 
-    nb_graph = min(5, len(results))
-    fig, axes = plt.subplots(figsize=(10, 10), ncols=nb_graph, sharey=True)
-    if type(axes) is not np.ndarray:
-        axes = [axes]
-
-    for idGraph, axe in enumerate(axes):
-        axe.set_box_aspect(1)
-        axe.title.set_text(f"{str(results[idGraph][0])}km\n{str([x+1 for x in results[idGraph][1]])[1:-1]}")
-        axe.set_xlim(minX-1, maxX+1)
-        axe.set_ylim(minY-1, maxY+1)
-
-        for i in range(len(results[0][1])-1):
-            x = local_data[i]["x"]
-            y = local_data[i]["y"]
-            axe.scatter(x, y, c="black")
-            axe.text(x, y+0.5, local_data[i]["name"])
-
-        for idCity, city in enumerate(results[idGraph][1]):
-            index = (0 if idCity == len(results[idGraph][1])-1 else idCity+1)
-            nexCity = cities[results[idGraph][1][index]]
-            city = cities[city]
-            axe.arrow(city[0], city[1], nexCity[0]-city[0], nexCity[1]-city[1],
-                      head_width=0.15*nb_graph, head_length=0.35*nb_graph,
-                      length_includes_head=True, color="red")
-
-        origin = local_data[results[idGraph][1][0]]
-        axe.scatter(origin["x"], origin["y"], c="blue")
-
-    fig.savefig(result_name)
-    plt.show()
+    

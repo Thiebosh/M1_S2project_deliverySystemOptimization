@@ -170,3 +170,7 @@ dmypy.json
 *.out
 *.app
 savedFile.png
+
+*.gif
+
+*.png
