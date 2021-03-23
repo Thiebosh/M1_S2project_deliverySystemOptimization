@@ -34,13 +34,16 @@ def load_data(file_name, file_path):
         print(f"Data acquisition error : {e}")
         exit()
 
+    nb_traveler = len(travelers_line)
+    nb_peak = len(peaks_line) + sum([x.count(" - ") for x in peaks_line])
+
     # list travelers
     for count, line in enumerate(travelers_line):
         traveler_name, x, y, speed, qty = parse.fileline_traveler(line, file_name, count)
-        to_compute_data["traveler"].append({"name": traveler_name, "x": x, "y": y, "speed": speed, "qty": qty})
+        arc = [Arc(x, y) for _ in range(nb_peak)]
+        to_compute_data["traveler"].append({"name": traveler_name, "x": x, "y": y, "arc": arc, "speed": speed, "qty": qty})
 
     # list peaks and prepare arcs
-    nb_peak = len(peaks_line) + sum([x.count(" - ") for x in peaks_line])
     for count, line in enumerate(peaks_line):
         peaks = line.split(" - ")
         origin = peaks[0]
@@ -69,6 +72,11 @@ def load_data(file_name, file_path):
 
     # compute arcs
     for count, peak in enumerate(local_data):
+        for i in range(nb_traveler):
+            arc = to_compute_data["traveler"][i]["arc"][count]
+            dist = arc.set_peakDest(peak["x"], peak["y"]).compute_distance()
+            to_compute_data["traveler"][i]["arc"][count] = dist
+
         for i in range(nb_peak):
             arc = to_compute_data["arc"][i][count]
             dist = arc.set_peakDest(peak["x"], peak["y"]).compute_distance()
