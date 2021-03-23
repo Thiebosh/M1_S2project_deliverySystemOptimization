@@ -39,8 +39,8 @@ def load_data(file_name, file_path):
 
     # list travelers
     for count, line in enumerate(travelers_line):
-        traveler_name, x, y, speed = parse.fileline_traveler(line, file_name, count)
-        to_compute_data["traveler"].append({"name": traveler_name, "x": x, "y": y, "speed": speed})
+        traveler_name, x, y, speed, qty = parse.fileline_traveler(line, file_name, count)
+        to_compute_data["traveler"].append({"name": traveler_name, "x": x, "y": y, "speed": speed, "qty": qty})
 
     # list peaks and prepare arcs
     nb_peak = len(peaks_line) * 2  # TEMPORARY : one origin = one dest
@@ -82,6 +82,7 @@ def load_data(file_name, file_path):
 
 async def execute_heuristic(data, batch_size, exe_path, nb_process):
     data = str(data).replace("'", '"')
+    print(data)
     batch_size = str(batch_size)
     running_procs = [Popen([exe_path, str(os.getpid()+id), data, batch_size],
                      stdout=PIPE, stderr=PIPE, text=True)

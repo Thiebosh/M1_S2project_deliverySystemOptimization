@@ -3,6 +3,7 @@ import re
 import argparse
 from distutils.util import strtobool
 
+
 def user_args(path):
     path = path[:path.rfind("launcher\\")]
     engine_path = path + "core\\"
@@ -55,17 +56,17 @@ def fileline_dest(arc, file_name, lineNb, destNb):
     parser.add_argument("peak_name", type=str)
     parser.add_argument("x", type=float)
     parser.add_argument("y", type=float)
-    parser.add_argument("quantity", type=int, nargs='?', default=0)
+    parser.add_argument("qty", type=int, nargs='?', default=0)
     parser.add_argument("max_cost", type=float, nargs='?', default=0.0)
     args = parser.parse_args(arc.replace('\n', '').split(','))
 
-    if args.quantity < 1:
+    if args.qty < 1:
         parser.error("quantity value must be greater or equal to 1")
 
     if args.max_cost < 0:
         parser.error("max_cost value must be greater or equal to 0")
 
-    return args.peak_name, args.x, args.y, args.quantity, args.max_cost
+    return args.peak_name, args.x, args.y, args.qty, args.max_cost
 
 
 def fileline_traveler(line, file_name, lineNb):
@@ -74,6 +75,7 @@ def fileline_traveler(line, file_name, lineNb):
     parser.add_argument("x", type=float)
     parser.add_argument("y", type=float)
     parser.add_argument("speed", type=float)
+    parser.add_argument("qty", type=float)
     args = parser.parse_args(line.replace('\n', '').split(','))
 
-    return args.traveler_name, args.x, args.y, args.speed
+    return args.traveler_name, args.x, args.y, args.speed, args.qty
