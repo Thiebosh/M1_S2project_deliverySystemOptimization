@@ -1,13 +1,10 @@
 from subprocess import Popen, PIPE
 import asyncio
 import time
+import math
 import re
 import os
-import copy
-import numpy as np
 
-
-import graph
 import parse
 from Arc import Arc
 
@@ -43,9 +40,11 @@ def load_data(file_name, file_path):
         to_compute_data["traveler"].append({"name": traveler_name, "x": x, "y": y, "speed": speed, "qty": qty})
 
     # list peaks and prepare arcs
-    nb_peak = len(peaks_line) * 2  # TEMPORARY : one origin = one dest
+    nb_peak = len(peaks_line) + sum([x.count(" - ") for x in peaks_line])
     for count, line in enumerate(peaks_line):
-        origin, dests = line.split(" - ")
+        peaks = line.split(" - ")
+        origin = peaks[0]
+        dests = peaks[1:] if type(peaks[1:]) is list else [peaks[1:]]
 
         peak_name, x, y = parse.fileline_origin(origin, file_name, count)
 
@@ -57,8 +56,6 @@ def load_data(file_name, file_path):
         arc_line = [Arc(x, y) for _ in range(nb_peak)]
         to_compute_data["arc"].append(arc_line)
 
-        if type(dests) is not list:
-            dests = [dests]
         for p_count, peak in enumerate(dests):
             peak_name, x, y, qty, max_cost = parse.fileline_dest(peak, file_name, count, p_count)
 
@@ -81,8 +78,7 @@ def load_data(file_name, file_path):
 
 
 async def execute_heuristic(data, batch_size, exe_path, nb_process):
-    data = str(data).replace("'", '"')
-    print(data)
+    data = str(data).replace("'", '"')  # print raw string ?
     batch_size = str(batch_size)
     running_procs = [Popen([exe_path, str(os.getpid()+id), data, batch_size],
                      stdout=PIPE, stderr=PIPE, text=True)
@@ -123,15 +119,15 @@ def make_unique(data, current):
     dist, path = data.split(";")
     dist = float(dist)
 
-    # generate match list
-    comparing = [(path in f"{x[1]},{x[1]}") for x in current]
+    # generate match list (-2 because return to first peak and string)
+    comparing_all = [(path[:-2] in f"{x[1][:-2]},{x[1][:-2]}" or path[:-2] in f"{x[1][:-2]},{x[1][:-2]}"[::-1]) for x in current]
 
     # no match
-    if len(comparing) == 0 or not comparing.__contains__(True):
+    if len(comparing_all) == 0 or not comparing_all.__contains__(True):
         current.append((dist, path))
 
     else:  # match: replace if shorter
-        index = comparing.index(True)
+        index = comparing_all.index(True)
         if current[index][0] > dist:
             current[index] = (dist, path)
 
@@ -146,6 +142,10 @@ def format_result(data):
     return results
 
 
-
-
-    
+def print_results(local_data, results):
+    print(f"We get {len(results)} distinc(s) peaks travel(s) order(s) :")
+    max_digits = 1+int(math.log10(int(results[-1][0])))  # greater nb of digits
+    for distance, travel in results:
+        travel = str([local_data[x]["name"] for x in travel])[1:-1]
+        travel = travel.replace("', '", " -> ")
+        print(f"- {distance:{max_digits+3}.2f}km for {travel}")  # +3 => '.xx'
