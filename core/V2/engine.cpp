@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     // start here
 
 	// declare result tab
-	vector<int> path(inputData["peak"].size()+1, 0);
+	vector<int> path(inputData["peak"].size(), 0);
 
 	findsolution(id, inputData, batch_size, path);
 
@@ -54,12 +54,17 @@ int main(int argc, char* argv[]) {
 void findsolution(int id, json input, int nbClosest, vector<int>& currSolution) {
 	// build list of unselected peaks
 	vector<int> remainingPeaks;
-	for(int i=0; i < input["peak"].size(); ++i) remainingPeaks.push_back(i);
+	for(int i=0; i < input["peak"].size(); ++i){
+		if (input["peak"][i]["origin"]==1){
+			remainingPeaks.push_back(i);
+		}
+	}
 
 	// select first peak
 	int currentPeak = rand() % remainingPeaks.size();
 	currSolution[0] = remainingPeaks[currentPeak];
 	remainingPeaks.erase(remainingPeaks.begin() + currentPeak);
+	remainingPeaks.push_back(currSolution[0]+1);
 
 	// select next peak while some remains unselected
 	int currRank = 1;
@@ -89,6 +94,13 @@ void findsolution(int id, json input, int nbClosest, vector<int>& currSolution) 
 				break;
 			}
 		}
+
+		//add the destination associated to the chosed peak (if the chose peak is an origin)
+		if (input["peak"][currentPeak]["origin"]==1){
+			remainingPeaks.push_back(currentPeak+1);
+		}
+		
+
 	}
 	currSolution[input["peak"].size()] = currSolution[0];
 }

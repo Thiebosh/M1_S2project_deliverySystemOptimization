@@ -104,10 +104,11 @@ async def execute_heuristic(data, batch_size, exe_path, nb_process):
             print(lines[1:])
             continue
 
-        data = lines[1][:-1]
+        seed = lines[1][:-1]
+        data = lines[2][:-1]
 
         # preprocess results rather than sleep
-        results = make_unique(data, results)
+        results = make_unique(seed, data, results)
 
     time2 = time.time()
     print(f'heuristics executions took {(time2-time1)*1000.0:.3f} ms\n')
@@ -115,37 +116,39 @@ async def execute_heuristic(data, batch_size, exe_path, nb_process):
     return sorted(format_result(results), key=lambda x: x[0])
 
 
-def make_unique(data, current):
+def make_unique(seed, data, current):
     dist, path = data.split(";")
     dist = float(dist)
+    seed = int(seed)
 
     # generate match list (-2 because return to first peak and string)
-    comparing_all = [(path[:-2] in f"{x[1][:-2]},{x[1][:-2]}" or path[:-2] in f"{x[1][:-2]},{x[1][:-2]}"[::-1]) for x in current]
+    comparing_all = [(path in f"{x[1]},{x[1]}" or path in f"{x[1]},{x[1]}"[::-1]) for x in current]
 
     # no match
     if len(comparing_all) == 0 or not comparing_all.__contains__(True):
-        current.append((dist, path))
+        current.append((dist, path, seed))
 
     else:  # match: replace if shorter
         index = comparing_all.index(True)
         if current[index][0] > dist:
-            current[index] = (dist, path)
+            current[index] = (dist, path, seed)
 
     return current
 
 
 def format_result(data):
     results = []
-    for dist, path in data:
-        results.append((dist, [int(x) for x in path.split(",")]))
+    for dist, path, seed in data:
+        results.append((dist, [int(x) for x in path.split(",")], seed))
 
     return results
 
 
 def print_results(local_data, results):
     print(f"We get {len(results)} distinc(s) peaks travel(s) order(s) :")
-    max_digits = 1+int(math.log10(int(results[-1][0])))  # greater nb of digits
-    for distance, travel in results:
+    max_digits_dist = 1+int(math.log10(int(results[-1][0])))  # greater nb of digits
+    max_digits_seed = 4  # greater nb of digits
+    for distance, travel, seed in results:
         travel = str([local_data[x]["name"] for x in travel])[1:-1]
         travel = travel.replace("', '", " -> ")
-        print(f"- {distance:{max_digits+3}.2f}km for {travel}")  # +3 => '.xx'
+        print(f"- seed : {seed:{max_digits_seed}d} -> {distance:{max_digits_dist+3}.2f}km for {travel}")  # +3 => '.xx'
