@@ -7,8 +7,8 @@ def make_graph(local_data, results, result_name, save_gif):
     cities = []
 
     for i in range(len(results[0][1])):
-        x = local_data[i]["x"]
-        y = local_data[i]["y"]
+        x = local_data["peak"][i]["x"]
+        y = local_data["peak"][i]["y"]
         cities.append([x, y])
 
     minX = min([coord[0] for coord in cities])
@@ -35,14 +35,14 @@ def make_graph(local_data, results, result_name, save_gif):
         axes2.set_ylim(minY-1, maxY+1)
 
         for i in range(len(results[0][1])):
-            x = local_data[i]["x"]
-            y = local_data[i]["y"]
+            x = local_data["peak"][i]["x"]
+            y = local_data["peak"][i]["y"]
             axe1.scatter(x, y, c="black")
             axes2.scatter(x, y, c="black")
-            axe1.text(x, y+0.5, local_data[i]["name"])
-            axes2.text(x, y+0.5, local_data[i]["name"])
+            axe1.text(x, y+0.5, local_data["peak"][i]["name"])
+            axes2.text(x, y+0.5, local_data["peak"][i]["name"])
 
-        origin = local_data[results[idGraph][1][0]]
+        origin = local_data["peak"][results[idGraph][1][0]]
         axe1.scatter(origin["x"], origin["y"], c="blue")
         axes2.scatter(origin["x"], origin["y"], c="blue")
 
@@ -66,7 +66,7 @@ def make_graph(local_data, results, result_name, save_gif):
                 fig2.savefig(str(idGraph)+"_"+str(idCity)+".png")
                 fileNames.append(str(idGraph)+"_"+str(idCity)+".png")
 
-        dest = local_data[results[idGraph][1][-1]]
+        dest = local_data["peak"][results[idGraph][1][-1]]
         axe1.scatter(dest["x"], dest["y"], c="green")
         axes2.scatter(dest["x"], dest["y"], c="green")
 
