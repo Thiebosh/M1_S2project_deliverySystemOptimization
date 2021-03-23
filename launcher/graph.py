@@ -5,7 +5,8 @@ import os
 
 def make_graph(local_data, results, result_name, save_gif):
     cities = []
-    for i in range(len(results[0][1])-1):
+
+    for i in range(len(results[0][1])):
         x = local_data[i]["x"]
         y = local_data[i]["y"]
         cities.append([x, y])
@@ -51,6 +52,7 @@ def make_graph(local_data, results, result_name, save_gif):
 
         for idCity, city in enumerate(results[idGraph][1]):
             index = (0 if idCity == len(results[idGraph][1])-1 else idCity+1)
+        
             nexCity = cities[results[idGraph][1][index]]
             city = cities[city]
 

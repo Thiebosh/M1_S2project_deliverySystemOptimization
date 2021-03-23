@@ -14,5 +14,4 @@ if __name__ == "__main__":
     results = asyncio.run(execute_heuristic(to_compute, *heuristic_inputs))
 
     print_results(local_data, results)
-
-    #make_graph(local_data, results, result_name, save_gif)
+    make_graph(local_data, results, result_name, save_gif)
