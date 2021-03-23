@@ -5,6 +5,7 @@ import os
 
 def make_graph(local_data, results, result_name, save_gif):
     cities = []
+
     for i in range(len(results[0][1])):
         x = local_data[i]["x"]
         y = local_data[i]["y"]
