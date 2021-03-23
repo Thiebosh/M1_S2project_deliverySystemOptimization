@@ -18,5 +18,5 @@ class Arc:
         y = self.y2 - self.y1
         return round(math.sqrt(x*x + y*y), 2)
 
-    def get(self):
+    def print(self):
         print(self.x1, self.y1)
