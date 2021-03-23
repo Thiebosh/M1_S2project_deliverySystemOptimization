@@ -156,10 +156,15 @@ def format_result(data):
 
 
 def print_results(local_data, results):
-    print(f"We get {len(results)} distinc(s) peaks travel(s) order(s) :")
     max_digits_dist = 1+int(math.log10(int(results[-1][0])))  # greater nb of digits
     max_digits_seed = 1+int(math.log10(max([x[2] for x in results])))  # greater nb of digits
+
+    print(f"We get {len(results)} distinc(s) peaks travel(s) order(s) :")
     for distance, travel, seed in results:
         travel = str([local_data["peak"][x]["name"] for x in travel])[1:-1]
-        travel = travel.replace("', '", " -> ")
-        print(f"- (seed: {seed:{max_digits_seed}d}) {distance:{max_digits_dist+3}.2f}km for {travel}")  # +3 => '.xx'
+
+        a = f"{seed:{max_digits_seed}d}"
+        b = local_data['traveler'][0]['name']
+        c = f"{distance:{max_digits_dist+3}.2f}"  # +3 => '.xx'
+        d = travel.replace("', '", " -> ")
+        print(f"- (seed: {a}) {b} : {c}km with {d}")
