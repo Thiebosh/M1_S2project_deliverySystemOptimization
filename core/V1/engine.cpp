@@ -30,8 +30,10 @@ int main(int argc, char* argv[]) {
     json inputData = json::parse(argv[2]);
     int batch_size = atoi(argv[3]);
 
-    cout << id << endl;
-    srand(time(NULL) % id);
+	time_t seed = time(NULL) % id;
+    srand(seed);
+
+	cout << id << endl << seed << endl;
 
     // start here
 
