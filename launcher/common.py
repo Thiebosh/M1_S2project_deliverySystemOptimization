@@ -10,7 +10,7 @@ from Arc import Arc
 
 
 def load_data(file_name, file_path):
-    local_data = []
+    local_data = {"traveler": [], "peak": []}
     to_compute_data = {"traveler": [], "peak": [], "arc": []}
 
     # read file
@@ -40,8 +40,11 @@ def load_data(file_name, file_path):
     # list travelers
     for count, line in enumerate(travelers_line):
         traveler_name, x, y, speed, qty = parse.fileline_traveler(line, file_name, count)
+
+        local_data["traveler"].append({"name": traveler_name, "x": x, "y": y})
+
         arc = [Arc(x, y) for _ in range(nb_peak)]
-        to_compute_data["traveler"].append({"name": traveler_name, "x": x, "y": y, "arc": arc, "speed": speed, "qty": qty})
+        to_compute_data["traveler"].append({"arc": arc, "speed": speed, "qty": qty})
 
     # list peaks and prepare arcs
     for count, line in enumerate(peaks_line):
@@ -51,7 +54,7 @@ def load_data(file_name, file_path):
 
         peak_name, x, y = parse.fileline_origin(origin, file_name, count)
 
-        local_data.append({"name": peak_name, "x": x, "y": y})
+        local_data["peak"].append({"name": peak_name, "x": x, "y": y})
 
         origin_id = len(to_compute_data["peak"])
         to_compute_data["peak"].append({"origin": 1, "link": [], "maxCost": 0})
@@ -62,7 +65,7 @@ def load_data(file_name, file_path):
         for p_count, peak in enumerate(dests):
             peak_name, x, y, qty, max_cost = parse.fileline_dest(peak, file_name, count, p_count)
 
-            local_data.append({"name": peak_name, "x": x, "y": y})
+            local_data["peak"].append({"name": peak_name, "x": x, "y": y})
 
             to_compute_data["peak"][origin_id]["link"].append(len(to_compute_data["peak"]))
             to_compute_data["peak"].append({"origin": 0, "link": origin_id, "qty": qty, "maxCost": max_cost})
@@ -71,7 +74,7 @@ def load_data(file_name, file_path):
             to_compute_data["arc"].append(arc_line)
 
     # compute arcs
-    for count, peak in enumerate(local_data):
+    for count, peak in enumerate(local_data["peak"]):
         for i in range(nb_traveler):
             arc = to_compute_data["traveler"][i]["arc"][count]
             dist = arc.set_peakDest(peak["x"], peak["y"]).compute_distance()
@@ -153,10 +156,15 @@ def format_result(data):
 
 
 def print_results(local_data, results):
-    print(f"We get {len(results)} distinc(s) peaks travel(s) order(s) :")
     max_digits_dist = 1+int(math.log10(int(results[-1][0])))  # greater nb of digits
     max_digits_seed = 1+int(math.log10(max([x[2] for x in results])))  # greater nb of digits
+
+    print(f"We get {len(results)} distinc(s) peaks travel(s) order(s) :")
     for distance, travel, seed in results:
-        travel = str([local_data[x]["name"] for x in travel])[1:-1]
-        travel = travel.replace("', '", " -> ")
-        print(f"- (seed: {seed:{max_digits_seed}d}) {distance:{max_digits_dist+3}.2f}km for {travel}")  # +3 => '.xx'
+        travel = str([local_data["peak"][x]["name"] for x in travel])[1:-1]
+
+        a = f"{seed:{max_digits_seed}d}"
+        b = local_data['traveler'][0]['name']
+        c = f"{distance:{max_digits_dist+3}.2f}"  # +3 => '.xx'
+        d = travel.replace("', '", " -> ")
+        print(f"- (seed: {a}) {b} : {c}km with {d}")

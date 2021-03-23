@@ -56,7 +56,7 @@ def fileline_dest(arc, file_name, lineNb, destNb):
     parser.add_argument("peak_name", type=str)
     parser.add_argument("x", type=float)
     parser.add_argument("y", type=float)
-    parser.add_argument("qty", type=int, nargs='?', default=0)
+    parser.add_argument("qty", type=int, nargs='?', default=1)
     parser.add_argument("max_cost", type=float, nargs='?', default=0.0)
     args = parser.parse_args(arc.replace('\n', '').split(','))
 
@@ -74,8 +74,8 @@ def fileline_traveler(line, file_name, lineNb):
     parser.add_argument("traveler_name", type=str)
     parser.add_argument("x", type=float)
     parser.add_argument("y", type=float)
-    parser.add_argument("speed", type=float)
-    parser.add_argument("qty", type=float)
+    parser.add_argument("speed", type=float, nargs='?', default=1)
+    parser.add_argument("qty", type=int, nargs='?', default=1)
     args = parser.parse_args(line.replace('\n', '').split(','))
 
     return args.traveler_name, args.x, args.y, args.speed, args.qty
