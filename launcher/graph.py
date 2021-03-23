@@ -62,12 +62,14 @@ def make_graph(local_data, results, result_name, save_gif):
         city = [travel["x"], travel["y"]]
         nexCity = cities[results[idGraph][1][0]]
 
-        axe1.arrow(city[0], city[1], nexCity[0]-city[0], nexCity[1]-city[1],
-                    head_width=0.15*nb_graph, head_length=0.35*nb_graph,
-                    length_includes_head=True, color="red")
-        axes2.arrow(city[0], city[1], nexCity[0]-city[0], nexCity[1]-city[1],
-                    head_width=0.15*nb_graph, head_length=0.35*nb_graph,
-                    length_includes_head=True, color="red")
+        arr1 = axe1.arrow(city[0], city[1], nexCity[0]-city[0], nexCity[1]-city[1],
+                          head_width=0.15*nb_graph, head_length=0.35*nb_graph,
+                          length_includes_head=True, color="red")
+        arr2 = axes2.arrow(city[0], city[1], nexCity[0]-city[0], nexCity[1]-city[1],
+                           head_width=0.15*nb_graph, head_length=0.35*nb_graph,
+                           length_includes_head=True, color="red")
+        axe1.legend([arr1,], [local_data["traveler"][0]["name"],])
+        axes2.legend([arr2,], [local_data["traveler"][0]["name"],])
 
         # gif img
         if(save_gif):
