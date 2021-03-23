@@ -122,7 +122,7 @@ def make_unique(seed, data, current):
     seed = int(seed)
 
     # generate match list (-2 because return to first peak and string)
-    comparing_all = [(path[:-2] in f"{x[1][:-2]},{x[1][:-2]}" or path[:-2] in f"{x[1][:-2]},{x[1][:-2]}"[::-1]) for x in current]
+    comparing_all = [(path in f"{x[1]},{x[1]}" or path in f"{x[1]},{x[1]}"[::-1]) for x in current]
 
     # no match
     if len(comparing_all) == 0 or not comparing_all.__contains__(True):
