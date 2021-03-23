@@ -13,7 +13,6 @@ if __name__ == "__main__":
     local_data, to_compute = load_data(file_name, file_path)
     results = asyncio.run(execute_heuristic(to_compute, *heuristic_inputs))
 
-    print(len(results))
-    # print_results(local_data, results)
+    print_results(local_data, results)
 
-    # make_graph(local_data, results, result_name, save_gif)
+    make_graph(local_data, results, result_name, save_gif)
