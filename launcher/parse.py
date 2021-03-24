@@ -38,27 +38,49 @@ def user_args(path):
         args.result_name += ".png"
 
     heuristic_inputs = (args.batch_size, engine_path, args.nb_process)
-    return args.file_name, file_path, heuristic_inputs, args.result_name, args.save_gif
+    return file_path, heuristic_inputs, args.result_name, args.save_gif
 
 
-def fileline_origin(arc, file_name, lineNb):
-    parser = argparse.ArgumentParser(f"Parsing origin peak ({arc}) of line {lineNb+1} of file '{file_name}'")
-    parser.add_argument("peak_name", type=str)
+def traveler_line_parser():
+    parser = argparse.ArgumentParser("Parsing traveler")
+    parser.add_argument("name", type=str)
     parser.add_argument("x", type=float)
     parser.add_argument("y", type=float)
-    args = parser.parse_args(arc.replace('\n', '').split(','))
+    parser.add_argument("speed", type=float, nargs='?', default=1)
+    parser.add_argument("qty", type=int, nargs='?', default=1)
+    return parser
 
-    return args.peak_name, args.x, args.y
+
+def apply_traveler_parser(parser, line):
+    args = parser.parse_args(line.replace('\n', '').split(','))
+    return args.name, args.x, args.y, args.speed, args.qty
 
 
-def fileline_dest(arc, file_name, lineNb, destNb):
-    parser = argparse.ArgumentParser(f"Parsing dest {destNb} ({arc}) of line {lineNb+1} of file '{file_name}'")
-    parser.add_argument("peak_name", type=str)
+def origin_line_parser():
+    parser = argparse.ArgumentParser("Parsing origin peak")
+    parser.add_argument("name", type=str)
+    parser.add_argument("x", type=float)
+    parser.add_argument("y", type=float)
+    return parser
+
+
+def apply_origin_parser(parser, line):
+    args = parser.parse_args(line.replace('\n', '').split(','))
+    return args.name, args.x, args.y
+
+
+def dest_line_parser():
+    parser = argparse.ArgumentParser("Parsing dest peak")
+    parser.add_argument("name", type=str)
     parser.add_argument("x", type=float)
     parser.add_argument("y", type=float)
     parser.add_argument("qty", type=int, nargs='?', default=1)
     parser.add_argument("max_cost", type=float, nargs='?', default=0.0)
-    args = parser.parse_args(arc.replace('\n', '').split(','))
+    return parser
+
+
+def apply_dest_parser(parser, line):
+    args = parser.parse_args(line.replace('\n', '').split(','))
 
     if args.qty < 1:
         parser.error("quantity value must be greater or equal to 1")
@@ -66,16 +88,4 @@ def fileline_dest(arc, file_name, lineNb, destNb):
     if args.max_cost < 0:
         parser.error("max_cost value must be greater or equal to 0")
 
-    return args.peak_name, args.x, args.y, args.qty, args.max_cost
-
-
-def fileline_traveler(line, file_name, lineNb):
-    parser = argparse.ArgumentParser(f"Parsing line {lineNb+1} of file '{file_name}'")
-    parser.add_argument("traveler_name", type=str)
-    parser.add_argument("x", type=float)
-    parser.add_argument("y", type=float)
-    parser.add_argument("speed", type=float, nargs='?', default=1)
-    parser.add_argument("qty", type=int, nargs='?', default=1)
-    args = parser.parse_args(line.replace('\n', '').split(','))
-
-    return args.traveler_name, args.x, args.y, args.speed, args.qty
+    return args.name, args.x, args.y, args.qty, args.max_cost
