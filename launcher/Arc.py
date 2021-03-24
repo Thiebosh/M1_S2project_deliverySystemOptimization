@@ -1,9 +1,6 @@
 import math
-# from numba import float32
-# from numba.experimental import jitclass
 
 
-# @jitclass([('x1', float32), ('y1', float32), ('x2', float32), ('y2', float32)])
 class Arc:
     def __init__(self, x, y):
         self.x1 = x

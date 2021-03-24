@@ -14,15 +14,16 @@ def load_data(file_path):
     nb_traveler = len(travel_lines)
     nb_peak = len(peak_lines) + sum([x.count(" - ") for x in peak_lines])
 
-    local_data = {"traveler": [], "peak": []}
-    to_compute_data = {"traveler": [], "peak": [], "arc": []}
+    ids = {"local_peak": 0, "compute_peak": 0, "compute_arc": 0}
+    local_data = {"traveler": [0]*nb_traveler, "peak": [0]*nb_peak}
+    to_compute_data = {"traveler": [0]*nb_traveler, "peak": [0]*nb_peak, "arc": []}
 
     travel_parser = parse.traveler_line_parser()
     origin_parser = parse.origin_line_parser()
     dest_parser = parse.dest_line_parser()
 
     list_travelers(travel_parser, travel_lines, local_data, to_compute_data, nb_peak)
-    list_peaks_arcs(origin_parser, dest_parser, peak_lines, local_data, to_compute_data, nb_peak)
+    list_peaks_arcs(origin_parser, dest_parser, peak_lines, local_data, to_compute_data, nb_peak, ids)
 
     compute_arcs(local_data, to_compute_data, nb_traveler, nb_peak)
 
@@ -57,13 +58,13 @@ def list_travelers(parser, travel_lines, local_data, to_compute_data, nb_peak):
     for count, line in enumerate(travel_lines):
         name, x, y, speed, qty = parse.apply_traveler_parser(parser, line)
 
-        local_data["traveler"].append({"name": name, "x": x, "y": y})
+        local_data["traveler"][count] = {"name": name, "x": x, "y": y}
 
         arc = [Arc(x, y) for _ in range(nb_peak)]
-        to_compute_data["traveler"].append({"arc": arc, "speed": speed, "qty": qty})
+        to_compute_data["traveler"][count] = {"arc": arc, "speed": speed, "qty": qty}
 
 
-def list_peaks_arcs(parser, destin_parser, peak_lines, local_data, to_compute_data, nb_peak):
+def list_peaks_arcs(parser, destin_parser, peak_lines, local_data, to_compute_data, nb_peak, ids):
     for count, line in enumerate(peak_lines):
         peaks = line.split(" - ")
         origin = peaks[0]
@@ -71,28 +72,36 @@ def list_peaks_arcs(parser, destin_parser, peak_lines, local_data, to_compute_da
 
         name, x, y = parse.apply_origin_parser(parser, origin)
 
-        local_data["peak"].append({"name": name, "x": x, "y": y})
+        local_data["peak"][ids["local_peak"]] = {"name": name, "x": x, "y": y}
+        ids["local_peak"] += 1
 
-        origin_id = len(to_compute_data["peak"])
-        to_compute_data["peak"].append({"origin": 1, "link": [], "maxCost": 0})
+        origin_id = ids["compute_peak"]
+        to_compute_data["peak"][ids["compute_peak"]] = {"origin": 1, "link": [], "maxCost": 0}
+        ids["compute_peak"] += 1
 
         arc_line = [Arc(x, y) for _ in range(nb_peak)]
         to_compute_data["arc"].append(arc_line)
+        # to_compute_data["arc"][ids["compute_arc"]] = arc_line
+        # ids["compute_arc"] += 1
 
         for p_count, peak in enumerate(dests):
-            list_dests(destin_parser, local_data, to_compute_data, count, p_count, peak, origin_id, nb_peak)
+            list_dests(destin_parser, local_data, to_compute_data, count, p_count, peak, origin_id, nb_peak, ids)
 
 
-def list_dests(parser, local_data, to_compute_data, count, p_count, peak, origin_id, nb_peak):
+def list_dests(parser, local_data, to_compute_data, count, p_count, peak, origin_id, nb_peak, ids):
     name, x, y, qty, max_cost = parse.apply_dest_parser(parser, peak)
 
-    local_data["peak"].append({"name": name, "x": x, "y": y})
+    local_data["peak"][ids["local_peak"]] = {"name": name, "x": x, "y": y}
+    ids["local_peak"] += 1
 
     to_compute_data["peak"][origin_id]["link"].append(len(to_compute_data["peak"]))
-    to_compute_data["peak"].append({"origin": 0, "link": origin_id, "qty": qty, "maxCost": max_cost})
+    to_compute_data["peak"][ids["compute_peak"]] = {"origin": 0, "link": origin_id, "qty": qty, "maxCost": max_cost}
+    ids["compute_peak"] += 1
 
     arc_line = [Arc(x, y) for _ in range(nb_peak)]
     to_compute_data["arc"].append(arc_line)
+    # to_compute_data["arc"][ids["compute_arc"]] = arc_line
+    # ids["compute_arc"] += 1
 
 
 def compute_arcs(local_data, to_compute_data, nb_traveler, nb_peak):
