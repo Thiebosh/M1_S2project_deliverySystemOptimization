@@ -19,6 +19,9 @@ def make_graph(local_data, results, result_name, save_gif):
     fig, axes = plt.subplots(figsize=(10, 10), ncols=nb_graph, sharey=True)
     fig2, axe2 = plt.subplots()
 
+    if nb_graph == 1:
+        axes = [axes]
+
     for idGraph in range(nb_graph):
         axe2.clear()
         axe1 = axes[idGraph]
@@ -47,9 +50,9 @@ def make_graph(local_data, results, result_name, save_gif):
         axe2.scatter(travel["x"], travel["y"], c="red")
 
         # print final peak
-        dest = local_data["peak"][results[idGraph][1][-1]]
-        axe1.scatter(dest["x"], dest["y"], c="green")
-        axe2.scatter(dest["x"], dest["y"], c="green")
+        # dest = local_data["peak"][results[idGraph][1][-1]]
+        # axe1.scatter(dest["x"], dest["y"], c="green")
+        # axe2.scatter(dest["x"], dest["y"], c="green")
 
         # gif img
         fileNames = []
