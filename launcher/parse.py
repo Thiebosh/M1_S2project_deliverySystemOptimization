@@ -38,44 +38,50 @@ def user_args(path):
         args.result_name += ".png"
 
     heuristic_inputs = (args.batch_size, engine_path, args.nb_process)
-    return args.file_name, file_path, heuristic_inputs, args.result_name, args.save_gif
+    return file_path, heuristic_inputs, args.result_name, args.save_gif
 
 
-def fileline_origin(arc, file_name, lineNb):
-    parser = argparse.ArgumentParser(f"Parsing origin peak ({arc}) of line {lineNb+1} of file '{file_name}'")
-    parser.add_argument("peak_name", type=str)
-    parser.add_argument("x", type=float)
-    parser.add_argument("y", type=float)
-    args = parser.parse_args(arc.replace('\n', '').split(','))
+def traveler_line(line):  # peut remettre précision nom fichier, no ligne...
+    name, x, y, *optional = line.split(",")
 
-    return args.peak_name, args.x, args.y
+    try:
+        x = float(x)
+        y = float(y)
+        speed = float(optional[0]) if len(optional) >= 1 else 1.0
+        qty = int(optional[1]) if len(optional) >= 2 else 1
 
+    except Exception as e:
+        print(e)
+        exit()
 
-def fileline_dest(arc, file_name, lineNb, destNb):
-    parser = argparse.ArgumentParser(f"Parsing dest {destNb} ({arc}) of line {lineNb+1} of file '{file_name}'")
-    parser.add_argument("peak_name", type=str)
-    parser.add_argument("x", type=float)
-    parser.add_argument("y", type=float)
-    parser.add_argument("qty", type=int, nargs='?', default=1)
-    parser.add_argument("max_cost", type=float, nargs='?', default=0.0)
-    args = parser.parse_args(arc.replace('\n', '').split(','))
-
-    if args.qty < 1:
-        parser.error("quantity value must be greater or equal to 1")
-
-    if args.max_cost < 0:
-        parser.error("max_cost value must be greater or equal to 0")
-
-    return args.peak_name, args.x, args.y, args.qty, args.max_cost
+    return name, x, y, speed, qty
 
 
-def fileline_traveler(line, file_name, lineNb):
-    parser = argparse.ArgumentParser(f"Parsing line {lineNb+1} of file '{file_name}'")
-    parser.add_argument("traveler_name", type=str)
-    parser.add_argument("x", type=float)
-    parser.add_argument("y", type=float)
-    parser.add_argument("speed", type=float, nargs='?', default=1)
-    parser.add_argument("qty", type=int, nargs='?', default=1)
-    args = parser.parse_args(line.replace('\n', '').split(','))
+def origin_line(line):  # peut remettre précision nom fichier, no ligne...
+    name, x, y = line.split(",")
 
-    return args.traveler_name, args.x, args.y, args.speed, args.qty
+    try:
+        x = float(x)
+        y = float(y)
+
+    except Exception as e:
+        print(e)
+        exit()
+
+    return name, x, y
+
+
+def dest_line(line):  # peut remettre précision nom fichier, no ligne...
+    name, x, y, *optional = line.split(",")
+
+    try:
+        x = float(x)
+        y = float(y)
+        qty = int(optional[0]) if len(optional) >= 1 else 1
+        max_cost = float(optional[1]) if len(optional) >= 2 else 0.0
+
+    except Exception as e:
+        print(e)
+        exit()
+
+    return name, x, y, qty, max_cost
