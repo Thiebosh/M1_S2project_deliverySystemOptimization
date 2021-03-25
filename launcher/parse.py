@@ -41,51 +41,47 @@ def user_args(path):
     return file_path, heuristic_inputs, args.result_name, args.save_gif
 
 
-def traveler_line_parser():
-    parser = argparse.ArgumentParser("Parsing traveler")
-    parser.add_argument("name", type=str)
-    parser.add_argument("x", type=float)
-    parser.add_argument("y", type=float)
-    parser.add_argument("speed", type=float, nargs='?', default=1)
-    parser.add_argument("qty", type=int, nargs='?', default=1)
-    return parser
+def traveler_line(line):  # peut remettre précision nom fichier, no ligne...
+    name, x, y, *optional = line.split(",")
+
+    try:
+        x = float(x)
+        y = float(y)
+        speed = float(optional[0]) if len(optional) >= 1 else 1.0
+        qty = int(optional[1]) if len(optional) >= 2 else 1
+
+    except Exception as e:
+        print(e)
+        exit()
+
+    return name, x, y, speed, qty
 
 
-def apply_traveler_parser(parser, line):
-    args = parser.parse_args(line.replace('\n', '').split(','))
-    return args.name, args.x, args.y, args.speed, args.qty
+def origin_line(line):  # peut remettre précision nom fichier, no ligne...
+    name, x, y = line.split(",")
+
+    try:
+        x = float(x)
+        y = float(y)
+
+    except Exception as e:
+        print(e)
+        exit()
+
+    return name, x, y
 
 
-def origin_line_parser():
-    parser = argparse.ArgumentParser("Parsing origin peak")
-    parser.add_argument("name", type=str)
-    parser.add_argument("x", type=float)
-    parser.add_argument("y", type=float)
-    return parser
+def dest_line(line):  # peut remettre précision nom fichier, no ligne...
+    name, x, y, *optional = line.split(",")
 
+    try:
+        x = float(x)
+        y = float(y)
+        qty = int(optional[0]) if len(optional) >= 1 else 1
+        max_cost = float(optional[1]) if len(optional) >= 2 else 0.0
 
-def apply_origin_parser(parser, line):
-    args = parser.parse_args(line.replace('\n', '').split(','))
-    return args.name, args.x, args.y
+    except Exception as e:
+        print(e)
+        exit()
 
-
-def dest_line_parser():
-    parser = argparse.ArgumentParser("Parsing dest peak")
-    parser.add_argument("name", type=str)
-    parser.add_argument("x", type=float)
-    parser.add_argument("y", type=float)
-    parser.add_argument("qty", type=int, nargs='?', default=1)
-    parser.add_argument("max_cost", type=float, nargs='?', default=0.0)
-    return parser
-
-
-def apply_dest_parser(parser, line):
-    args = parser.parse_args(line.replace('\n', '').split(','))
-
-    if args.qty < 1:
-        parser.error("quantity value must be greater or equal to 1")
-
-    if args.max_cost < 0:
-        parser.error("max_cost value must be greater or equal to 0")
-
-    return args.name, args.x, args.y, args.qty, args.max_cost
+    return name, x, y, qty, max_cost

@@ -2,11 +2,16 @@ import math
 
 
 class Arc:
-    def __init__(self, x, y):
+    def __init__(self):
+        self.x1 = 0.0
+        self.y1 = 0.0
+        self.x2 = 0.0
+        self.y2 = 0.0
+
+    def set_peakInit(self, x, y):
         self.x1 = x
         self.y1 = y
-        self.x2 = 0
-        self.y2 = 0
+        return self
 
     def set_peakDest(self, x, y):
         self.x2 = x
