@@ -6,7 +6,7 @@ import os
 
 
 async def execute_heuristic(data, batch_size, exe_path, nb_process):
-    data = str(data).replace("'", '"')  # print raw string ?
+    data = str(data).replace("'", '"')
     batch_size = str(batch_size)
     running_procs = [Popen([exe_path, str(os.getpid()+id), data, batch_size],
                      stdout=PIPE, stderr=PIPE, text=True)

@@ -1,4 +1,10 @@
 import math
+from functools import lru_cache
+
+
+@lru_cache(maxsize=None)
+def distance(x, y):
+    return round(math.sqrt(x*x + y*y), 2)
 
 
 class Arc:
@@ -21,7 +27,7 @@ class Arc:
     def compute_distance(self):
         x = self.x2 - self.x1
         y = self.y2 - self.y1
-        return round(math.sqrt(x*x + y*y), 2)
+        return distance(x, y)
 
     def __repr__(self):
         return f"<({self.x1},{self.y1});({self.x2},{self.y2})>"
