@@ -3,6 +3,7 @@ import imageio
 import os
 import pathlib
 
+
 def make_graph(local_data, results, result_name, save_gif):
     # extract couple [x, y]
     cities = [(peak["x"], peak["y"]) for peak in local_data["peak"]]
@@ -90,7 +91,7 @@ def make_graph(local_data, results, result_name, save_gif):
 
         # assemble gif
         if(save_gif):
-            with imageio.get_writer(str(pathlib.Path(__file__).parent.absolute())+f"\..\output_images\graph_{idGraph}.gif", mode='I') as gifFile:
+            with imageio.get_writer(str(pathlib.Path(__file__).parent.absolute())+f"\\..\\output_images\\graph_{idGraph}.gif", mode='I') as gifFile:
                 for fileName in fileNames:
                     image = imageio.imread(fileName)
                     gifFile.append_data(image)

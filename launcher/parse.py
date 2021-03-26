@@ -47,7 +47,6 @@ def traveler_line(line):  # peut remettre précision nom fichier, no ligne...
         x = float(x)
         y = float(y)
         speed = float(optional[0]) if len(optional) >= 1 else 1.0
-        print(optional)
         qty = int(optional[1]) if len(optional) >= 2 else 1
 
     except Exception as e:

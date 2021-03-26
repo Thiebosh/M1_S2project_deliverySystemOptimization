@@ -7,6 +7,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from dashboard import synchronize
 
+
 def load_data(file_path):
     travel_lines, peak_lines = read_file(file_path)
     # intialize
@@ -19,7 +20,6 @@ def load_data(file_path):
     compute_data = {"traveler": [{"arc": [Arc()]*nb_peak, "speed": 0.0, "qty": 0}   for _ in range(nb_traveler)],
                     "peak":     [{"origin": 0, "link": 0, "qty": 1, "maxCost": 0.0} for _ in range(nb_peak)],
                     "arc":      [[Arc()]*nb_peak for _ in range(nb_peak)]}
-    
 
     list_travelers(travel_lines, local_data, compute_data, nb_peak)
     list_peaks_arcs(peak_lines, local_data, compute_data, nb_peak, ids)
@@ -45,15 +45,12 @@ def read_file(file_path):
         # throw headers lines
         travel_lines = all_lines[data_lines[0][0]+1:data_lines[0][1]]
         peak_lines = all_lines[data_lines[1][0]+1:data_lines[1][1]]
-        
 
         return travel_lines, peak_lines
 
-    except Exception as e:  
+    except Exception as e:
         print(f"Data acquisition error : {e}")
         exit()
-
-    
 
 
 def list_travelers(travel_lines, local_data, compute_data, nb_peak):

@@ -8,15 +8,17 @@ def distance(a):
     r = 6371
     return r * c
 
+
 @lru_cache(maxsize=None)
 def deg_2_rad(deg):
     return deg*math.pi/180
+
 
 class Arc:
     def __init__(self):
         self.lat1 = 0.0
         self.long1 = 0.0
-        self.lat2= 0.0
+        self.lat2 = 0.0
         self.long2 = 0.0
 
     def set_peakInit(self, lat, long):
@@ -36,7 +38,6 @@ class Arc:
         deltaLambda = deg_2_rad(self.long2-self.long1)
         a = math.sin(deltaPhi/2)*math.sin(deltaPhi/2)+math.cos(phi1)*math.cos(phi2)*math.sin(deltaLambda/2)*math.sin(deltaLambda/2)
         return distance(a)
-        
 
     def __repr__(self):
         return f"<({self.lat1},{self.long1});({self.lat2},{self.long2})>"

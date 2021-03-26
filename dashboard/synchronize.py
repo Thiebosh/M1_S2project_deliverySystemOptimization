@@ -4,7 +4,7 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from apiclient.http import MediaFileUpload
+# from apiclient.http import MediaFileUpload
 
 import requests
 import csv
@@ -25,29 +25,32 @@ serviceDrive = None
 serviceSheet = None
 path = None
 
+
 def remove_images():
     if not serviceDrive:
         init()
-    #remove existing images
+    # remove existing images
     res = serviceDrive.files().list(q="'{}' in parents".format(image_folder_id)).execute()
     for file in res["files"]:
-         serviceDrive.files().delete(fileId=file["id"]).execute()
+        serviceDrive.files().delete(fileId=file["id"]).execute()
+
 
 def upload_images():
     if not serviceDrive:
         init()
 
-    #upload img         
-    for file in os.listdir(path+"..\output_images"):
+    # upload img         
+    for file in os.listdir(path+"..\\output_images"):
         file_metadata = {
             'name': file,
             'parents': [image_folder_id]
         }
-        media = MediaFileUpload(str(pathlib.Path(__file__).parent.absolute())+f"\..\output_images\{file}", mimetype='image/gif')
+        media = MediaFileUpload(str(pathlib.Path(__file__).parent.absolute())+f"\\..\\output_images\\{file}", mimetype='image/gif')
         res = serviceDrive.files().create(body=file_metadata,
-                                            media_body=media,
-                                            fields='id').execute()
+                                          media_body=media,
+                                          fields='id').execute()
         imgs_id.append(res["id"])
+
 
 def upload_res():
     if not serviceSheet:
@@ -55,7 +58,7 @@ def upload_res():
     valueCities = []
     valuesPath = []
     with open(path+"paths.csv") as csvfile:
-        for lineNb,line in enumerate(csv.reader(csvfile)):
+        for line in csv.reader(csvfile):
             valuesPath.append(line)
 
     with open(path+"cities.csv") as csvfile:
@@ -68,11 +71,11 @@ def upload_res():
     bodyCities = {
         'values': valueCities
     }
-    
+
     for i in range(len(imgs_id)):
         bodyPath["values"][i+1].append("https://drive.google.com/uc?export=view&id="+imgs_id[i])
 
-    #save outputs on drive
+    # save outputs on drive
     serviceSheet.spreadsheets().values().clear(spreadsheetId=results_id, range="paths!A:KN").execute()
     serviceSheet.spreadsheets().values().clear(spreadsheetId=results_id, range="cities!A:KN").execute()
 
@@ -84,13 +87,11 @@ def get_inputs():
     if not serviceDrive:
         init()
     res = serviceDrive.files().export(fileId=input_id, mimeType="text/plain").execute().decode("utf-8")
-    print(res)
     return res
 
-    
 
 def init():
-    global path 
+    global path
     path = str(pathlib.Path(__file__).parent.absolute())+"\\"
 
     credsDrive = None
@@ -123,7 +124,6 @@ def init():
     serviceDrive = build('drive', 'v3', credentials=credsDrive)
     serviceSheet = build('sheets', 'v4', credentials=credsSheets)
 
-
     res = serviceDrive.files().list().execute()
     for file in res["files"]:
         if file['mimeType'] == 'application/vnd.google-apps.folder' and file['name'] == "images":
@@ -131,7 +131,4 @@ def init():
         elif file['mimeType'] == 'application/vnd.google-apps.spreadsheet' and file['name'] == "results_project":
             results_id = file['id']
         elif file['mimeType'] == 'application/vnd.google-apps.document' and file['name'] == "input_data":
-            input_id = file['id']  
-
-
-#Pr0j3ctM1S2Is3n
+            input_id = file['id']
