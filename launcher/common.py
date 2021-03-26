@@ -3,13 +3,9 @@ import asyncio
 import time
 import math
 import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-from dashboard import synchronize
 
 
 async def execute_heuristic(data, batch_size, exe_path, nb_process):
-    print(data)
     data = str(data).replace("'", '"')
     batch_size = str(batch_size)
     running_procs = [Popen([exe_path, str(os.getpid()+id), data, batch_size],
@@ -90,8 +86,9 @@ def print_results(local_data, results):
         d = travel.replace("', '", " -> ")
         print(f"- (seed: {a}) {b} : {c}km with {d}")
 
+
 def export_csv(local_data, results):
-    with open(os.path.dirname(__file__)+"\..\dashboard\\paths.csv","w") as file: 
+    with open(os.path.dirname(__file__)+"\\..\\dashboard\\paths.csv", "w") as file: 
         file.write("id,")
         file.write("total_distance,")
         file.write("path,")
@@ -106,13 +103,13 @@ def export_csv(local_data, results):
                 if peakId != len(res[1])-1:
                     file.write(";")
             file.write("',"+str(res[2])+"\n")
-            id+=1
-    
-    with open(os.path.dirname(__file__)+"\..\dashboard\\cities.csv","w") as file: 
+            id += 1
+
+    with open(os.path.dirname(__file__)+"\\..\\dashboard\\cities.csv", "w") as file: 
         file.write("city_name,")
         file.write("lat,")
         file.write("long\n")
-        print(local_data)
+
         for res in local_data["peak"]:
             file.write(res["name"])
             file.write(",")

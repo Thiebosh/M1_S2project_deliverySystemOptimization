@@ -24,7 +24,7 @@ if __name__ == "__main__":
         results = asyncio.run(execute_heuristic(to_compute, *heuristic_inputs))
         export_csv(local_data, results)
         print_results(local_data, results)
-        print('test')
+
         make_graph(local_data, results, result_name, save_gif)
         synchronize.remove_images()
         if save_gif:
