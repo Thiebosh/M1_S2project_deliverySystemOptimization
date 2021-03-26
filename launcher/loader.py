@@ -30,7 +30,7 @@ def load_data(file_path):
 def read_file(file_path):
     try:
         with open(file_path) as file:
-            all_lines = [line for line in file.readlines()]
+            all_lines = file.readlines()
 
         if all_lines[-1][-1] != "\n":
             all_lines[-1] += "\n"
