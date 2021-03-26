@@ -12,10 +12,7 @@ if __name__ == "__main__":
 
     file_path, heuristic_inputs, result_name, save_gif = user_args(path)
 
-    time1 = time.time()
     local_data, to_compute = load_data(file_path)
-    time2 = time.time()
-    print(f'function took {(time2-time1)*1000.0:.3f} ms\n')
 
     results = asyncio.run(execute_heuristic(to_compute, *heuristic_inputs))
 

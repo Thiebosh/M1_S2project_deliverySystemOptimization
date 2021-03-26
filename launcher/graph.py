@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import imageio
 import os
-from concurrent.futures import ThreadPoolExecutor
 
 
 def make_graph(local_data, results, result_name, save_gif):
@@ -22,9 +21,6 @@ def make_graph(local_data, results, result_name, save_gif):
 
     if nb_graph == 1:
         axes = [axes]
-
-    # with ThreadPoolExecutor(8) as ex:
-    #     ex.map(func, argsforeach)
 
     for idGraph in range(nb_graph):
         axe2.clear()
