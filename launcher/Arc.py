@@ -4,7 +4,7 @@ from functools import lru_cache
 
 @lru_cache(maxsize=None)
 def distance(x, y):
-    round(math.sqrt(x*x + y*y), 2)
+    return round(math.sqrt(x*x + y*y), 2)
 
 
 class Arc:
