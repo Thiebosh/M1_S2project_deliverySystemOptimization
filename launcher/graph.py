@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import imageio
 import os
-
+import pathlib
 
 def make_graph(local_data, results, result_name, save_gif):
     # extract couple [x, y]
@@ -18,9 +18,6 @@ def make_graph(local_data, results, result_name, save_gif):
     nb_graph = min(3, len(results))
     fig, axes = plt.subplots(figsize=(10, 10), ncols=nb_graph, sharey=True)
     fig2, axe2 = plt.subplots()
-
-    if nb_graph == 1:
-        axes = [axes]
 
     for idGraph in range(nb_graph):
         axe2.clear()
@@ -93,7 +90,7 @@ def make_graph(local_data, results, result_name, save_gif):
 
         # assemble gif
         if(save_gif):
-            with imageio.get_writer(f"graph_{idGraph}.gif", mode='I') as gifFile:
+            with imageio.get_writer(str(pathlib.Path(__file__).parent.absolute())+f"\..\output_images\graph_{idGraph}.gif", mode='I') as gifFile:
                 for fileName in fileNames:
                     image = imageio.imread(fileName)
                     gifFile.append_data(image)
