@@ -4,6 +4,9 @@ import time
 import math
 import re
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+from dashboard import synchronize
 
 import parse
 from Arc import Arc
@@ -15,9 +18,8 @@ def load_data(file_name, file_path):
 
     # read file
     try:
-        with open(file_path) as file:
-            all_lines = [line for line in file.readlines()]
-
+        all_lines = [line for line in synchronize.get_inputs().splitlines()]
+        print(all_lines)
         all_lines.append("\n")  # delimit last data block
         last = -1
         data_lines = []
@@ -36,7 +38,6 @@ def load_data(file_name, file_path):
 
     nb_traveler = len(travelers_line)
     nb_peak = len(peaks_line) + sum([x.count(" - ") for x in peaks_line])
-
     # list travelers
     for count, line in enumerate(travelers_line):
         traveler_name, x, y, speed, qty = parse.fileline_traveler(line, file_name, count)
@@ -168,3 +169,34 @@ def print_results(local_data, results):
         c = f"{distance:{max_digits_dist+3}.2f}"  # +3 => '.xx'
         d = travel.replace("', '", " -> ")
         print(f"- (seed: {a}) {b} : {c}km with {d}")
+
+def export_csv(local_data, results):
+    with open(os.path.dirname(__file__)+"\..\dashboard\\paths.csv","w") as file: 
+        file.write("id,")
+        file.write("total_distance,")
+        file.write("path,")
+        file.write("seed,")
+        file.write("img\n")
+        id = 0
+        for res in results:
+            file.write(str(id)+",'")
+            file.write(str(res[0])+",'")
+            for peakId, peak in enumerate(res[1]):
+                file.write(local_data["peak"][peak]["name"])
+                if peakId != len(res[1])-1:
+                    file.write(";")
+            file.write("',"+str(res[2])+"\n")
+            id+=1
+    
+    with open(os.path.dirname(__file__)+"\..\dashboard\\cities.csv","w") as file: 
+        file.write("city_name,")
+        file.write("lat,")
+        file.write("long\n")
+        print(local_data)
+        for res in local_data["peak"]:
+            file.write(res["name"])
+            file.write(",")
+            file.write(str(res["x"]))
+            file.write(",")
+            file.write(str(res["y"]))
+            file.write("\n")
