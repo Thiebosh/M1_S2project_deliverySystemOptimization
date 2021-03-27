@@ -3,6 +3,7 @@ import asyncio
 import time
 import math
 import os
+from pprint import pprint
 
 
 async def execute_heuristic(data, batch_size, exe_path, nb_process):
@@ -31,10 +32,8 @@ async def execute_heuristic(data, batch_size, exe_path, nb_process):
             print(f"process {lines[0]} return error '{retcode}'")
             print(lines[1:])
             continue
-
         seed = lines[1][:-1]
         data = lines[2][:-1]
-
         # preprocess results rather than sleep
         results = make_unique(seed, data, results)
 

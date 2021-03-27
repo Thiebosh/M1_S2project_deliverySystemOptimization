@@ -2,48 +2,58 @@ import matplotlib.pyplot as plt
 import imageio
 import os
 import pathlib
-
+import geopandas
+import pandas as pd
+import random
+import geopip
 
 def make_graph(local_data, results, result_name, save_gif):
-    # extract couple [x, y]
+    fig2, axe2 = plt.subplots()
+    world = geopandas.read_file(str(pathlib.Path(__file__).parent.absolute())+"\\..\\country_maps\\FRA.shp")
+    plot_countries = []
+    countries_map = []
+    
     cities = [(peak["x"], peak["y"]) for peak in local_data["peak"]]
-    x, y = zip(*cities)
 
+    #get countries to plot
+    for city in cities:
+        res = geopip.search(city[0], city[1])
+        if res and not res["ISO3"] in plot_countries:
+            plot_countries.append(res["ISO3"])
+
+    if len(plot_countries) > 5 or len(plot_countries) == 0:
+        plot_countries = ["WORLD"]
+    
+
+    for country in plot_countries:
+        countries_map.append(geopandas.read_file(str(pathlib.Path(__file__).parent.absolute())+"\\..\\country_maps\\"+country+".shp"))
+    # extract couple [x, y]
+    x, y = zip(*cities)
+    # lat, long = zip(*cities)
+    # x = geopandas.points_from_xy(long, lat).x
+    # y = geopandas.points_from_xy(long, lat).y
+    # cities = list(zip(x, y))
     # get graph limits
-    minX = min(x)
-    maxX = max(x)
-    minY = min(y)
-    maxY = max(y)
 
     # prepare graphs
     nb_graph = min(3, len(results))
-    fig, axes = plt.subplots(figsize=(10, 10), ncols=nb_graph, sharey=True)
-    fig2, axe2 = plt.subplots()
-
+    
+    
     for idGraph in range(nb_graph):
         axe2.clear()
-        axe1 = axes[idGraph]
-        axe1.set_box_aspect(1)
-        axe1.title.set_text(f"{str(results[idGraph][0])}km\n{str([x+1 for x in results[idGraph][1]])[1:-1]}")
-        axe1.set_xlim(minX-1, maxX+1)
-        axe1.set_ylim(minY-1, maxY+1)
-
-        axe2.set_box_aspect(1)
+        for country in countries_map:
+            country.plot(ax=axe2)
         axe2.title.set_text(f"{str(results[idGraph][0])}km\n{str([x+1 for x in results[idGraph][1]])[1:-1]}")
-        axe2.set_xlim(minX-1, maxX+1)
-        axe2.set_ylim(minY-1, maxY+1)
-
+    
         # print peaks
-        axe1.scatter(x, y, c="black")
-        axe2.scatter(x, y, c="black")
+        axe2.scatter(x, y, c="black", s=1)
         for i in range(len(results[0][1])):
-            axe1.text(x[i], y[i]+0.5, local_data["peak"][i]["name"])
-            axe2.text(x[i], y[i]+0.5, local_data["peak"][i]["name"])
+            coef = (axe2.get_xlim()[1]-axe2.get_xlim()[0])/15
+            axe2.text(x[i]+random.choice([-0.1,0.1])*coef, y[i]+random.choice([-0.1,0.1])*coef, local_data["peak"][i]["name"], fontsize='xx-small')
 
         # print traveler origin
         travel = local_data["traveler"][0]
-        axe1.scatter(travel["x"], travel["y"], c="red")
-        axe2.scatter(travel["x"], travel["y"], c="red")
+        axe2.scatter(travel["x"], travel["y"], c="red",s=1)
 
         # gif img
         fileNames = []
@@ -56,14 +66,9 @@ def make_graph(local_data, results, result_name, save_gif):
         city = [travel["x"], travel["y"]]
         nexCity = cities[results[idGraph][1][0]]
 
-        arr1 = axe1.arrow(city[0], city[1], nexCity[0]-city[0], nexCity[1]-city[1],
-                          head_width=0.15*nb_graph, head_length=0.35*nb_graph,
-                          length_includes_head=True, color="red")
-        arr2 = axe2.arrow(city[0], city[1], nexCity[0]-city[0], nexCity[1]-city[1],
-                           head_width=0.15*nb_graph, head_length=0.35*nb_graph,
-                           length_includes_head=True, color="red")
-        axe1.legend([arr1, ], [local_data["traveler"][0]["name"], ], bbox_to_anchor=(0.5, -0.1), fontsize='small')
-        axe2.legend([arr2, ], [local_data["traveler"][0]["name"], ], bbox_to_anchor=(0.5, -0.1), fontsize='small')
+        arr2 = axe2.arrow((nexCity[0]-city[0])*0.05+city[0], (nexCity[1]-city[1])*0.05+city[1], 0.9*(nexCity[0]-city[0]), 0.9*(nexCity[1]-city[1]),
+                           length_includes_head=True, color="red", width=0.001,head_width=0.5,head_length=0.5, alpha=0.8)
+        axe2.legend([arr2,], [local_data["traveler"][0]["name"],], bbox_to_anchor=(0.5, -0.1), fontsize='small')
 
         # gif img
         if(save_gif):
@@ -75,13 +80,8 @@ def make_graph(local_data, results, result_name, save_gif):
         for idCity, city in enumerate(results[idGraph][1][:-1]):
             city = cities[city]
             nexCity = cities[results[idGraph][1][idCity+1]]
-
-            axe1.arrow(city[0], city[1], nexCity[0]-city[0], nexCity[1]-city[1],
-                      head_width=0.15*nb_graph, head_length=0.35*nb_graph,
-                      length_includes_head=True, color="red")
-            axe2.arrow(city[0], city[1], nexCity[0]-city[0], nexCity[1]-city[1],
-                      head_width=0.15*nb_graph, head_length=0.35*nb_graph,
-                      length_includes_head=True, color="red")
+            axe2.arrow((nexCity[0]-city[0])*0.05+city[0], (nexCity[1]-city[1])*0.05+city[1], 0.9*(nexCity[0]-city[0]), 0.9*(nexCity[1]-city[1]),
+                           length_includes_head=True, color="red", width=0.001,head_width=0.5,head_length=0.5, alpha=0.8)
 
             # gif img
             if(save_gif):
@@ -99,6 +99,5 @@ def make_graph(local_data, results, result_name, save_gif):
             for fileName in fileNames:
                 os.remove(fileName)
 
-    fig.savefig(result_name)
+        fig2.savefig(result_name[:-4]+str(idGraph)+".png", dpi=500)
     plt.close(fig2)
-    plt.show()
