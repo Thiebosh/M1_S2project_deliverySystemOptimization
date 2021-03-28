@@ -3,7 +3,6 @@ import asyncio
 import time
 import math
 import os
-from pprint import pprint
 
 
 async def execute_heuristic(data, batch_size, exe_path, nb_process):
