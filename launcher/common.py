@@ -85,33 +85,20 @@ def print_results(local_data, results):
         print(f"- (seed: {a}) {b} : {c}km with {d}")
 
 
-def export_csv(local_data, results):
-    with open(os.path.dirname(__file__)+"\\..\\dashboard\\paths.csv", "w") as file: 
-        file.write("id,")
-        file.write("total_distance,")
-        file.write("path,")
-        file.write("seed,")
-        file.write("img\n")
-        id = 0
-        for res in results:
-            file.write(str(id)+",'")
-            file.write(str(res[0])+",'")
-            for peakId, peak in enumerate(res[1]):
-                file.write(local_data["peak"][peak]["name"])
-                if peakId != len(res[1])-1:
-                    file.write(";")
-            file.write("',"+str(res[2])+"\n")
-            id += 1
+def print_csv(path, local_data, results):
+    with open(path+"dashboard\\paths.csv", "w") as file:
+        file.write("id,total_distance,path,seed,img\n")
 
-    with open(os.path.dirname(__file__)+"\\..\\dashboard\\cities.csv", "w") as file: 
-        file.write("city_name,")
-        file.write("lat,")
-        file.write("long\n")
+        for id, res in enumerate(results):
+            file.write(f"{id},'{res[0]},'")
+
+            for peak in res[1][:-1]:
+                file.write(f"{local_data['peak'][peak]['name']};")
+
+            file.write(f"{local_data['peak'][res[1][-1]]['name']}',{res[2]}\n")
+
+    with open(path+"dashboard\\cities.csv", "w") as file:
+        file.write("city_name,lat,long\n")
 
         for res in local_data["peak"]:
-            file.write(res["name"])
-            file.write(",")
-            file.write(str(res["x"]))
-            file.write(",")
-            file.write(str(res["y"]))
-            file.write("\n")
+            file.write(f"{res['name']},{res['x']},{res['y']}\n")

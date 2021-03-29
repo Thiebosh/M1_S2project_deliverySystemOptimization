@@ -2,14 +2,10 @@ import re
 
 import parse
 from Arc import Arc
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-from dashboard import synchronize
 
 
-def load_data(file_path):
-    travel_lines, peak_lines = read_file(file_path)
+def load_data(file_content):
+    travel_lines, peak_lines = acquire_data(file_content)
     # intialize
     nb_traveler = len(travel_lines)
     nb_peak = len(peak_lines) + sum([x.count(" - ") for x in peak_lines])
@@ -28,9 +24,9 @@ def load_data(file_path):
     return local_data, compute_data
 
 
-def read_file(file_path):
+def acquire_data(file_content):
     try:
-        all_lines = synchronize.get_inputs().splitlines()
+        all_lines = file_content.splitlines()
 
         if all_lines[-1][-1] != "\n":
             all_lines[-1] += "\n"
