@@ -32,7 +32,7 @@ def user_args(path):
     if not os.path.exists(engine_path):
         parser.error("This engine doesn't exist")
 
-    args.result_name = path + args.result_name
+    args.result_name = path + "png_imgs\\"+args.result_name
     if args.result_name[:-4] != ".png":
         # verifier s'il existe ? si oui, ajouter un increment ?
         args.result_name += ".png"
@@ -43,7 +43,6 @@ def user_args(path):
 
 def traveler_line(line):  # peut remettre précision nom fichier, no ligne...
     name, x, y, *optional = line.split(",")
-
     try:
         x = float(x)
         y = float(y)
