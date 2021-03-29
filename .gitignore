@@ -174,3 +174,12 @@ savedFile.png
 *.gif
 
 *.png
+
+
+dashboard/tokenDrive.json
+
+dashboard/tokenSheets.json
+
+dashboard/cities.csv
+
+dashboard/paths.csv

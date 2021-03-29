@@ -31,6 +31,7 @@ def load_data(file_path):
 def read_file(file_path):
     try:
         all_lines = synchronize.get_inputs().splitlines()
+
         if all_lines[-1][-1] != "\n":
             all_lines[-1] += "\n"
         all_lines.append("\n")  # delimit last data block
@@ -41,11 +42,9 @@ def read_file(file_path):
             if id > last and id-1 != last:
                 data_lines.append((last+1, id))
             last = id
-
         # throw headers lines
         travel_lines = all_lines[data_lines[0][0]+1:data_lines[0][1]]
         peak_lines = all_lines[data_lines[1][0]+1:data_lines[1][1]]
-
         return travel_lines, peak_lines
 
     except Exception as e:

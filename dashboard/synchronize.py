@@ -4,7 +4,7 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-# from apiclient.http import MediaFileUpload
+from googleapiclient.http import MediaFileUpload
 
 import requests
 import csv
@@ -71,7 +71,7 @@ def upload_res():
     bodyCities = {
         'values': valueCities
     }
-
+    bodyPath["values"][1].append(" ")
     for i in range(len(imgs_id)):
         bodyPath["values"][i+1].append("https://drive.google.com/uc?export=view&id="+imgs_id[i])
 
@@ -86,6 +86,7 @@ def upload_res():
 def get_inputs():
     if not serviceDrive:
         init()
+
     res = serviceDrive.files().export(fileId=input_id, mimeType="text/plain").execute().decode("utf-8")
     return res
 
@@ -124,7 +125,7 @@ def init():
     serviceDrive = build('drive', 'v3', credentials=credsDrive)
     serviceSheet = build('sheets', 'v4', credentials=credsSheets)
 
-    res = serviceDrive.files().list().execute()
+    res = serviceDrive.files().list(q="name='results_project' or name='images' or name='input_data'").execute()
     for file in res["files"]:
         if file['mimeType'] == 'application/vnd.google-apps.folder' and file['name'] == "images":
             image_folder_id = file['id']
