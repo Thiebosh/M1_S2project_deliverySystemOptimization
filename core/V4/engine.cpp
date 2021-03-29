@@ -102,7 +102,7 @@ vector<int> findsolution(int id, json input, int nbClosest) {
     map<int, vector<int>> restaurantClientLink;
 	vector<int> remainingClients;
 	vector<int> canDeliverClients; //clients
-	//vector<int>::iterator cand = canDeliverClients.begin();//the iterator i used
+	vector<int>::iterator cand = canDeliverClients.begin();//the iterator i used
     vector<int> currSolution;
     //initializing arrays
 	for (int i = 0; i < input["peak"].size(); ++i) {
