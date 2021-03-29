@@ -5,11 +5,10 @@ import pathlib
 import geopandas
 import pandas as pd
 import random
-import geopip
+from geopip import search
 
 def make_graph(local_data, results, result_name, save_gif):
     fig2, axe2 = plt.subplots()
-    world = geopandas.read_file(str(pathlib.Path(__file__).parent.absolute())+"\\..\\country_maps\\FRA.shp")
     plot_countries = []
     countries_map = []
     
@@ -17,7 +16,7 @@ def make_graph(local_data, results, result_name, save_gif):
 
     #get countries to plot
     for city in cities:
-        res = geopip.search(city[0], city[1])
+        res = search(city[0], city[1])
         if res and not res["ISO3"] in plot_countries:
             plot_countries.append(res["ISO3"])
 
@@ -27,13 +26,9 @@ def make_graph(local_data, results, result_name, save_gif):
 
     for country in plot_countries:
         countries_map.append(geopandas.read_file(str(pathlib.Path(__file__).parent.absolute())+"\\..\\country_maps\\"+country+".shp"))
+    
     # extract couple [x, y]
     x, y = zip(*cities)
-    # lat, long = zip(*cities)
-    # x = geopandas.points_from_xy(long, lat).x
-    # y = geopandas.points_from_xy(long, lat).y
-    # cities = list(zip(x, y))
-    # get graph limits
 
     # prepare graphs
     nb_graph = min(3, len(results))
@@ -47,7 +42,7 @@ def make_graph(local_data, results, result_name, save_gif):
     
         # print peaks
         axe2.scatter(x, y, c="black", s=1)
-        for i in range(len(results[0][1])):
+        for i in range(len(list(dict.fromkeys(results[0][1])))):
             coef = (axe2.get_xlim()[1]-axe2.get_xlim()[0])/15
             axe2.text(x[i]+random.choice([-0.1,0.1])*coef, y[i]+random.choice([-0.1,0.1])*coef, local_data["peak"][i]["name"], fontsize='xx-small')
 
