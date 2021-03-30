@@ -16,9 +16,9 @@ if __name__ == "__main__":
     try:
         path = str(pathlib.Path(__file__).parent.absolute())
 
-        filename, heuristic_inputs, save_gif = user_args(path)  # add display results true/false
+        filename, heuristic_inputs, save_gif = user_args(path)  # add display results true/false, keep results true/false
 
-        drive = Synchronize(filename)
+        drive = Synchronize(path, filename, save_gif)
 
         print("Gathering input...\n")
         local_data, to_compute = load_data(drive.read_input_file())

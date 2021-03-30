@@ -3,9 +3,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.http import MediaFileUpload
-import csv
-import pathlib
 import os
+import re
 
 # elements to reach into drive account
 DRIVE_CSV_RESULTS = 'results_project'
@@ -32,9 +31,10 @@ IMG_URL_ACCESS = "https://drive.google.com/uc?export=view&id="
 
 
 class Synchronize:
-    def __init__(self, filename):  # path
+    def __init__(self, path, filename, save_gif):
+        self.path = path
         self.filename = filename
-        self.path = str(pathlib.Path(__file__).parent.absolute())
+        self.save_gif = save_gif
 
         credsDrive = self.get_cred(TOKEN_DRIVE, SCOPES_DRIVE, CREDS_DRIVE)
         credsSheet = self.get_cred(TOKEN_SHEET, SCOPES_SHEET, CREDS_SHEET)
@@ -92,24 +92,27 @@ class Synchronize:
                 .export(fileId=self.input_id, mimeType="text/plain") \
                 .execute().decode("utf-8")
 
-    def remove_imgs(self):  # filename
-        query = f"'{self.img_folder_id}' in parents and mimeType='image/gif'"
+    def remove_imgs(self, regex):
+        query = f"'{self.img_folder_id}' in parents and mimeType='image/png'" # reussir à prendre que les self.filename+"_*.(png|gif)"
 
         # pylint: disable=maybe-no-member
         for file in self.serviceDrive.files().list(q=query).execute()["files"]:
-            if not self.filename in file["name"]:
-                print(file["name"])  # tmp
+            if not regex.match(file["name"]):
                 continue
 
             self.serviceDrive.files().delete(fileId=file["id"]).execute()
 
     def upload_imgs(self):
-        self.remove_imgs()
+        regex = re.compile(r"^"+self.filename+"_[0-9]+."+("png" if self.save_gif else "gif")+"$")
+
+        self.remove_imgs(regex)
+
+        regex = re.compile(r"^"+self.filename+"_[0-9]+."+("gif" if self.save_gif else "png")+"$")
 
         file_metadata = {'name': '', 'parents': [self.img_folder_id]}
 
         for file in os.listdir(f"{self.path}\\results"):
-            if file[-4:] != ".png" or not self.filename in file:
+            if not regex.match(file):
                 continue
 
             file_metadata['name'] = file
