@@ -41,7 +41,8 @@ int main(int argc, char* argv[]) {
 	// declare result tab
 	vector<int> path = findsolution(id, inputData, batch_size);
 	// end here
-	cout << totaldis(path, inputData) << ";";
+    float totalDistance = totaldis(path, inputData)/(float)inputData["traveler"][0]["speed"];
+	cout << totalDistance << ";";
 	for (int elem : path) cout << elem << ",";
 
 	return 0;
@@ -100,9 +101,8 @@ vector<int> getPossibleNextPeak(vector<double> arc, vector<int> possiblePoints, 
 vector<int> findsolution(int id, json input, int nbClosest) {
 	// build list of unselected peaks
     map<int, vector<int>> restaurantClientLink;
-	vector<int> remainingClients;
+	//vector<int> remainingClients;
 	vector<int> canDeliverClients; //clients
-	vector<int>::iterator cand = canDeliverClients.begin();//the iterator i used
     vector<int> currSolution;
     //initializing arrays
 	for (int i = 0; i < input["peak"].size(); ++i) {
@@ -113,7 +113,7 @@ vector<int> findsolution(int id, json input, int nbClosest) {
             }
 			restaurantClientLink.insert(pair<int, vector<int>>(i, clients));
 		}else if(input["peak"][i]["origin"] == 0){
-            remainingClients.push_back(i);
+            //remainingClients.push_back(i);
         }
         
 	}
