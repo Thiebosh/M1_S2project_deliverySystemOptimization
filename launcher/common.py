@@ -84,21 +84,32 @@ def print_results(local_data, results):
         d = travel.replace("', '", " -> ")
         print(f"- (seed: {a}) {b} : {c}km with {d}")
 
+    print("\n")
 
-def print_csv(path, local_data, results):
-    with open(path+"dashboard\\paths.csv", "w") as file:
-        file.write("id,total_distance,path,seed,img\n")
 
-        for id, res in enumerate(results):
-            file.write(f"{id},'{res[0]},'")
+def format_csv(local_data, results):
+    path_data = [["id", "total_distance", "path", "seed", "img"]]
 
-            for peak in res[1][:-1]:
-                file.write(f"{local_data['peak'][peak]['name']};")
+    for id, res in enumerate(results):
+        line = [str(id), f"'{res[0]}", "'"+local_data['peak'][res[1][0]]['name']]
 
-            file.write(f"{local_data['peak'][res[1][-1]]['name']}',{res[2]}\n")
+        for peak in res[1][1:]:
+            line[2] += f";{local_data['peak'][peak]['name']}"
 
-    with open(path+"dashboard\\cities.csv", "w") as file:
-        file.write("city_name,lat,long\n")
+        line[2] += "'"
+        line.append(str(res[2]))
 
-        for res in local_data["peak"]:
-            file.write(f"{res['name']},{res['x']},{res['y']}\n")
+        path_data.append(line)
+
+    cities_data = [["city_name", "lat", "long"]]
+
+    for res in local_data["peak"]:
+        cities_data.append([res['name'], str(res['x']), str(res['y'])])
+
+    return path_data, cities_data
+
+
+def save_csv(path, data):
+    with open(path, "w") as file:
+        for line in data:
+            file.write(",".join(line)+"\n")

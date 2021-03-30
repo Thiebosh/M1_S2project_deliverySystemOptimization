@@ -115,20 +115,9 @@ class Synchronize:
                                            .execute()
             self.imgs_id.append(res["id"])
 
-    def upload_csv(self):  # get directly csv data rather than write and read them
-        valueCities = []
-        valuesPath = []
-
-        with open(self.path+"paths.csv") as csvfile:
-            for line in csv.reader(csvfile):
-                valuesPath.append(line)
-
-        with open(self.path+"cities.csv") as csvfile:
-            for line in csv.reader(csvfile):
-                valueCities.append(line)
-
+    def upload_csv(self, valuesPath, valuesCities):
         bodyPath = {'values': valuesPath}
-        bodyCities = {'values': valueCities}
+        bodyCities = {'values': valuesCities}
 
         for i, img_id in enumerate(self.imgs_id):
             bodyPath["values"][i+1].append(IMG_URL_ACCESS+img_id)
