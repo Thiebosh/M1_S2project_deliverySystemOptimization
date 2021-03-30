@@ -5,7 +5,6 @@ from distutils.util import strtobool
 
 
 def user_args(path):
-    path = path[:path.rfind("launcher\\")]
     engine_path = path + "core\\"
     nb_versions = len([x for x in os.listdir(engine_path) if re.match(r"^(v|V)[0-9]+$", x)]) - 1  # start with v0
 
@@ -24,10 +23,6 @@ def user_args(path):
     if args.nb_process < 1:
         parser.error("Number of process must be superior to 0")
 
-    file_path = path+args.file_name
-    if not os.path.exists(file_path):
-        parser.error("This file doesn't exist")
-
     engine_path += "v"+str(args.engine)+"\\engine.exe"
     if not os.path.exists(engine_path):
         parser.error("This engine doesn't exist")
@@ -38,7 +33,7 @@ def user_args(path):
         args.result_name += ".png"
 
     heuristic_inputs = (args.batch_size, engine_path, args.nb_process)
-    return file_path, heuristic_inputs, args.result_name, args.save_gif
+    return args.file_name, heuristic_inputs, args.result_name, args.save_gif
 
 
 def traveler_line(line):  # peut remettre précision nom fichier, no ligne...
