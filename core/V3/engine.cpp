@@ -69,12 +69,15 @@ int main(int argc, char *argv[])
 
     // end here
 
-    // for(int i = 0; i < inputData["traveler"].size(); i++){
-    for(int i = 0; i < 1; i++){
-        cout << totaldis(path[i], inputData) << ";";
-        for (int elem : path[i])
-            cout << elem << ",";
-        // cout << endl;
+    for(int i = 0; i < inputData["traveler"].size(); i++){
+        int totalDist = totaldis(path[i], inputData);
+        if(totalDist > 0){
+            cout << totalDist << ";";
+            for (int elem : path[i]){
+                cout << elem << ",";
+            }
+        }
+        cout << endl;
     }
     
 
@@ -184,9 +187,7 @@ void findsolution(json input, int nbClosest, map<int, vector<int>> *restaurantCl
             {
                 tmpPossiblePoints.insert(tmpPossiblePoints.end(), canDeliverClients.begin(), canDeliverClients.end());
             }
-            // cout << "line 188" << endl;
             possiblePoints = getPossibleNextPeak(input["arc"][idPoint], tmpPossiblePoints, nbClosestCopy);
-            // cout << "line 190" << endl;
         }
         if (possiblePoints.size() == 0 && idPoint > 0)
         {
@@ -211,25 +212,19 @@ void findsolution(json input, int nbClosest, map<int, vector<int>> *restaurantCl
         idPoint = possiblePoints[rand() % possiblePoints.size()];
 
         restaurantClientLink_mutex->lock();
-        // cout << "line 216" << endl;
         if (input["peak"][idPoint]["origin"] == 1 && restaurantClientLink->find(idPoint) != restaurantClientLink->end())
         {
-            // cout << "line 218" << endl;
             //if point is a restaurant check every clients of this restaurant
             for (int client : restaurantClientLink->at(idPoint))
             {
-                // cout << "line 223" << endl;
                 if (storage - (int)input["peak"][client]["qty"] >= 0)
                 {
-                    // cout << "line 225" << endl;
                     /*
                         if deliveryman can store the order, we add this restaurant to the path and this client to 
                         the client that can be delivered and we reduce the storage space.
                     */
                     solutionFound = true;
-                    // cout << "line 233" << endl;
                     storage -= (int)input["peak"][client]["qty"];
-                    // cout << "line 235" << endl;
                     path_mutex->lock();
                     path->at(idTraveler).push_back(idPoint);
                     path_mutex->unlock();
@@ -244,18 +239,14 @@ void findsolution(json input, int nbClosest, map<int, vector<int>> *restaurantCl
             }
         }
         restaurantClientLink_mutex->unlock();
-        // cout << "line 250" << endl;
         if (input["peak"][idPoint]["origin"] == 0)
         {
-            // cout << "line 252" << endl;
             /*
                 point is a client ready to be delivered, we remove it from the client ready to be delivered and
                 we increase the storage space of the deliveryman
             */
             solutionFound = true;
-            // cout << "line 258" << endl;
             storage += (int)input["peak"][idPoint]["qty"];
-            // cout << "line 260" << endl;
             path_mutex->lock();
             path->at(idTraveler).push_back(idPoint);
             path_mutex->unlock();
