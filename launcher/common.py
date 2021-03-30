@@ -33,13 +33,13 @@ async def execute_heuristic(data, batch_size, exe_path, nb_process):
             print(lines[1:])
             continue
 
-        print("lines", lines)
+        # print("lines", lines)
         seed = lines[1]
         data = lines[2][:-1]
-        print("seed:", seed)
-        print("data:", data)
+        # print("seed:", seed)
+        # print("data:", data)
         # print()
-        exit()
+        # exit()
         # preprocess results rather than sleep
         results = make_unique(seed, data, results)
 

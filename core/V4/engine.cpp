@@ -26,21 +26,21 @@ float totaldis(vector<int>& path, json input);
 
 
 int main(int argc, char* argv[]) {
+    int id = atoi(argv[1]);
+    cout << id << endl;
 
-	int id = atoi(argv[1]);
-	json inputData = json::parse(argv[2]);
-	int batch_size = atoi(argv[3]);
+    if (argc < 4) return -1;
 
-	time_t seed = time(NULL) % id;
-	srand(seed);
+    time_t seed = time(NULL) % id;
+    srand(seed);
+    cout << seed << endl;
 
-	cout << id << endl << seed << endl;
-
-	// start here
+    json inputData = json::parse(argv[2]);
+    int batch_size = atoi(argv[3]);
 
 	// declare result tab
 	vector<int> path = findsolution(id, inputData, batch_size);
-	// end here
+
     float totalDistance = totaldis(path, inputData)/(float)inputData["traveler"][0]["speed"];
 	cout << totalDistance << ";";
 	for (int elem : path) cout << elem << ",";
