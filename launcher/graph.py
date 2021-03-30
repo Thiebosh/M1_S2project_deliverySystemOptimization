@@ -1,14 +1,12 @@
 import matplotlib.pyplot as plt
 import imageio
 import os
-import pathlib
 import geopandas
-import pandas as pd
 import random
 from geopip import search
 
 
-def make_graph(local_data, results, result_name, save_gif):
+def make_graph(path, local_data, results, result_name, save_gif):
     fig2, axe2 = plt.subplots()
     plot_countries = []
     countries_map = []
@@ -25,7 +23,7 @@ def make_graph(local_data, results, result_name, save_gif):
         plot_countries = ["WORLD"]
 
     for country in plot_countries:
-        countries_map.append(geopandas.read_file(str(pathlib.Path(__file__).parent.absolute())+"\\country_maps\\"+country+".shp"))
+        countries_map.append(geopandas.read_file(path+"\\country_maps\\"+country+".shp"))
 
     # extract couple [x, y]
     x, y = zip(*cities)
@@ -85,7 +83,7 @@ def make_graph(local_data, results, result_name, save_gif):
 
         # assemble gif
         if(save_gif):
-            with imageio.get_writer(str(pathlib.Path(__file__).parent.absolute())+f"\\..\\output_images\\graph_{idGraph}.gif", mode='I') as gifFile:
+            with imageio.get_writer(f"{path}\\results\\{result_name}_{idGraph}.gif", mode='I') as gifFile:
                 for fileName in fileNames:
                     image = imageio.imread(fileName)
                     gifFile.append_data(image)
@@ -93,5 +91,5 @@ def make_graph(local_data, results, result_name, save_gif):
             for fileName in fileNames:
                 os.remove(fileName)
 
-        fig2.savefig(result_name[:-4]+str(idGraph)+".png", dpi=500)
+        fig2.savefig(f"{path}\\results\\{result_name}_{idGraph}.png", dpi=500)
     plt.close(fig2)

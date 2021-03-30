@@ -5,7 +5,7 @@ from distutils.util import strtobool
 
 
 def user_args(path):
-    engine_path = path + "core\\"
+    engine_path = path[:path.rfind("\\")]+"\\core\\"
     nb_versions = len([x for x in os.listdir(engine_path) if re.match(r"^(v|V)[0-9]+$", x)]) - 1  # start with v0
 
     parser = argparse.ArgumentParser("Parsing script args")
@@ -13,7 +13,6 @@ def user_args(path):
     parser.add_argument("batch_size", type=int, help="You must enter the number of closest peeks you want to consider")
     parser.add_argument("nb_process", type=int, help="You must enter the number of process you want to start")
     parser.add_argument("engine", type=int, nargs='?', default=nb_versions, help="You can specify the version of the engine you want to use")
-    parser.add_argument("result_name", type=str, nargs='?', default="savedFile", help="You can specify the name of the file you want to get")
     parser.add_argument("save_gif", type=lambda x: strtobool(x), nargs="?", default=False, help="You can specify whether you want to save gif or not")
     args = parser.parse_args()
 
@@ -23,17 +22,12 @@ def user_args(path):
     if args.nb_process < 1:
         parser.error("Number of process must be superior to 0")
 
-    engine_path += "v"+str(args.engine)+"\\engine.exe"
+    engine_path += f"v{args.engine}\\engine.exe"
     if not os.path.exists(engine_path):
         parser.error("This engine doesn't exist")
 
-    args.result_name = path + "png_imgs\\"+args.result_name
-    if args.result_name[:-4] != ".png":
-        # verifier s'il existe ? si oui, ajouter un increment ?
-        args.result_name += ".png"
-
     heuristic_inputs = (args.batch_size, engine_path, args.nb_process)
-    return args.file_name, heuristic_inputs, args.result_name, args.save_gif
+    return args.file_name, heuristic_inputs, args.save_gif
 
 
 def traveler_line(line):  # peut remettre précision nom fichier, no ligne...
