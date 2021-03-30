@@ -7,14 +7,15 @@ import pandas as pd
 import random
 from geopip import search
 
+
 def make_graph(local_data, results, result_name, save_gif):
     fig2, axe2 = plt.subplots()
     plot_countries = []
     countries_map = []
-    
+
     cities = [(peak["x"], peak["y"]) for peak in local_data["peak"]]
 
-    #get countries to plot
+    # get countries to plot
     for city in cities:
         res = search(city[0], city[1])
         if res and not res["ISO3"] in plot_countries:
@@ -22,24 +23,22 @@ def make_graph(local_data, results, result_name, save_gif):
 
     if len(plot_countries) > 5 or len(plot_countries) == 0:
         plot_countries = ["WORLD"]
-    
 
     for country in plot_countries:
-        countries_map.append(geopandas.read_file(str(pathlib.Path(__file__).parent.absolute())+"\\..\\country_maps\\"+country+".shp"))
-    
+        countries_map.append(geopandas.read_file(str(pathlib.Path(__file__).parent.absolute())+"\\country_maps\\"+country+".shp"))
+
     # extract couple [x, y]
     x, y = zip(*cities)
 
     # prepare graphs
     nb_graph = min(3, len(results))
-    
-    
+
     for idGraph in range(nb_graph):
         axe2.clear()
         for country in countries_map:
             country.plot(ax=axe2)
         axe2.title.set_text(f"{str(results[idGraph][0])}km\n{str([x+1 for x in results[idGraph][1]])[1:-1]}")
-    
+
         # print peaks
         axe2.scatter(x, y, c="black", s=1)
         for i in range(len(list(dict.fromkeys(results[0][1])))):

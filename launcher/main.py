@@ -10,8 +10,7 @@ import os
 import sys
 import traceback
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-from dashboard.synchronize import Synchronize  # pylint: disable=import-error
+from dashboard.synchronize import Synchronize
 
 
 DASHBOAD_URL = "https://datastudio.google.com/u/2/reporting/cd241e7b-cec2-4227-976e-857c5c7bf6c0/page/qRZ9B"
@@ -34,8 +33,8 @@ if __name__ == "__main__":
         print_results(local_data, results)  # if wanted
 
         path_csv, cities_csv = format_csv(local_data, results)
-        save_csv(path+"dashboard\\paths.csv", path_csv)  # if wanted
-        save_csv(path+"dashboard\\cities.csv", cities_csv)  # if wanted
+        save_csv(path+"launcher\\dashboard\\paths.csv", path_csv)  # if wanted
+        save_csv(path+"launcher\\dashboard\\cities.csv", cities_csv)  # if wanted
 
         print("Generate graphs...\n")
         make_graph(local_data, results, result_name, save_gif)  # if wanted -- else, must do path_csv[1].push_back("-")

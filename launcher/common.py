@@ -6,9 +6,10 @@ import os
 
 
 async def execute_heuristic(data, batch_size, exe_path, nb_process):
+    current_pid = os.getpid()
     data = str(data).replace("'", '"')
     batch_size = str(batch_size)
-    running_procs = [Popen([exe_path, str(os.getpid()+id), data, batch_size],
+    running_procs = [Popen([exe_path, str(current_pid+id), data, batch_size],
                      stdout=PIPE, stderr=PIPE, text=True)
                      for id in range(nb_process)]
 
@@ -28,10 +29,11 @@ async def execute_heuristic(data, batch_size, exe_path, nb_process):
         lines = proc.communicate()[0].split("\n")
 
         if retcode and retcode != 0:  # execution error
-            print(f"process {lines[0]} return error '{retcode}'")
+            print(f"process {current_pid - int(lines[0])} return error '{retcode}'")
             print(lines[1:])
             continue
-        seed = lines[1][:-1]
+
+        seed = lines[1]
         data = lines[2][:-1]
         # preprocess results rather than sleep
         results = make_unique(seed, data, results)
