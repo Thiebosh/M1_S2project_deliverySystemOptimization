@@ -22,13 +22,13 @@ if __name__ == "__main__":
         local_data, to_compute = load_data(file_path)
 
         results = asyncio.run(execute_heuristic(to_compute, *heuristic_inputs))
-        export_csv(local_data, results)
-        print_results(local_data, results)
+        # export_csv(local_data, results)
+        # print_results(local_data, results)
 
-        make_graph(local_data, results, result_name, save_gif)
-        synchronize.remove_images()
-        if save_gif:
-            synchronize.upload_images()
-        synchronize.upload_res()
+        # make_graph(local_data, results, result_name, save_gif)
+        # synchronize.remove_images()
+        # if save_gif:
+        #     synchronize.upload_images()
+        # synchronize.upload_res()
     except Exception as e:
         traceback.print_exc(e)

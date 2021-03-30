@@ -26,11 +26,16 @@ float totaldis(vector<int> &path, json input);
 int main(int argc, char *argv[])
 {
     int id = atoi(argv[1]);
-    json inputData = json::parse(argv[2]);
-    int batch_size = atoi(argv[3]);
+    cout << id << endl;
+
+    if (argc < 4) return -1;
 
     time_t seed = time(NULL) % id;
     srand(seed);
+    cout << seed << endl;
+
+    json inputData = json::parse(argv[2]);
+    int batch_size = atoi(argv[3]);
 
     vector<vector<int>> path(inputData["traveler"].size(), vector<int>());
 
@@ -52,22 +57,17 @@ int main(int argc, char *argv[])
         }
     }
 
-    cout << id << endl << seed << endl;
-
-    // start here
-
     // declare result tab
     vector<thread> threads;
     for(int i = 0; i < inputData["traveler"].size(); i++){
         threads.push_back(thread(findsolution, inputData, batch_size, &restaurantClientLink, &path, &restaurantClientLink_mutex, &path_mutex, i));
     }
+
     // cout << "threads started" << endl;
     for(auto& curThread: threads){
         curThread.join();
     }
     // cout << "threads joined" << endl;
-
-    // end here
 
     for(int i = 0; i < inputData["traveler"].size(); i++){
         int totalDist = totaldis(path[i], inputData);
