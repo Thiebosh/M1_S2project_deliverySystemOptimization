@@ -33,6 +33,7 @@ IMG_URL_ACCESS = "https://drive.google.com/uc?export=view&id="
 
 class Synchronize:
     def __init__(self, filename):  # path
+        self.filename = filename
         self.path = str(pathlib.Path(__file__).parent.absolute())
 
         credsDrive = self.get_cred(TOKEN_DRIVE, SCOPES_DRIVE, CREDS_DRIVE)
@@ -92,20 +93,25 @@ class Synchronize:
                 .execute().decode("utf-8")
 
     def remove_imgs(self):  # filename
-        query = f"'{self.img_folder_id}' in parents"
+        query = f"'{self.img_folder_id}' in parents and mimeType='image/gif'"
 
         # pylint: disable=maybe-no-member
         for file in self.serviceDrive.files().list(q=query).execute()["files"]:
-            # if ... ?
+            if not self.filename in file["name"]:
+                print(file["name"])  # tmp
+                continue
+
             self.serviceDrive.files().delete(fileId=file["id"]).execute()
 
-    def upload_imgs(self):  # filename
+    def upload_imgs(self):
         self.remove_imgs()
 
         file_metadata = {'name': '', 'parents': [self.img_folder_id]}
 
         for file in os.listdir(f"{self.path}\\results"):
-            # if filename in file
+            if file[-4:] != ".png" or not self.filename in file:
+                continue
+
             file_metadata['name'] = file
 
             media = MediaFileUpload(f"{self.path}\\results\\{file}", mimetype='image/gif')

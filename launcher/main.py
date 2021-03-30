@@ -4,7 +4,7 @@ import time
 import traceback
 
 from parse import user_args
-from synchronize import Synchronize
+from Synchronize import Synchronize
 from loader import load_data
 from common import execute_heuristic, print_results, save_csv, format_csv
 from graph import make_graph
@@ -29,8 +29,8 @@ if __name__ == "__main__":
         print_results(local_data, results)  # if wanted
 
         path_csv, cities_csv = format_csv(local_data, results)
-        save_csv(path+"\\results\\paths.csv", path_csv)  # if wanted
-        save_csv(path+"\\results\\cities.csv", cities_csv)  # if wanted
+        save_csv(path+"\\results\\"+filename+"_paths.csv", path_csv)  # if wanted
+        save_csv(path+"\\results\\"+filename+"_cities.csv", cities_csv)  # if wanted
 
         print("Generate graphs...\n")
         make_graph(path, local_data, results, filename, save_gif)  # if wanted -- else, must do path_csv[1].push_back("-")

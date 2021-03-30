@@ -47,13 +47,6 @@ def make_graph(path, local_data, results, result_name, save_gif):
         travel = local_data["traveler"][0]
         axe2.scatter(travel["x"], travel["y"], c="red",s=1)
 
-        # gif img
-        fileNames = []
-        if save_gif:
-            name = f"{idGraph}_peaks.png"
-            fig2.savefig(name)
-            fileNames.append(name)
-
         # print travel from origin to first peak
         city = [travel["x"], travel["y"]]
         nexCity = cities[results[idGraph][1][0]]
@@ -63,6 +56,7 @@ def make_graph(path, local_data, results, result_name, save_gif):
         axe2.legend([arr2,], [local_data["traveler"][0]["name"],], bbox_to_anchor=(0.5, -0.1), fontsize='small')
 
         # gif img
+        fileNames = []
         if(save_gif):
             name = f"{idGraph}_init.png"
             fig2.savefig(name)
