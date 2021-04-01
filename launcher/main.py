@@ -5,7 +5,7 @@ import traceback
 import os
 
 from parse import user_args
-from Synchronize import Synchronize
+from synchronize import Synchronize
 from loader import load_data
 from common import execute_heuristic, print_results, save_csv, format_csv
 from graph import make_graph
@@ -45,7 +45,7 @@ if __name__ == "__main__":
         if _make_graph:
             drive.upload_imgs()  # if graph wanted
         else:
-            path_csv[1].append("-")
+            path_csv[1].append("--")
         drive.upload_csv(path_csv, cities_csv)
 
         if not local_results:

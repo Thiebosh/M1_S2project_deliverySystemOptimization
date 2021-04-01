@@ -111,7 +111,7 @@ def format_csv(local_data, results):
     cities_data = [["city_name", "lat", "long"]]
 
     for res in local_data["peak"]:
-        cities_data.append([res['name'], str(res['x']), str(res['y'])])
+        cities_data.append([res['name'], str(res['y']), str(res['x'])])
 
     return path_data, cities_data
 
