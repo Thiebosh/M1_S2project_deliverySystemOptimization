@@ -5,7 +5,7 @@ import math
 import os
 
 
-async def execute_heuristic(data, batch_size, exe_path, nb_process):
+async def execute_heuristic(data, batch_size, nb_process, exe_path):
     current_pid = os.getpid()
     data = str(data).replace("'", '"')
     batch_size = str(batch_size)
@@ -111,7 +111,7 @@ def format_csv(local_data, results):
     cities_data = [["city_name", "lat", "long"]]
 
     for res in local_data["peak"]:
-        cities_data.append([res['name'], str(res['x']), str(res['y'])])
+        cities_data.append([res['name'], str(res['y']), str(res['x'])])
 
     return path_data, cities_data
 

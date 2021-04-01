@@ -1,20 +1,19 @@
 import matplotlib.pyplot as plt
 import imageio
 import os
-import pathlib
 import geopandas
-import pandas as pd
 import random
 from geopip import search
 
-def make_graph(local_data, results, result_name, save_gif):
+
+def make_graph(path, local_data, results, result_name, save_gif):
     fig2, axe2 = plt.subplots()
     plot_countries = []
     countries_map = []
-    
+
     cities = [(peak["x"], peak["y"]) for peak in local_data["peak"]]
 
-    #get countries to plot
+    # get countries to plot
     for city in cities:
         res = search(city[0], city[1])
         if res and not res["ISO3"] in plot_countries:
@@ -22,24 +21,23 @@ def make_graph(local_data, results, result_name, save_gif):
 
     if len(plot_countries) > 5 or len(plot_countries) == 0:
         plot_countries = ["WORLD"]
-    
 
     for country in plot_countries:
-        countries_map.append(geopandas.read_file(str(pathlib.Path(__file__).parent.absolute())+"\\..\\country_maps\\"+country+".shp"))
-    
+        countries_map.append(geopandas.read_file(path+"\\country_maps\\"+country+".shp"))
+
     # extract couple [x, y]
     x, y = zip(*cities)
 
     # prepare graphs
     nb_graph = min(3, len(results))
-    
-    
+
+    files = []
     for idGraph in range(nb_graph):
         axe2.clear()
         for country in countries_map:
             country.plot(ax=axe2)
         axe2.title.set_text(f"{str(results[idGraph][0])}km\n{str([x+1 for x in results[idGraph][1]])[1:-1]}")
-    
+
         # print peaks
         axe2.scatter(x, y, c="black", s=1)
         for i in range(len(list(dict.fromkeys(results[0][1])))):
@@ -50,13 +48,6 @@ def make_graph(local_data, results, result_name, save_gif):
         travel = local_data["traveler"][0]
         axe2.scatter(travel["x"], travel["y"], c="red",s=1)
 
-        # gif img
-        fileNames = []
-        if save_gif:
-            name = f"{idGraph}_peaks.png"
-            fig2.savefig(name)
-            fileNames.append(name)
-
         # print travel from origin to first peak
         city = [travel["x"], travel["y"]]
         nexCity = cities[results[idGraph][1][0]]
@@ -66,6 +57,7 @@ def make_graph(local_data, results, result_name, save_gif):
         axe2.legend([arr2,], [local_data["traveler"][0]["name"],], bbox_to_anchor=(0.5, -0.1), fontsize='small')
 
         # gif img
+        fileNames = []
         if(save_gif):
             name = f"{idGraph}_init.png"
             fig2.savefig(name)
@@ -86,13 +78,17 @@ def make_graph(local_data, results, result_name, save_gif):
 
         # assemble gif
         if(save_gif):
-            with imageio.get_writer(str(pathlib.Path(__file__).parent.absolute())+f"\\..\\output_images\\graph_{idGraph}.gif", mode='I') as gifFile:
+            with imageio.get_writer(f"{path}\\results\\{result_name}_{idGraph}.gif", mode='I') as gifFile:
                 for fileName in fileNames:
                     image = imageio.imread(fileName)
                     gifFile.append_data(image)
+            files.append(f"{path}\\results\\{result_name}_{idGraph}.gif")
 
             for fileName in fileNames:
                 os.remove(fileName)
 
-        fig2.savefig(result_name[:-4]+str(idGraph)+".png", dpi=500)
+        fig2.savefig(f"{path}\\results\\{result_name}_{idGraph}.png", dpi=500)
+        files.append(f"{path}\\results\\{result_name}_{idGraph}.png")
+
     plt.close(fig2)
+    return files

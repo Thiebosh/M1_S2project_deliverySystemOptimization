@@ -1,6 +1,11 @@
 # personal gitgnore
-.vscode
-.png
+**/*.vscode
+**/*.png
+**/*.gif
+**/*.json
+**/*.csv
+
+**/country_maps/*.*
 
 # PYTHON gitgnore
 
@@ -166,24 +171,5 @@ dmypy.json
 *.lib
 
 # Executables
-# *.exe
 *.out
 *.app
-savedFile.png
-
-*.gif
-
-*.png
-
-
-dashboard/tokenDrive.json
-
-dashboard/tokenSheets.json
-
-dashboard/cities.csv
-
-dashboard/paths.csv
-
-dashboard/credentialsDrive.json
-
-dashboard/credentialsSheets.json
