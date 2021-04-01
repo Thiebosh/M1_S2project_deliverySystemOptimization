@@ -17,6 +17,9 @@ if __name__ == "__main__":
     try:
         path = str(pathlib.Path(__file__).parent.absolute())
 
+        if not os.path.exists(path+"\\results"):
+            os.makedirs(path+"\\results")
+
         filename, *heuristic_inputs, _make_graph, gif_mode,\
             _print_results, local_results = user_args(path)
 
