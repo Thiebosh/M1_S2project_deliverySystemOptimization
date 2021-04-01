@@ -2,6 +2,7 @@ import pathlib
 import asyncio
 import time
 import traceback
+import os
 
 from parse import user_args
 from Synchronize import Synchronize
@@ -16,9 +17,10 @@ if __name__ == "__main__":
     try:
         path = str(pathlib.Path(__file__).parent.absolute())
 
-        filename, heuristic_inputs, save_gif = user_args(path)  # add display results true/false, keep results true/false
+        filename, *heuristic_inputs, _make_graph, gif_mode,\
+            _print_results, local_results = user_args(path)
 
-        drive = Synchronize(path, filename, save_gif)
+        drive = Synchronize(path, filename, gif_mode)
 
         print("Gathering input...\n")
         local_data, to_compute = load_data(drive.read_input_file())
@@ -26,18 +28,29 @@ if __name__ == "__main__":
         print("Simulate paths...\n")
         results = asyncio.run(execute_heuristic(to_compute, *heuristic_inputs))
 
-        print_results(local_data, results)  # if wanted
+        if _print_results:
+            print_results(local_data, results)
 
+        print("Prepare CSV...\n")
         path_csv, cities_csv = format_csv(local_data, results)
-        save_csv(path+"\\results\\"+filename+"_paths.csv", path_csv)  # if wanted
-        save_csv(path+"\\results\\"+filename+"_cities.csv", cities_csv)  # if wanted
+        if local_results:
+            save_csv(path+"\\results\\"+filename+"_paths.csv", path_csv)
+            save_csv(path+"\\results\\"+filename+"_cities.csv", cities_csv)
 
-        print("Generate graphs...\n")
-        make_graph(path, local_data, results, filename, save_gif)  # if wanted -- else, must do path_csv[1].push_back("-")
-        drive.upload_imgs()  # if graph wanted
+        if _make_graph:
+            print("Generate graphs...\n")
+            files = make_graph(path, local_data, results, filename, gif_mode)
 
         print("Upload data...\n")
+        if _make_graph:
+            drive.upload_imgs()  # if graph wanted
+        else:
+            path_csv[1].append("-")
         drive.upload_csv(path_csv, cities_csv)
+
+        if not local_results:
+            print("Clear directory...")
+            [os.remove(file) for file in files if os.path.exists(file)]
 
         print(f"Everything done! Please consult results on dashboard :\n{DASHBOAD_URL}\n")
 

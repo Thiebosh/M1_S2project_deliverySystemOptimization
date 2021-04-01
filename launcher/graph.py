@@ -31,6 +31,7 @@ def make_graph(path, local_data, results, result_name, save_gif):
     # prepare graphs
     nb_graph = min(3, len(results))
 
+    files = []
     for idGraph in range(nb_graph):
         axe2.clear()
         for country in countries_map:
@@ -81,9 +82,13 @@ def make_graph(path, local_data, results, result_name, save_gif):
                 for fileName in fileNames:
                     image = imageio.imread(fileName)
                     gifFile.append_data(image)
+            files.append(f"{path}\\results\\{result_name}_{idGraph}.gif")
 
             for fileName in fileNames:
                 os.remove(fileName)
 
         fig2.savefig(f"{path}\\results\\{result_name}_{idGraph}.png", dpi=500)
+        files.append(f"{path}\\results\\{result_name}_{idGraph}.png")
+
     plt.close(fig2)
+    return files

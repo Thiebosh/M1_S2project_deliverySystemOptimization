@@ -93,7 +93,7 @@ class Synchronize:
                 .execute().decode("utf-8")
 
     def remove_imgs(self, regex):
-        query = f"'{self.img_folder_id}' in parents and mimeType='image/png'" # reussir à prendre que les self.filename+"_*.(png|gif)"
+        query = f"'{self.img_folder_id}' in parents and mimeType='image/png'"  # reussir à prendre que les self.filename+"_*.(png|gif)"
 
         # pylint: disable=maybe-no-member
         for file in self.serviceDrive.files().list(q=query).execute()["files"]:
@@ -103,11 +103,12 @@ class Synchronize:
             self.serviceDrive.files().delete(fileId=file["id"]).execute()
 
     def upload_imgs(self):
-        regex = re.compile(r"^"+self.filename+"_[0-9]+."+("png" if self.save_gif else "gif")+"$")
+        reg = "^"+self.filename+"_[0-9]+.{0}$"
+        regex = re.compile(r""+reg.format("png" if self.save_gif else "gif"))
 
         self.remove_imgs(regex)
 
-        regex = re.compile(r"^"+self.filename+"_[0-9]+."+("gif" if self.save_gif else "png")+"$")
+        regex = re.compile(r""+reg.format("gif" if self.save_gif else "png"))
 
         file_metadata = {'name': '', 'parents': [self.img_folder_id]}
 
