@@ -4,6 +4,8 @@
 **/*.gif
 **/*.json
 **/*.csv
+**/*.whl
+**/*.flag
 
 **/country_maps/*.*
 

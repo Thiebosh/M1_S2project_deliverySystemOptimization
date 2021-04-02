@@ -5,7 +5,7 @@ from distutils.util import strtobool
 
 
 def user_args(path):
-    engine_path = path[:path.rfind("\\")]+"\\core\\"
+    engine_path = path[:path.rfind("\\")]+"\\core"
     regex = re.compile(r"^(v|V)[0-9]+$")
     nb_versions = [x for x in os.listdir(engine_path) if regex.match(x)]
     nb_versions = sorted(nb_versions, key=lambda x: int(x[1:]))[-1][1:]
@@ -18,7 +18,7 @@ def user_args(path):
     parser.add_argument("make_graph", type=lambda x: strtobool(x), nargs="?", default=True, help="You can specify whether you want to generate graphs or not")
     parser.add_argument("gif_mode", type=lambda x: strtobool(x), nargs="?", default=False, help="You can specify whether you want to save gif or not")
     parser.add_argument("print_results", type=lambda x: strtobool(x), nargs="?", default=True, help="You can specify whether you want to print results in console or not")
-    parser.add_argument("local_results", type=lambda x: strtobool(x), nargs="?", default=False, help="You can specify whether you want to conserve local result files or not")
+    parser.add_argument("keep_local_results", type=lambda x: strtobool(x), nargs="?", default=False, help="You can specify whether you want to conserve local result files or not")
     args = parser.parse_args()
 
     if args.batch_size < 1:
@@ -27,10 +27,9 @@ def user_args(path):
     if args.nb_process < 1:
         parser.error("Number of process must be superior to 0")
 
-    engine_path += f"v{args.engine}\\engine.exe"
-    if not os.path.exists(engine_path):
+    args.engine = engine_path + f"\\v{args.engine}\\engine.exe"
+    if not os.path.exists(args.engine):
         parser.error("This engine doesn't exist")
-    args.engine = engine_path
 
     return args.__dict__.values()
 

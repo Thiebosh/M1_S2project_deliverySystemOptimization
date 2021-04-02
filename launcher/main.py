@@ -4,21 +4,19 @@ import time
 import traceback
 import os
 
+from setup import setup_project
 from parse import user_args
 from synchronize import Synchronize
 from loader import load_data
 from common import execute_heuristic, print_results, save_csv, format_csv
 from graph import make_graph
-
-
-DASHBOAD_URL = "https://datastudio.google.com/u/2/reporting/cd241e7b-cec2-4227-976e-857c5c7bf6c0/page/qRZ9B"
+from defines import RESULT_FOLDER, DASHBOAD_URL
 
 if __name__ == "__main__":
     try:
         path = str(pathlib.Path(__file__).parent.absolute())
 
-        if not os.path.exists(path+"\\results"):
-            os.makedirs(path+"\\results")
+        setup_project(path)
 
         filename, *heuristic_inputs, _make_graph, gif_mode,\
             _print_results, local_results = user_args(path)
@@ -37,8 +35,8 @@ if __name__ == "__main__":
         print("Prepare CSV...\n")
         path_csv, cities_csv = format_csv(local_data, results)
         if local_results:
-            save_csv(path+"\\results\\"+filename+"_paths.csv", path_csv)
-            save_csv(path+"\\results\\"+filename+"_cities.csv", cities_csv)
+            save_csv(path+RESULT_FOLDER+f"\\{filename}_paths.csv", path_csv)
+            save_csv(path+RESULT_FOLDER+f"\\{filename}_cities.csv", cities_csv)
 
         if _make_graph:
             print("Generate graphs...\n")
@@ -52,7 +50,7 @@ if __name__ == "__main__":
         drive.upload_csv(path_csv, cities_csv)
 
         if not local_results:
-            print("Clear directory...")
+            print("Clear directory...\n")
             [os.remove(file) for file in files if os.path.exists(file)]
 
         print(f"Everything done! Please consult results on dashboard :\n{DASHBOAD_URL}\n")
