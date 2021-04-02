@@ -5,6 +5,8 @@ import geopandas
 import random
 from geopip import search
 
+from defines import MAPS_FOLDER, RESULT_FOLDER
+
 
 def make_graph(path, local_data, results, result_name, save_gif):
     fig2, axe2 = plt.subplots()
@@ -23,7 +25,7 @@ def make_graph(path, local_data, results, result_name, save_gif):
         plot_countries = ["WORLD"]
 
     for country in plot_countries:
-        countries_map.append(geopandas.read_file(path+"\\country_maps\\"+country+".shp"))
+        countries_map.append(geopandas.read_file(path+MAPS_FOLDER+"\\"+country+".shp"))
 
     # extract couple [x, y]
     x, y = zip(*cities)
@@ -78,17 +80,17 @@ def make_graph(path, local_data, results, result_name, save_gif):
 
         # assemble gif
         if(save_gif):
-            with imageio.get_writer(f"{path}\\results\\{result_name}_{idGraph}.gif", mode='I') as gifFile:
+            files.append(path+RESULT_FOLDER+f"\\{result_name}_{idGraph}.gif")
+            with imageio.get_writer(files[-1], mode='I') as gifFile:
                 for fileName in fileNames:
                     image = imageio.imread(fileName)
                     gifFile.append_data(image)
-            files.append(f"{path}\\results\\{result_name}_{idGraph}.gif")
 
             for fileName in fileNames:
                 os.remove(fileName)
 
-        fig2.savefig(f"{path}\\results\\{result_name}_{idGraph}.png", dpi=500)
-        files.append(f"{path}\\results\\{result_name}_{idGraph}.png")
+        files.append(path+RESULT_FOLDER+f"\\{result_name}_{idGraph}.png")
+        fig2.savefig(files[-1], dpi=500)
 
     plt.close(fig2)
     return files

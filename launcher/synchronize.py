@@ -6,6 +6,8 @@ from google.oauth2.credentials import Credentials
 import os
 import re
 
+from defines import DRIVE_FOLDER, RESULT_FOLDER
+
 # elements to reach into drive account
 DRIVE_CSV_RESULTS = 'results_project'
 DRIVE_FOLDER_IMGS = 'images'
@@ -69,7 +71,7 @@ class Synchronize:
 
     def get_cred(self, token_file, scope, cred_file):
         cred = None
-        token_file = self.path+"\\driveAccess\\"+token_file
+        token_file = self.path+DRIVE_FOLDER+"\\"+token_file
 
         if os.path.exists(token_file):
             cred = Credentials.from_authorized_user_file(token_file, scope)
@@ -78,7 +80,7 @@ class Synchronize:
             if cred and cred.expired and cred.refresh_token:
                 cred.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(self.path+"\\driveAccess\\"+cred_file, scope)
+                flow = InstalledAppFlow.from_client_secrets_file(self.path+DRIVE_FOLDER+"\\"+cred_file, scope)
                 cred = flow.run_local_server(port=0)
 
             with open(token_file, 'w') as token:
@@ -112,13 +114,13 @@ class Synchronize:
 
         file_metadata = {'name': '', 'parents': [self.img_folder_id]}
 
-        for file in os.listdir(f"{self.path}\\results"):
+        for file in os.listdir(self.path+RESULT_FOLDER):
             if not regex.match(file):
                 continue
 
             file_metadata['name'] = file
 
-            media = MediaFileUpload(f"{self.path}\\results\\{file}", mimetype='image/gif')
+            media = MediaFileUpload(self.path+RESULT_FOLDER+"\\"+file, mimetype='image/gif')
 
             # pylint: disable=maybe-no-member
             res = self.serviceDrive.files().create(body=file_metadata,

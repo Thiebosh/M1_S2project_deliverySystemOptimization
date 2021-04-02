@@ -34,7 +34,8 @@ def acquire_data(file_content):
 
         last = -1
         data_lines = []
-        for id in [id for id, line in enumerate(all_lines) if re.match(r"^\s*$", line)]:  # empty_lines : only spaces or \t, \r, \n
+        reg = re.compile(r"^\s*$")  # empty_lines : only spaces or \t, \r, \n
+        for id in [id for id, line in enumerate(all_lines) if reg.match(line)]:
             if id > last and id-1 != last:
                 data_lines.append((last+1, id))
             last = id
