@@ -4,7 +4,6 @@ import time
 import traceback
 import os
 
-from setup import setup_project
 from parse import user_args
 from synchronize import Synchronize
 from loader import load_data
@@ -16,7 +15,8 @@ if __name__ == "__main__":
     try:
         path = str(pathlib.Path(__file__).parent.absolute())
 
-        setup_project(path)
+        if not os.path.exists(path+RESULT_FOLDER):
+            os.makedirs(path+RESULT_FOLDER)
 
         filename, *heuristic_inputs, _make_graph, gif_mode,\
             _print_results, local_results = user_args(path)
@@ -49,7 +49,7 @@ if __name__ == "__main__":
             path_csv[1].append("--")
         drive.upload_csv(path_csv, cities_csv)
 
-        if not local_results:
+        if _make_graph and not local_results:
             print("Clear directory...\n")
             [os.remove(file) for file in files if os.path.exists(file)]
 
