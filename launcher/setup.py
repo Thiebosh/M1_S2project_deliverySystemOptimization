@@ -1,6 +1,4 @@
 import requests
-import string
-import time
 from zipfile import ZipFile
 import os
 import re
@@ -29,7 +27,7 @@ def import_country_maps(path):
     dl_countries = {file[:-4] for file in os.listdir(path) if reg.match(file)}
 
     res = requests.get("https://gadm.org/download_country_v3.html", allow_redirects=True)
-    all_countries = {string[1:4] for string in str(res.content).split('value=')[1:][1:]}
+    all_countries = {line[1:4] for line in str(res.content).split('value=')[1:][1:]}
 
     remaining = list(all_countries - dl_countries)[:3]  # test avec les 3 premiers
 
