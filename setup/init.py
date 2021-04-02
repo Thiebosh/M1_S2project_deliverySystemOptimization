@@ -116,6 +116,7 @@ def import_country_maps(path):
 if __name__ == "__main__":
     path = str(pathlib.Path(__file__).parent.absolute())
 
+    # I. dependencies
     if not os.path.exists(path+DEPENDENCIES_FLAG):
         install_dependencies(path)
 
@@ -124,14 +125,7 @@ if __name__ == "__main__":
     else:
         print("Already installed dependencies\n")
 
-    if not os.path.exists(path+COUNTRIES_FLAG):
-        import_country_maps(path)
-
-        with open(path+COUNTRIES_FLAG, "w"):
-            pass
-    else:
-        print("Already installed country files\n")
-
+    # II. Drive access
     if not os.path.exists(path+DRIVE_FOLDER):
         os.makedirs(path+DRIVE_FOLDER)
 
@@ -143,5 +137,14 @@ if __name__ == "__main__":
 
     else:
         print("Required number of credentials\n")
+
+    # III. Countries files
+    if not os.path.exists(path+COUNTRIES_FLAG):
+        import_country_maps(path)
+
+        with open(path+COUNTRIES_FLAG, "w"):
+            pass
+    else:
+        print("Already installed country files\n")
 
     print("Setup done, ready to execute project")
