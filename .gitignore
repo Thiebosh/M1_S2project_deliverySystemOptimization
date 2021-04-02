@@ -4,8 +4,12 @@
 **/*.gif
 **/*.json
 **/*.csv
+**/*.whl
+**/*.flag
 
-**/country_maps/*.*
+**/*.shp
+**/*.shx
+**/*.zip
 
 # PYTHON gitgnore
 
