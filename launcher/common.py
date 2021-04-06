@@ -5,10 +5,11 @@ import math
 import os
 
 
-async def execute_heuristic(data, batch_size, exe_path, nb_process):
+async def execute_heuristic(data, batch_size, nb_process, exe_path):
+    current_pid = os.getpid()
     data = str(data).replace("'", '"')
     batch_size = str(batch_size)
-    running_procs = [Popen([exe_path, str(os.getpid()+id), data, batch_size],
+    running_procs = [Popen([exe_path, str(current_pid+id), data, batch_size],
                      stdout=PIPE, stderr=PIPE, text=True)
                      for id in range(nb_process)]
 
@@ -28,11 +29,17 @@ async def execute_heuristic(data, batch_size, exe_path, nb_process):
         lines = proc.communicate()[0].split("\n")
 
         if retcode and retcode != 0:  # execution error
-            print(f"process {lines[0]} return error '{retcode}'")
+            print(f"process {current_pid - int(lines[0])} return error '{retcode}'")
             print(lines[1:])
             continue
-        seed = lines[1][:-1]
+
+        # print("lines", lines)
+        seed = lines[1]
         data = lines[2][:-1]
+        # print("seed:", seed)
+        # print("data:", data)
+        # print()
+        # exit()
         # preprocess results rather than sleep
         results = make_unique(seed, data, results)
 
@@ -84,34 +91,32 @@ def print_results(local_data, results):
         d = travel.replace("', '", " -> ")
         print(f"- (seed: {a}) {b} : {c}km with {d}")
 
+    print("\n")
 
-def export_csv(local_data, results):
-    with open(os.path.dirname(__file__)+"\\..\\dashboard\\paths.csv", "w") as file: 
-        file.write("id,")
-        file.write("total_distance,")
-        file.write("path,")
-        file.write("seed,")
-        file.write("img\n")
-        id = 0
-        for res in results:
-            file.write(str(id)+",'")
-            file.write(str(res[0])+",'")
-            for peakId, peak in enumerate(res[1]):
-                file.write(local_data["peak"][peak]["name"])
-                if peakId != len(res[1])-1:
-                    file.write(";")
-            file.write("',"+str(res[2])+"\n")
-            id += 1
 
-    with open(os.path.dirname(__file__)+"\\..\\dashboard\\cities.csv", "w") as file: 
-        file.write("city_name,")
-        file.write("lat,")
-        file.write("long\n")
+def format_csv(local_data, results):
+    path_data = [["id", "total_distance", "path", "seed", "img"]]
 
-        for res in local_data["peak"]:
-            file.write(res["name"])
-            file.write(",")
-            file.write(str(res["x"]))
-            file.write(",")
-            file.write(str(res["y"]))
-            file.write("\n")
+    for id, res in enumerate(results):
+        line = [str(id), f"'{res[0]}", "'"+local_data['peak'][res[1][0]]['name']]
+
+        for peak in res[1][1:]:
+            line[2] += f";{local_data['peak'][peak]['name']}"
+
+        line[2] += "'"
+        line.append(str(res[2]))
+
+        path_data.append(line)
+
+    cities_data = [["city_name", "lat", "long"]]
+
+    for res in local_data["peak"]:
+        cities_data.append([res['name'], str(res['y']), str(res['x'])])
+
+    return path_data, cities_data
+
+
+def save_csv(path, data):
+    with open(path, "w") as file:
+        for line in data:
+            file.write(",".join(line)+"\n")
