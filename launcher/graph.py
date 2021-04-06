@@ -6,11 +6,8 @@ import random
 from geopip import search
 from copy import deepcopy
 from threading import Thread
-import queue
 import time
-
 from defines import MAPS_FOLDER, RESULT_FOLDER
-import concurrent.futures
  
 def plot_path(countries_map, cities, results, idGraph, local_data, save_gif, path, result_name, files):
     fig = plt.figure()
@@ -63,18 +60,17 @@ def plot_path(countries_map, cities, results, idGraph, local_data, save_gif, pat
 
     # assemble gif
     if(save_gif):
-        print(path)
         with imageio.get_writer(f"{path}\\results\\{result_name}_{idGraph}.gif", mode='I') as gifFile:
             for fileName in fileNames:
                 image = imageio.imread(fileName)
                 gifFile.append_data(image)
-        files.append(f"{path}\\results\\{result_name}_{idGraph}.gif")
+        files.append(path+RESULT_FOLDER+f"\\{result_name}_{idGraph}.gif")
 
         for fileName in fileNames:
             os.remove(fileName)
 
-    fig.savefig(f"{path}\\results\\{result_name}_{idGraph}.png", dpi=500)
-    files.append(f"{path}\\results\\{result_name}_{idGraph}.png")
+    files.append(path+RESULT_FOLDER+f"\\{result_name}_{idGraph}.png")
+    fig.savefig(files[-1], dpi=500)
     return files
 
 
@@ -99,11 +95,10 @@ def make_graph(path, local_data, results, result_name, save_gif):
         countries_map.append(geopandas.read_file(path+MAPS_FOLDER+"\\"+country+".shp"))
 
     # prepare graphs
-    nb_graph = min(50, len(results))
+    nb_graph = min(3, len(results))
 
     files = []
 
-    que = queue.Queue()
     threads = []
 
     for idGraph in range(nb_graph):
@@ -114,10 +109,4 @@ def make_graph(path, local_data, results, result_name, save_gif):
     for thread in threads:
         thread.join()
 
-    # while not que.empty():
-    #     print("zebi")
-    #     print(que.get())
-    #     files = files + que.get()
-
-    # print(files)
     return files
