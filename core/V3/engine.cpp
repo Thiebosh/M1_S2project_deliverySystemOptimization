@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     srand(seed);
     cout << seed << endl;
 
-    ifstream t("..\\..\\data", ios::in);
+    ifstream t("data.tmp", ios::in);
     t.seekg(0);
     string str( (std::istreambuf_iterator<char>(t) ),
                        (std::istreambuf_iterator<char>()) );

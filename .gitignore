@@ -6,6 +6,7 @@
 **/*.csv
 **/*.whl
 **/*.flag
+**/*.tmp
 
 **/*.shp
 **/*.shx

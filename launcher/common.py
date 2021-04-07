@@ -8,7 +8,7 @@ import os
 async def execute_heuristic(data, batch_size, nb_process, exe_path):
     current_pid = os.getpid()
     data = str(data).replace("'", '"')
-    with open("data","w") as file:
+    with open(exe_path[:exe_path.rfind("\\")]+"\\data.tmp", "w") as file:
         file.write(data)
     batch_size = str(batch_size)
     running_procs = [Popen([exe_path, str(current_pid+id), batch_size],
