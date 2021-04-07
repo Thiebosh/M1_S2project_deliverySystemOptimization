@@ -1,7 +1,11 @@
 import re
+import math
+import numpy as np
+from numba import njit
 
 import parse
-from Arc import Arc
+
+np.set_printoptions(formatter={'float': "{:.2f}".format})
 
 
 def load_data(file_content):
@@ -13,14 +17,28 @@ def load_data(file_content):
     ids = {"local_peak": 0, "compute_peak": 0, "compute_arc": 0}
     local_data = {"traveler": [{"name": '', "x": 0.0, "y": 0.0} for _ in range(nb_traveler)],
                   "peak":     [{"name": '', "x": 0.0, "y": 0.0} for _ in range(nb_peak)]}
-    compute_data = {"traveler": [{"arc": [Arc()]*nb_peak, "speed": 0.0, "qty": 0}   for _ in range(nb_traveler)],
-                    "peak":     [{"origin": 0, "link": 0, "qty": 1, "maxCost": 0.0} for _ in range(nb_peak)],
-                    "arc":      [[Arc()]*nb_peak for _ in range(nb_peak)]}
+    compute_data = {"peak":     [{"origin": 0, "link": 0, "qty": 1, "maxCost": 0.0} for _ in range(nb_peak)],
+                    # matrix of lat1, long1, lat2, long2
+                    "arc":      np.array([np.empty((nb_peak, nb_peak), dtype='float32'), \
+                                          np.empty((nb_peak, nb_peak), dtype='float32'), \
+                                          np.empty((nb_peak, nb_peak), dtype='float32'), \
+                                          np.empty((nb_peak, nb_peak), dtype='float32')]),
+                    "traveler": [{"speed": 0.0,
+                                  "qty": 0,
+                                  # vector of lat1, long1, lat2, long2
+                                  "arc": np.array([np.empty((nb_peak), dtype='float32'), \
+                                                   np.empty((nb_peak), dtype='float32'), \
+                                                   np.empty((nb_peak), dtype='float32'), \
+                                                   np.empty((nb_peak), dtype='float32')])}
+                                 for _ in range(nb_traveler)]}
 
     list_travelers(travel_lines, local_data, compute_data, nb_peak)
-    list_peaks_arcs(peak_lines, local_data, compute_data, nb_peak, ids)
+    list_peaks_arcs(peak_lines, local_data, compute_data, nb_peak, nb_traveler, ids)
 
-    compute_arcs(local_data, compute_data, nb_traveler, nb_peak)
+    for i in range(nb_traveler):
+        compute_data["traveler"][i]["arc"] = compute_traveler(compute_data["traveler"][i]["arc"])
+    compute_data["arc"] = compute_arcs(compute_data["arc"])
+
     return local_data, compute_data
 
 
@@ -61,10 +79,11 @@ def list_travelers(travel_lines, local_data, compute_data, nb_peak):
         compute_data["traveler"][count]["qty"] = qty
 
         for i in range(nb_peak):
-            compute_data["traveler"][count]["arc"][i].set_peakInit(x, y)
+            compute_data["traveler"][count]["arc"][0][i] = x
+            compute_data["traveler"][count]["arc"][1][i] = y
 
 
-def list_peaks_arcs(peak_lines, local_data, compute_data, nb_peak, ids):
+def list_peaks_arcs(peak_lines, local_data, compute_data, nb_peak, nb_trav, ids):
     for count, line in enumerate(peak_lines):
         peaks = line.split(" - ")
         origin = peaks[0]
@@ -72,52 +91,107 @@ def list_peaks_arcs(peak_lines, local_data, compute_data, nb_peak, ids):
 
         name, x, y = parse.origin_line(origin)
 
-        local_data["peak"][ids["local_peak"]]["name"] = name
-        local_data["peak"][ids["local_peak"]]["x"] = x
-        local_data["peak"][ids["local_peak"]]["y"] = y
+        dest_id = ids["local_peak"]
         ids["local_peak"] += 1
+        local_data["peak"][dest_id]["name"] = name
+        local_data["peak"][dest_id]["x"] = x
+        local_data["peak"][dest_id]["y"] = y
+
+        # attribue toutes les destinations pour le sommet origine
+        for i in range(nb_peak):
+            compute_data["arc"][2][i][dest_id] = x
+            compute_data["arc"][3][i][dest_id] = y
+        for i in range(nb_trav):
+            compute_data["traveler"][i]["arc"][2][dest_id] = x
+            compute_data["traveler"][i]["arc"][3][dest_id] = y
 
         origin_id = ids["compute_peak"]
-        compute_data["peak"][ids["compute_peak"]]["origin"] = 1
-        compute_data["peak"][ids["compute_peak"]]["link"] = []
-        del compute_data["peak"][ids["compute_peak"]]["qty"]
         ids["compute_peak"] += 1
+        compute_data["peak"][origin_id]["origin"] = 1
+        compute_data["peak"][origin_id]["link"] = []
+        del compute_data["peak"][origin_id]["qty"]
 
-        for i in range(nb_peak):
-            compute_data["arc"][ids["compute_arc"]][i].set_peakInit(x, y)
+        init_id = ids["compute_arc"]
         ids["compute_arc"] += 1
+        for i in range(nb_peak):
+            compute_data["arc"][0][init_id][i] = x
+            compute_data["arc"][1][init_id][i] = y
 
         for p_count, peak in enumerate(dests):
-            list_dests(local_data, compute_data, count, p_count, peak, origin_id, nb_peak, ids)
+            list_dests(local_data, compute_data, count, p_count, peak, origin_id, nb_peak, nb_trav, ids)
 
 
-def list_dests(local_data, compute_data, count, p_count, peak, origin_id, nb_peak, ids):
+def list_dests(local_data, compute_data, count, p_count, peak, origin_id, nb_peak, nb_trav, ids):
     name, x, y, qty, max_cost = parse.dest_line(peak)
 
-    local_data["peak"][ids["local_peak"]]["name"] = name
-    local_data["peak"][ids["local_peak"]]["x"] = x
-    local_data["peak"][ids["local_peak"]]["y"] = y
+    dest_id = ids["local_peak"]
     ids["local_peak"] += 1
+    local_data["peak"][dest_id]["name"] = name
+    local_data["peak"][dest_id]["x"] = x
+    local_data["peak"][dest_id]["y"] = y
 
-    compute_data["peak"][origin_id]["link"].append(ids["compute_peak"])
-    compute_data["peak"][ids["compute_peak"]]["link"] = origin_id
-    compute_data["peak"][ids["compute_peak"]]["qty"] = qty
-    compute_data["peak"][ids["compute_peak"]]["maxCost"] = max_cost
-    ids["compute_peak"] += 1
-
+    # attribue toutes les destinations pour le sommet destination
     for i in range(nb_peak):
-        compute_data["arc"][ids["compute_arc"]][i].set_peakInit(x, y)
+        compute_data["arc"][2][i][dest_id] = x
+        compute_data["arc"][3][i][dest_id] = y
+    for i in range(nb_trav):
+        compute_data["traveler"][i]["arc"][2][dest_id] = x
+        compute_data["traveler"][i]["arc"][3][dest_id] = y
+
+    dest_id = ids["compute_peak"]
+    ids["compute_peak"] += 1
+    compute_data["peak"][origin_id]["link"].append(dest_id)
+    compute_data["peak"][dest_id]["link"] = origin_id
+    compute_data["peak"][dest_id]["qty"] = qty
+    compute_data["peak"][dest_id]["maxCost"] = max_cost
+
+    init_id = ids["compute_arc"]
     ids["compute_arc"] += 1
+    for i in range(nb_peak):
+        compute_data["arc"][0][init_id][i] = x
+        compute_data["arc"][1][init_id][i] = y
 
 
-def compute_arcs(local_data, compute_data, nb_traveler, nb_peak):
-    for count, peak in enumerate(local_data["peak"]):
-        for i in range(nb_traveler):
-            compute_data["traveler"][i]["arc"][count] = compute_data["traveler"][i]["arc"][count]\
-                                                        .set_peakDest(peak["x"], peak["y"])\
-                                                        .compute_distance()
+@njit(nogil=True, fastmath=True)
+def distance(const, demiconst, lat1, long1, lat2, long2):
+    phi1 = lat1*const
+    phi2 = lat2*const
 
-        for i in range(nb_peak):
-            compute_data["arc"][i][count] = compute_data["arc"][i][count]\
-                                            .set_peakDest(peak["x"], peak["y"])\
-                                            .compute_distance()
+    deltaPhi = math.sin((lat2 - lat1)*demiconst)
+    deltaLambda = math.sin((long2 - long1)*demiconst)
+
+    a = deltaPhi * deltaPhi + math.cos(phi1) * math.cos(phi2) * deltaLambda * deltaLambda
+
+    return 12742 * math.atan2(math.sqrt(a), math.sqrt(1 - a))  # earth diameter
+
+
+distance(0, 0, 0, 0, 0, 0)  # compile
+
+
+@njit(nogil=True, fastmath=True)
+def compute_arcs(datas):
+    const = math.pi/180
+    demiconst = const/2
+    result = np.empty_like(datas[0])
+    for i in range(len(datas[0])):
+        for j in range(len(datas[0])):
+            result[i][j] = distance(const, demiconst, datas[0][i][j], datas[1][i][j], datas[2][i][j], datas[3][i][j])
+
+    return result
+
+
+compute_arcs(np.array([np.empty((1, 1), dtype='float32')]*4))  # compile
+
+
+@njit(nogil=True, fastmath=True)
+def compute_traveler(datas):
+    const = math.pi/180
+    demiconst = const/2
+    result = np.empty_like(datas[0])
+    for i in range(len(datas[0])):
+        result[i] = distance(const, demiconst, datas[0][i], datas[1][i], datas[2][i], datas[3][i])
+
+    return result
+
+
+compute_traveler(np.array([np.empty((1), dtype='float32')]*4))  # compile

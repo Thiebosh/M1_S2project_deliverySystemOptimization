@@ -7,7 +7,12 @@ import os
 
 async def execute_heuristic(data, batch_size, nb_process, exe_path):
     current_pid = os.getpid()
-    data = str(data).replace("'", '"')
+    # 5 first rules belongs to numpy array print
+    data = str(data).replace("\n", "") \
+                    .replace("array(", "") \
+                    .replace(", dtype=float32)", "") \
+                    .replace("      ", "") \
+                    .replace("'", '"')
     batch_size = str(batch_size)
     running_procs = [Popen([exe_path, str(current_pid+id), data, batch_size],
                      stdout=PIPE, stderr=PIPE, text=True)
@@ -81,7 +86,7 @@ def print_results(local_data, results):
     max_digits_dist = 1+int(math.log10(int(results[-1][0])))  # greater nb of digits
     max_digits_seed = 1+int(math.log10(max([x[2] for x in results])))  # greater nb of digits
 
-    print(f"We get {len(results)} distinc(s) peaks travel(s) order(s) :")
+    print(f"{len(results)} distinc(s) peaks travel(s) order(s) :")
     for distance, travel, seed in results:
         travel = str([local_data["peak"][x]["name"] for x in travel])[1:-1]
 
