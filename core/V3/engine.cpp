@@ -9,6 +9,8 @@
 #include <mutex>
 #include <thread>
 #include "../json.hpp"
+#include <fstream>
+#include <streambuf>
 
 using namespace std;
 using json = nlohmann::json;
@@ -25,23 +27,31 @@ float totaldis(vector<int> &path, json input);
 
 int main(int argc, char *argv[])
 {
+    if (argc < 3) return -1;
+
     int id = atoi(argv[1]);
     cout << id << endl;
-
-    if (argc < 4) return -1;
 
     time_t seed = time(NULL) % id;
     srand(seed);
     cout << seed << endl;
 
-    json inputData = json::parse(argv[2]);
-    int batch_size = atoi(argv[3]);
+    ifstream t("..\\..\\data", ios::in);
+    t.seekg(0);
+    string str( (std::istreambuf_iterator<char>(t) ),
+                       (std::istreambuf_iterator<char>()) );
+    cout << str << endl;
+    // return 0;
 
+    json inputData = json::parse(str);
+    cout << "zebi" << endl;
+    int batch_size = atoi(argv[2]);
     vector<vector<int>> path(inputData["traveler"].size(), vector<int>());
 
     mutex path_mutex;
     map<int, vector<int>> restaurantClientLink;
     mutex restaurantClientLink_mutex;
+    cout << "zebi" << endl;
 
     //initializing restaurantClientLink
     for (int i = 0; i < inputData["peak"].size(); ++i)
