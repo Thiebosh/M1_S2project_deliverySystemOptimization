@@ -35,21 +35,18 @@ async def execute_heuristic(data, batch_size, nb_process, exe_path):
                 continue
 
         lines = proc.communicate()[0].split("\n")
-        print(proc.communicate())
         if retcode and retcode != 0:  # execution error
             print(f"process {current_pid - int(lines[0])} return error '{retcode}'")
             print(lines[1:])
             continue
 
-        print("lines", lines)
         seed = lines[1]
         data = lines[2][:-1]
         # print("seed:", seed)
         # print("data:", data)
-        # print()
-        # exit()
+
         # preprocess results rather than sleep
-        results = make_unique(seed, data, results)
+        results = make_unique(seed, data, results)  # tmp : only check seed ?
 
     time2 = time.time()
     print(f'heuristics executions took {(time2-time1)*1000.0:.3f} ms\n')
