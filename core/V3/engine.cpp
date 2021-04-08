@@ -8,9 +8,9 @@
 #include <map>
 #include <mutex>
 #include <thread>
-#include "../json.hpp"
 #include <fstream>
 #include <streambuf>
+#include "../json.hpp"
 
 //input args
 #define ARG_FILE_PATH 1
