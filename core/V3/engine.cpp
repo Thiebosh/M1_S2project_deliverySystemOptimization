@@ -9,9 +9,18 @@
 #include <mutex>
 #include <thread>
 #include "../json.hpp"
+#include <fstream>
+#include <streambuf>
+
+//input args
+#define ARG_FILE_PATH 1
+#define ARG_ID 2
+#define ARG_BATCH_SIZE 3
+#define NB_ARGS 4
 
 using namespace std;
 using json = nlohmann::json;
+
 
 typedef struct dist_
 {
@@ -25,18 +34,23 @@ float totaldis(vector<int> &path, json input);
 
 int main(int argc, char *argv[])
 {
-    int id = atoi(argv[1]);
+    int id = atoi(argv[ARG_ID]);
     cout << id << endl;
-
-    if (argc < 4) return -1;
+    
+    if (argc < NB_ARGS) return -1;
 
     time_t seed = time(NULL) % id;
     srand(seed);
     cout << seed << endl;
 
-    json inputData = json::parse(argv[2]);
-    int batch_size = atoi(argv[3]);
+    ifstream t(argv[ARG_FILE_PATH], ios::in);
+    t.seekg(0);
+    string str( (std::istreambuf_iterator<char>(t) ),
+                       (std::istreambuf_iterator<char>()) );
 
+    json inputData = json::parse(str);
+
+    int batch_size = atoi(argv[ARG_BATCH_SIZE]);
     vector<vector<int>> path(inputData["traveler"].size(), vector<int>());
 
     mutex path_mutex;

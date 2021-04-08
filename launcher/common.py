@@ -13,8 +13,11 @@ async def execute_heuristic(data, batch_size, nb_process, exe_path):
                     .replace(", dtype=float32)", "") \
                     .replace("      ", "") \
                     .replace("'", '"')
+    file_path = exe_path[:exe_path.rfind("\\")]+"\\data.tmp"
+    with open(file_path, "w") as file:
+        file.write(data)
     batch_size = str(batch_size)
-    running_procs = [Popen([exe_path, str(current_pid+id), data, batch_size],
+    running_procs = [Popen([exe_path, file_path, str(current_pid+id), batch_size],
                      stdout=PIPE, stderr=PIPE, text=True)
                      for id in range(nb_process)]
 
@@ -32,13 +35,13 @@ async def execute_heuristic(data, batch_size, nb_process, exe_path):
                 continue
 
         lines = proc.communicate()[0].split("\n")
-
+        print(proc.communicate())
         if retcode and retcode != 0:  # execution error
             print(f"process {current_pid - int(lines[0])} return error '{retcode}'")
             print(lines[1:])
             continue
 
-        # print("lines", lines)
+        print("lines", lines)
         seed = lines[1]
         data = lines[2][:-1]
         # print("seed:", seed)
