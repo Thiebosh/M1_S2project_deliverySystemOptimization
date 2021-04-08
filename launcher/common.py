@@ -40,6 +40,7 @@ async def execute_heuristic(data, batch_size, nb_process, exe_path):
             print(lines[1:])
             continue
 
+        print(lines)
         seed = lines[1]
         data = lines[2][:-1]
         # print("seed:", seed)
