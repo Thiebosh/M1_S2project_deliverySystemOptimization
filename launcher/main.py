@@ -34,6 +34,8 @@ if __name__ == "__main__":
             print(f"{datetime.now().time()} - Display results...\n") 
             print_results(local_data, results)
 
+        exit()
+
         print(f"{datetime.now().time()} - Prepare CSV...\n")
         path_csv, cities_csv = format_csv(local_data, results)
         if local_results:
