@@ -91,6 +91,7 @@ int main(int argc, char *argv[])
                 cout << elem << ",";
             }
         }
+        else cout << "0;-1,";
         cout << endl;
     }
     

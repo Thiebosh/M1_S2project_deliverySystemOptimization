@@ -31,8 +31,10 @@ if __name__ == "__main__":
         results = asyncio.run(execute_heuristic(to_compute, *heuristic_inputs))
 
         if _print_results:
-            print(f"{datetime.now().time()} - Display results...\n") 
+            print(f"{datetime.now().time()} - Display results...\n")
             print_results(local_data, results)
+
+        exit()
 
         print(f"{datetime.now().time()} - Prepare CSV...\n")
         path_csv, cities_csv = format_csv(local_data, results)
