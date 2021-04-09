@@ -4,16 +4,20 @@ import time
 import math
 import os
 
+from defines import TMP_FILE
+
 
 async def execute_heuristic(data, batch_size, nb_process, exe_path):
+    nb_trav = len(data["traveler"])
     current_pid = os.getpid()
     # 5 first rules belongs to numpy array print
     data = str(data).replace("\n", "") \
                     .replace("array(", "") \
                     .replace(", dtype=float32)", "") \
+                    .replace(",dtype=float32)", "") \
                     .replace("      ", "") \
                     .replace("'", '"')
-    file_path = exe_path[:exe_path.rfind("\\")]+"\\data.tmp"
+    file_path = exe_path[:exe_path.rfind("\\")]+TMP_FILE
     with open(file_path, "w") as file:
         file.write(data)
     batch_size = str(batch_size)
@@ -40,9 +44,10 @@ async def execute_heuristic(data, batch_size, nb_process, exe_path):
             print(lines[1:])
             continue
 
-        print(lines)
         seed = lines[1]
         data = lines[2][:-1]
+        print(lines[2:2+nb_trav])
+        exit()
         # print("seed:", seed)
         # print("data:", data)
 
@@ -56,9 +61,36 @@ async def execute_heuristic(data, batch_size, nb_process, exe_path):
 
 
 def make_unique(seed, data, current):
+    print(seed)
+    print(data)
+    print(current)
+    exit()
     dist, path = data.split(";")
     dist = float(dist)
     seed = int(seed)
+
+    # generate match list
+    comparing_all = [(path in f"{x[1]},{x[1]}" or path in f"{x[1]},{x[1]}"[::-1]) for x in current]
+
+    # no match
+    if len(comparing_all) == 0 or not comparing_all.__contains__(True):
+        current.append((dist, path, seed))
+
+    else:  # match: replace if shorter
+        index = comparing_all.index(True)
+        if current[index][0] > dist:
+            current[index] = (dist, path, seed)
+
+    return current
+
+
+def make_unique_old(seed, data, current):
+    dist, path = data.split(";")
+    dist = float(dist)
+    seed = int(seed)
+
+    print(dist, seed, path)
+    exit()
 
     # generate match list
     comparing_all = [(path in f"{x[1]},{x[1]}" or path in f"{x[1]},{x[1]}"[::-1]) for x in current]
