@@ -107,8 +107,10 @@ def format_result(data):
 
 def print_results(local_data, results):
     # greater nbs of digits
-    max_digits_dist = 1+int(math.log10(int(results[-1][1][0][0])))
+    higher = max([max([max([path[0] for path in travels]) for travels in exe[1:]]) for exe in results])
+    max_digits_dist = 1+int(math.log10(higher))
     max_digits_seed = 1+int(math.log10(max([x[0] for x in results])))
+    max_digits_name = max([len(x["name"]) for x in local_data["traveler"]])
 
     print(f"{len(results)} distinc(s) peaks travel(s) order(s) :")
 
@@ -116,39 +118,43 @@ def print_results(local_data, results):
         print(f"- seed {seed:{max_digits_seed}d} :")
 
         for id, (dist, travel) in enumerate(travel_list):
-            travel = str([local_data["peak"][x]["name"] for x in travel])[1:-1]
+            travel = [local_data["peak"][x]["name"] for x in travel]
 
             a = local_data['traveler'][id]['name']
             b = f"{dist:{max_digits_dist+3}.2f}"  # +3 => '.xx'
-            c = "with "+travel.replace("', '", " -> ") if dist != 0 else ""
-            print(f"\t{a} : {b}km {c}")
+            c = "with "+" -> ".join(travel) if dist != 0 else ""
+            print(f"\t{a:{max_digits_name}s} : {b}km {c}")
 
         print()
 
 
 def format_csv(local_data, results):
-    path_data = [["id", "total_distance", "path", "seed", "img"]]
+    path_data = [["id", "seed", "total_distance", "paths", "img"]]
 
-    for id, res in enumerate(results):
-        line = [str(id), f"'{res[0]}", "'"+local_data['peak'][res[1][0]]['name']]
+    for id_travel, (seed, travels) in enumerate(results):
 
-        for peak in res[1][1:]:
-            line[2] += f";{local_data['peak'][peak]['name']}"
+        total_dist = 0
+        paths = ""
+        for id_path, (dist, path) in enumerate(travels):
+            total_dist += dist
+            name = local_data['traveler'][id_path]['name']
+            path = [local_data["peak"][x]["name"] if x != -1 else "none" for x in path]
+            paths += f"{name} : {', '.join(path)}\n"
 
-        line[2] += "'"
-        line.append(str(res[2]))
+        total_dist = str(total_dist).replace(".", ",")
+        line = [str(id_travel), str(seed), total_dist, '"'+paths[:-1]+'"']
 
         path_data.append(line)
 
     cities_data = [["city_name", "lat", "long"]]
 
-    for res in local_data["peak"]:
-        cities_data.append([res['name'], str(res['y']), str(res['x'])])
+    for city in local_data["peak"]:
+        cities_data.append([city['name'], str(city['y']), str(city['x'])])
 
     return path_data, cities_data
 
 
 def save_csv(path, data):
-    with open(path, "w") as file:
+    with open(path, "w", encoding='utf-8-sig') as file:
         for line in data:
-            file.write(",".join(line)+"\n")
+            file.write(";".join(line)+"\n")
