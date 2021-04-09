@@ -2,10 +2,10 @@ import re
 import math
 import numpy as np
 from numba import njit
-
+import sys 
 import parse
 
-np.set_printoptions(formatter={'float': "{:.2f}".format})
+np.set_printoptions(formatter={'float': "{:.2f}".format}, threshold=sys.maxsize)
 
 
 def load_data(file_content):
