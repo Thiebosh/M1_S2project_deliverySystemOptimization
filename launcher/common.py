@@ -12,10 +12,10 @@ async def execute_heuristic(data, batch_size, nb_process, exe_path):
     current_pid = os.getpid()
     # 5 first rules belongs to numpy array print
     data = str(data).replace("\n", "") \
+                    .replace("      ", "") \
                     .replace("array(", "") \
                     .replace(", dtype=float32)", "") \
                     .replace(",dtype=float32)", "") \
-                    .replace("      ", "") \
                     .replace("'", '"')
     file_path = exe_path[:exe_path.rfind("\\")]+TMP_FILE
     with open(file_path, "w") as file:
@@ -115,13 +115,13 @@ def print_results(local_data, results):
     for seed, travel_list in results:
         print(f"- seed {seed:{max_digits_seed}d} :")
 
-        for id, (distance, travel) in enumerate(travel_list):
+        for id, (dist, travel) in enumerate(travel_list):
             travel = str([local_data["peak"][x]["name"] for x in travel])[1:-1]
 
             a = local_data['traveler'][id]['name']
-            b = f"{distance:{max_digits_dist+3}.2f}"  # +3 => '.xx'
-            c = travel.replace("', '", " -> ")
-            print(f"\t{a} : {b}km with {c}")
+            b = f"{dist:{max_digits_dist+3}.2f}"  # +3 => '.xx'
+            c = "with "+travel.replace("', '", " -> ") if dist != 0 else ""
+            print(f"\t{a} : {b}km {c}")
 
         print()
 
