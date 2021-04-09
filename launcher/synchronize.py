@@ -9,8 +9,10 @@ import re
 from defines import DRIVE_FOLDER, RESULT_FOLDER
 
 # elements to reach into drive account
-DRIVE_CSV_RESULTS = 'results_project'
 DRIVE_FOLDER_IMGS = 'images'
+DRIVE_CSV_RESULTS = 'results_project_future'
+CSV_RESULt_SHEET_PATH = "paths!A:E"
+CSV_RESULt_SHEET_CITY = "cities!A:C"
 
 # global credentials to access drive account
 CREDS_DRIVE = 'credentialsDrive.json'
@@ -139,8 +141,12 @@ class Synchronize:
         # save outputs on drive
         # pylint: disable=maybe-no-member
         drive_csv = self.serviceSheet.spreadsheets().values()
-        drive_csv.clear(spreadsheetId=self.results_id, range="paths!A:KN").execute()
-        drive_csv.clear(spreadsheetId=self.results_id, range="cities!A:KN").execute()
+        csv_id = self.results_id
+        csv_range_path = CSV_RESULt_SHEET_PATH
+        csv_range_city = CSV_RESULt_SHEET_CITY
 
-        drive_csv.update(spreadsheetId=self.results_id, range="paths!A:KN", body=bodyPath, valueInputOption="USER_ENTERED").execute()
-        drive_csv.update(spreadsheetId=self.results_id, range="cities!A:KN", body=bodyCities, valueInputOption="USER_ENTERED").execute()
+        drive_csv.clear(spreadsheetId=csv_id, range=csv_range_path).execute()
+        drive_csv.clear(spreadsheetId=csv_id, range=csv_range_city).execute()
+
+        drive_csv.update(spreadsheetId=csv_id, range=csv_range_path, body=bodyPath, valueInputOption="USER_ENTERED").execute()
+        drive_csv.update(spreadsheetId=csv_id, range=csv_range_city, body=bodyCities, valueInputOption="USER_ENTERED").execute()

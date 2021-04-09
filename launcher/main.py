@@ -34,28 +34,26 @@ if __name__ == "__main__":
             print(f"{datetime.now().time()} - Display results...\n")
             print_results(local_data, results)
 
-        exit()
-
         print(f"{datetime.now().time()} - Prepare CSV...\n")
         path_csv, cities_csv = format_csv(local_data, results)
         if local_results:
             save_csv(path+RESULT_FOLDER+f"\\{filename}_paths.csv", path_csv)
             save_csv(path+RESULT_FOLDER+f"\\{filename}_cities.csv", cities_csv)
 
-        if _make_graph:
-            print(f"{datetime.now().time()} - Generate graphs...\n")
-            files = make_graph(path, local_data, results, filename, gif_mode)
+        # if _make_graph:
+        #     print(f"{datetime.now().time()} - Generate graphs...\n")
+        #     files = make_graph(path, local_data, results, filename, gif_mode)
 
         print(f"{datetime.now().time()} - Upload data...\n")
-        if _make_graph:
-            drive.upload_imgs()  # if graph wanted
-        else:
-            path_csv[1].append("--")
+        # if _make_graph:
+        #     drive.upload_imgs()  # if graph wanted
+        # else:
+        path_csv[1].append("--")
         drive.upload_csv(path_csv, cities_csv)
 
-        if _make_graph and not local_results:
-            print(f"{datetime.now().time()} - Clear directory...\n")
-            [os.remove(file) for file in files if os.path.exists(file)]
+        # if _make_graph and not local_results:
+        #     print(f"{datetime.now().time()} - Clear directory...\n")
+        #     [os.remove(file) for file in files if os.path.exists(file)]
 
         print(f"{datetime.now().time()} - Everything done!")
         print(f"Please consult results on dashboard :\n{DASHBOAD_URL}\n")
