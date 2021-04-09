@@ -90,6 +90,8 @@ int main(int argc, char *argv[])
             for (int elem : path[i]){
                 cout << elem << ",";
             }
+        }else{
+            cout << 0 << ";"<<-1;
         }
         cout << endl;
     }
