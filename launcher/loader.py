@@ -2,10 +2,10 @@ import re
 import math
 import numpy as np
 from numba import njit
-
+import sys 
 import parse
 
-np.set_printoptions(formatter={'float': "{:.2f}".format})
+np.set_printoptions(formatter={'float': "{:.2f}".format}, threshold=sys.maxsize)
 
 
 def load_data(file_content):
@@ -17,7 +17,7 @@ def load_data(file_content):
     ids = {"local_peak": 0, "compute_peak": 0, "compute_arc": 0}
     local_data = {"traveler": [{"name": '', "x": 0.0, "y": 0.0} for _ in range(nb_traveler)],
                   "peak":     [{"name": '', "x": 0.0, "y": 0.0} for _ in range(nb_peak)]}
-    compute_data = {"peak":     [{"origin": 0, "link": 0, "qty": 1, "maxCost": 0.0} for _ in range(nb_peak)],
+    compute_data = {"peak":     [{"origin": 0, "link": 0, "qty": 1} for _ in range(nb_peak)],
                     # matrix of lat1, long1, lat2, long2
                     "arc":      np.array([np.empty((nb_peak, nb_peak), dtype='float32'), \
                                           np.empty((nb_peak, nb_peak), dtype='float32'), \
@@ -122,7 +122,7 @@ def list_peaks_arcs(peak_lines, local_data, compute_data, nb_peak, nb_trav, ids)
 
 
 def list_dests(local_data, compute_data, count, p_count, peak, origin_id, nb_peak, nb_trav, ids):
-    name, x, y, qty, max_cost = parse.dest_line(peak)
+    name, x, y, qty = parse.dest_line(peak)
 
     dest_id = ids["local_peak"]
     ids["local_peak"] += 1
@@ -143,7 +143,6 @@ def list_dests(local_data, compute_data, count, p_count, peak, origin_id, nb_pea
     compute_data["peak"][origin_id]["link"].append(dest_id)
     compute_data["peak"][dest_id]["link"] = origin_id
     compute_data["peak"][dest_id]["qty"] = qty
-    compute_data["peak"][dest_id]["maxCost"] = max_cost
 
     init_id = ids["compute_arc"]
     ids["compute_arc"] += 1

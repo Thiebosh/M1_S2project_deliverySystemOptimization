@@ -70,10 +70,9 @@ def dest_line(line):  # peut remettre précision nom fichier, no ligne...
         x = float(x)
         y = float(y)
         qty = int(optional[0]) if len(optional) >= 1 else 1
-        max_cost = float(optional[1]) if len(optional) >= 2 else 0.0
 
     except Exception as e:
         print(e)
         exit()
 
-    return name, x, y, qty, max_cost
+    return name, x, y, qty
