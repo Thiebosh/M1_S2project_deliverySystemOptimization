@@ -10,13 +10,16 @@ float avg(vector<float> &vect){
 }
 
 float var(vector<float> &vect){
-    float var = 0;
-    float average = avg(vect);
-    for(int i = 0; i < vect.size()-1; i++){
-        var += pow(vect[i]-average,2);
+    if(vect.size() > 0){
+        float var = 0;
+        float average = avg(vect);
+        for(int i = 0; i < vect.size()-1; i++){
+            var += pow(vect[i]-average,2);
+        }
+        return var/vect.size();
     }
-
-    return var/vect.size();
+    return numeric_limits<float>::max();
+    
 }
 
 float travelerDistVar(vector<int> &path, json input, int traveler){
@@ -48,6 +51,8 @@ float travelerDistMed(vector<int> &path, json input, int traveler){
     vector<float> vect;
    if(path.size() > 0){
         vect.push_back((float)input["traveler"][traveler]["arc"][path[0]]);
+    }else{
+        return numeric_limits<float>::max();
     }
     for (int i = 1; i < path.size(); i++)
     {

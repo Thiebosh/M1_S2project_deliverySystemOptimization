@@ -1,5 +1,6 @@
 #include <vector>
 #include <algorithm>
+#include <limits>
 #include "../json.hpp"
 
 using namespace std;

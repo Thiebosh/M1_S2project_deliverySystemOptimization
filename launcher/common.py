@@ -3,7 +3,10 @@ import asyncio
 import time
 import math
 import os
-
+import operator
+from statistics import mean
+from pprint import pprint
+import sys
 from defines import TMP_FILE
 
 
@@ -43,16 +46,15 @@ async def execute_heuristic(data, batch_size, nb_process, exe_path):
             print(f"process {current_pid - int(lines[0])} return error '{retcode}'")
             print(lines[1:])
             continue
-
+        
         seed = lines[1]
-        data = [line[:-1] for line in lines[2:2+nb_trav]]
+        data = [line[:-1] for line in lines[1:6+nb_trav]]
 
         # preprocess results rather than sleep
         results = make_unique(seed, data, results)
 
     time2 = time.time()
     print(f'heuristics executions took {(time2-time1)*1000.0:.3f} ms\n')
-
     return format_result(results)  # sorted(format_result(results), key=lambda x: x[0])
 
 
@@ -60,7 +62,9 @@ def make_unique(seed, data, current):
     seed = int(seed)
     dist = []
     path = []
-    for line in data:
+    metrics = mean([float(x) if x != "in" else sys.float_info.max for x in data[:5]])
+
+    for line in data[5:]:
         line = line.split(";")
         dist.append(float(line[0]))  # 0 if not used
         path.append(line[1])  # -1 if not used
@@ -70,12 +74,11 @@ def make_unique(seed, data, current):
 
     # no match
     if not duplicate:
-        current.append((seed, list(zip(dist, path))))
+        current.append((seed, list(zip(dist, path)), metrics))
 
     # else : same random = same path = ignored
 
     return current
-
 
 def make_unique_old(seed, data, current):
     dist, path = data.split(";")
@@ -98,30 +101,32 @@ def make_unique_old(seed, data, current):
 
 
 def format_result(data):
-    for id_line, (_, line) in enumerate(data):
+    data = sorted(data, key=operator.itemgetter(2))
+    for id_line, (_, line, metric) in enumerate(data):
         for id_tuple, (dist, path) in enumerate(line):
             data[id_line][1][id_tuple] = (dist, [int(x) for x in path.split(",")])
-
+    print("FORMATED DATA")
+    pprint(data)
     return data
 
 
 def print_results(local_data, results):
     # greater nbs of digits
-    higher = max([max([max([path[0] for path in travels]) for travels in exe[1:]]) for exe in results])
+    print(results)
+    higher = max([value for sublist in [([travels[0] for travels in exe[1]]) for exe in results] for value in sublist])
     max_digits_dist = 1+int(math.log10(higher))
-    max_digits_seed = 1+int(math.log10(max([x[0] for x in results])))
     max_digits_name = max([len(x["name"]) for x in local_data["traveler"]])
 
     print(f"{len(results)} distinc(s) peaks travel(s) order(s) :")
 
-    for seed, travel_list in results:
-        print(f"- seed {seed:{max_digits_seed}d} :")
+    for seed, travel_list,metric in results:
+        print(f"- seed {seed} - score: {metric}:")
 
         for id, (dist, travel) in enumerate(travel_list):
             travel = [local_data["peak"][x]["name"] for x in travel]
 
             a = local_data['traveler'][id]['name']
-            b = f"{dist:{max_digits_dist+3}.2f}"  # +3 => '.xx'
+            b = f"{dist:{max_digits_dist+3}.2f}"
             c = "with "+" -> ".join(travel) if dist != 0 else ""
             print(f"\t{a:{max_digits_name}s} : {b}km {c}")
 
@@ -131,7 +136,7 @@ def print_results(local_data, results):
 def format_csv(local_data, results):
     path_data = [["id", "seed", "total_distance", "paths", "img"]]
 
-    for id_travel, (seed, travels) in enumerate(results):
+    for id_travel, (seed, travels, metrics) in enumerate(results):
 
         total_dist = 0
         paths = ""
