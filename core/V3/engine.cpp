@@ -10,17 +10,15 @@
 #include <thread>
 #include <fstream>
 #include <streambuf>
+#include <numeric>
 #include "../json.hpp"
+#include "pathComparison.h"
 
 //input args
 #define ARG_FILE_PATH 1
 #define ARG_ID 2
 #define ARG_BATCH_SIZE 3
 #define NB_ARGS 4
-
-using namespace std;
-using json = nlohmann::json;
-
 
 typedef struct dist_
 {
@@ -29,8 +27,6 @@ typedef struct dist_
 } dist;
 
 void findsolution(json input, int nbClosest, map<int, vector<int>> *restaurantClientLink, vector<vector<int>> *path, mutex *restaurantClientLink_mutex, mutex *path_mutex, int idTraveler);
-
-float totaldis(vector<int> &path, json input);
 
 int main(int argc, char *argv[])
 {
@@ -71,22 +67,35 @@ int main(int argc, char *argv[])
         }
     }
 
+    // start threads
     // declare result tab
     vector<thread> threads;
     for(int i = 0; i < inputData["traveler"].size(); i++){
         threads.push_back(thread(findsolution, inputData, batch_size, &restaurantClientLink, &path, &restaurantClientLink_mutex, &path_mutex, i));
     }
-
-    // cout << "threads started" << endl;
+    
     for(auto& curThread: threads){
         curThread.join();
     }
-    // cout << "threads joined" << endl;
+
+    // Print results
+    vector<float> travelersVar;
+    vector<float> travelersMed;
+    vector<float> travelerDist;
+    for(int i = 0; i < inputData["traveler"].size(); i++){
+        travelersVar.push_back(travelerDistVar(path[i], inputData, i));
+        travelersMed.push_back(travelerDistMed(path[i], inputData, i));
+        travelerDist.push_back(travelerDistTotal(path[i], inputData, i));
+    }
+    cout << var(travelersVar) << endl;
+    cout << var(travelersMed) << endl;
+    cout << var(travelerDist) << endl;
+    cout << accumulate(travelerDist.begin(), travelerDist.end(), 0.0) << endl;
+
 
     for(int i = 0; i < inputData["traveler"].size(); i++){
-        int totalDist = totaldis(path[i], inputData);
-        if(totalDist > 0){
-            cout << totalDist << ";";
+        if(travelerDist[i] > 0){
+            cout << travelerDist[i] << ";";
             for (int elem : path[i]){
                 cout << elem << ",";
             }
@@ -268,15 +277,4 @@ void findsolution(json input, int nbClosest, map<int, vector<int>> *restaurantCl
             canDeliverClients.erase(find(canDeliverClients.begin(), canDeliverClients.end(), idPoint));
         }
     } while (!(restaurantClientLink->empty()) || !canDeliverClients.empty());
-}
-
-
-float totaldis(vector<int> &path, json input)
-{
-    float total = 0;
-    for (int i = 1; i < path.size(); i++)
-    {
-        total += (float)input["arc"][path[i - 1]][path[i]];
-    }
-    return total;
 }
