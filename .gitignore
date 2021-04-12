@@ -178,3 +178,5 @@ dmypy.json
 # Executables
 *.out
 *.app
+
+tests/

@@ -11,7 +11,7 @@ from defines import DRIVE_FOLDER, RESULT_FOLDER
 # elements to reach into drive account
 DRIVE_FOLDER_IMGS = 'images'
 DRIVE_CSV_RESULTS = 'results_project_future'
-CSV_RESULt_SHEET_PATH = "paths!A:E"
+CSV_RESULt_SHEET_PATH = "paths!A:"  # fin calculée
 CSV_RESULt_SHEET_CITY = "cities!A:C"
 
 # global credentials to access drive account
@@ -142,7 +142,8 @@ class Synchronize:
         # pylint: disable=maybe-no-member
         drive_csv = self.serviceSheet.spreadsheets().values()
         csv_id = self.results_id
-        csv_range_path = CSV_RESULt_SHEET_PATH
+
+        csv_range_path = CSV_RESULt_SHEET_PATH+shift_letter('A', len(valuesPath[0]))
         csv_range_city = CSV_RESULt_SHEET_CITY
 
         drive_csv.clear(spreadsheetId=csv_id, range=csv_range_path).execute()
@@ -150,3 +151,8 @@ class Synchronize:
 
         drive_csv.update(spreadsheetId=csv_id, range=csv_range_path, body=bodyPath, valueInputOption="USER_ENTERED").execute()
         drive_csv.update(spreadsheetId=csv_id, range=csv_range_city, body=bodyCities, valueInputOption="USER_ENTERED").execute()
+
+
+def shift_letter(letter, shift):
+    start = ord('a') if letter.islower() else ord('A')
+    return chr((ord(letter) - start + shift) % 26 + start)
