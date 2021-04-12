@@ -137,21 +137,32 @@ def print_results(local_data, results):
 
 
 def format_csv(local_data, results):
-    path_data = [["id", "seed", "total_distance", "paths", "img"]]
-    # path_data = [["id", "seed", "score", "metric1...", "total_distance", "paths", "img"]]
+    path_data = [["id",
+                  "seed",
+                  "score",
+                  "variance des variances des distances",
+                  "variance des médianes des distances",
+                  "variance des distances totales des trajets ",
+                  "total_distance",  # no return to origin
+                  "paths",
+                  "img"]]
 
     for id_travel, (seed, score, metrics, travels) in enumerate(results):
 
-        total_dist = 0
         paths = ""
-        for id_path, (dist, path) in enumerate(travels):
-            total_dist += dist
+        for id_path, (_, path) in enumerate(travels):
             name = local_data['traveler'][id_path]['name']
             path = [local_data["peak"][x]["name"] if x != -1 else "none" for x in path]
             paths += f"{name} : {', '.join(path)}\n"
 
-        total_dist = str(total_dist).replace(".", ",")
-        line = [str(id_travel), str(seed), total_dist, '"'+paths[:-1]+'"']
+        line = [str(id_travel),
+                str(seed),
+                str(score).replace(".", ","),
+                str(metrics[0]).replace(".", ","),
+                str(metrics[1]).replace(".", ","),
+                str(metrics[2]).replace(".", ","),
+                str(metrics[3]).replace(".", ","),
+                '"'+paths[:-1]+'"']
 
         path_data.append(line)
 
