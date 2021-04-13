@@ -8,8 +8,10 @@ from datetime import datetime
 from parse import user_args, config_verif
 from synchronize import Synchronize
 from loader import compile_loader, load_data
-from common import load_file, execute_heuristic, print_results, save_csv, format_csv
+from files import load_file, save_csv
+from common import execute_heuristic, print_results, format_csv
 from graph import make_graph
+
 from defines import RESULT_FOLDER, DASHBOAD_URL
 
 if __name__ == "__main__":
@@ -59,24 +61,28 @@ if __name__ == "__main__":
             save_csv(result_path.format("paths"), path_csv)
             save_csv(result_path.format("cities"), cities_csv)
 
-        # if config["results"]["graph"]["make"]:
-        #     print(f"{datetime.now().time()} - Generate graphs...\n")
-        #     inputs = (config["input_datafile"],
-        #               config["results"]["graph"]["gif_mode"])
-        #     files = make_graph(path, local_data, results, *inputs)
+        if config["results"]["graph"]["make"]:
+            print(f"{datetime.now().time()} - Generate graphs...\n")
+            inputs = (config["input_datafile"],
+                      config["results"]["graph"]["show_names"],
+                      config["results"]["graph"]["link_vertices"],
+                      config["results"]["graph"]["map_background"],
+                      config["results"]["graph"]["gif_mode"],
+                      config["results"]["graph"]["fps"])
+            files = make_graph(path, local_data, to_compute, results, *inputs)
 
         if online:
             print(f"{datetime.now().time()} - Upload data...\n")
-            # if config["results"]["graph"]["make"]:
-            #     drive.upload_imgs(config["results"]["graph"]["gif_mode"])
-            # else:
-            path_csv[1].append("--")
-            drive.upload_csv(path_csv, cities_csv)
+            if config["results"]["graph"]["make"]:
+                drive.upload_imgs(config["results"]["graph"]["gif_mode"])
+            else:
+                path_csv[1].append("--")
+                drive.upload_csv(path_csv, cities_csv)
 
-        # if config["results"]["graph"]["make"] and \
-        #         not config["results"]["keep_local"]:
-        #     print(f"{datetime.now().time()} - Clear directory...\n")
-        #     [os.remove(file) for file in files if os.path.exists(file)]
+        if config["results"]["graph"]["make"] and \
+                not config["results"]["keep_local"]:
+            print(f"{datetime.now().time()} - Clear directory...\n")
+            [os.remove(file) for file in files if os.path.exists(file)]
 
         print(f"{datetime.now().time()} - Everything done!\n")
 
