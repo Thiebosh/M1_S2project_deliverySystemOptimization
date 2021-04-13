@@ -6,7 +6,7 @@ import random
 from geopip import search
 from threading import Thread, Lock
 import time
-# from pygifsicle import optimize
+from pygifsicle import optimize
 
 from defines import MAPS_FOLDER, RESULT_FOLDER, MAX_GRAPH, MAX_COUNTRIES
 
@@ -107,7 +107,7 @@ def plot_path(link_vertices, background, show_names, countries_map, cities, x, y
         frames.append(frames[-1])
 
         imageio.mimsave(gifname, frames, fps=fps)
-        # optimize(gifname)
+        optimize(gifname)
 
     filename = path+RESULT_FOLDER+f"\\{result_name}_{idGraph}.png"
     with files_lock:
