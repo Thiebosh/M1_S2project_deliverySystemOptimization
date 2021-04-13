@@ -1,6 +1,7 @@
 DRIVE_FOLDER = "\\driveAccess"
 MAPS_FOLDER = "\\country_maps"
 RESULT_FOLDER = "\\results"
+ENGINE_FOLDER = "\\..\\core"
 
 TMP_FILE = "\\data.tmp"
 
