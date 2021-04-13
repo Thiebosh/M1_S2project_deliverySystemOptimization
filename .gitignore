@@ -13,6 +13,8 @@
 **/*.shx
 **/*.zip
 
+**/ext_cpp_libs/*
+
 # PYTHON gitgnore
 
 # Byte-compiled / optimized / DLL files
