@@ -116,20 +116,21 @@ class Synchronize:
 
         return self
 
-    def read_config_file(self):
+    def get_config(self):
         # pylint: disable=maybe-no-member
         return self.serviceDrive.files() \
                 .export(fileId=self.config_id, mimeType="text/plain") \
                 .execute().decode("utf-8")[1:]  # remove BOM character
 
-    def read_input_file(self):
+    def get_input(self):
         # pylint: disable=maybe-no-member
         return self.serviceDrive.files() \
                 .export(fileId=self.input_id, mimeType="text/plain") \
                 .execute().decode("utf-8")
 
     def remove_imgs(self, regex):
-        query = f"'{self.img_folder_id}' in parents and mimeType='image/png'"  # reussir à prendre que les self.datafile+"_*.(png|gif)" / retirer png?
+        # retirer png? prend pas gifs en compte => pb
+        query = f"'{self.img_folder_id}' in parents and mimeType='image/png'"
 
         # pylint: disable=maybe-no-member
         for file in self.serviceDrive.files().list(q=query).execute()["files"]:
