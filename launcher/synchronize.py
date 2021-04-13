@@ -35,10 +35,10 @@ IMG_URL_ACCESS = "https://drive.google.com/uc?export=view&id="
 
 
 class Synchronize:
-    def __init__(self, path, filename, save_gif):
+    def __init__(self, path):
         self.path = path
-        self.filename = filename
-        self.save_gif = save_gif
+        self.configfile = ""
+        self.datafile = ""
 
         credsDrive = self.get_cred(TOKEN_DRIVE, SCOPES_DRIVE, CREDS_DRIVE)
         credsSheet = self.get_cred(TOKEN_SHEET, SCOPES_SHEET, CREDS_SHEET)
@@ -46,30 +46,26 @@ class Synchronize:
         self.serviceDrive = build('drive', 'v3', credentials=credsDrive)
         self.serviceSheet = build('sheets', 'v4', credentials=credsSheet)
 
-        self.input_id = ""
         self.results_id = ""
         self.img_folder_id = ""
-
-        query = f"name='{filename}' or\
-                name='{DRIVE_CSV_RESULTS}' or\
-                name='{DRIVE_FOLDER_IMGS}'"
+        query = f"name='{DRIVE_CSV_RESULTS}' or\
+                  name='{DRIVE_FOLDER_IMGS}'"
         # pylint: disable=maybe-no-member
         for file in self.serviceDrive.files().list(q=query).execute()["files"]:
-            if file['mimeType'] == DOC and file['name'] == filename:
-                self.input_id = file['id']
-
-            elif file['mimeType'] == CSV and file['name'] == DRIVE_CSV_RESULTS:
+            if file['mimeType'] == CSV and file['name'] == DRIVE_CSV_RESULTS:
                 self.results_id = file['id']
 
             elif file['mimeType'] == FOLDER and file['name'] == DRIVE_FOLDER_IMGS:
                 self.img_folder_id = file['id']
 
-        if not self.input_id or not self.results_id or not self.img_folder_id:
+        if not self.results_id or not self.img_folder_id:
             print("Verify names between drive and synchronize.py")
             exit()
 
-        self.imgs_id = []
+        self.config_id = None
+        self.input_id = None
         self.folder_id = None
+        self.imgs_id = []
 
     def get_cred(self, token_file, scope, cred_file):
         cred = None
@@ -90,14 +86,51 @@ class Synchronize:
 
         return cred
 
-    def read_input_file(self):
+    def set_configfile(self, configfile):
+        self.configfile = configfile
+
+        query = f"name='{configfile}'"
+        # pylint: disable=maybe-no-member
+        for file in self.serviceDrive.files().list(q=query).execute()["files"]:
+            if file['mimeType'] == DOC and file['name'] == configfile:
+                self.config_id = file['id']
+
+        if not self.config_id:
+            print("Verify config filename between drive and input args")
+            exit()
+
+        return self
+
+    def set_datafile(self, datafile):
+        self.datafile = datafile
+
+        query = f"name='{datafile}'"
+        # pylint: disable=maybe-no-member
+        for file in self.serviceDrive.files().list(q=query).execute()["files"]:
+            if file['mimeType'] == DOC and file['name'] == datafile:
+                self.input_id = file['id']
+
+        if not self.input_id:
+            print("Verify data filename between drive and config file")
+            exit()
+
+        return self
+
+    def get_config(self):
+        # pylint: disable=maybe-no-member
+        return self.serviceDrive.files() \
+                .export(fileId=self.config_id, mimeType="text/plain") \
+                .execute().decode("utf-8")[1:]  # remove BOM character
+
+    def get_input(self):
         # pylint: disable=maybe-no-member
         return self.serviceDrive.files() \
                 .export(fileId=self.input_id, mimeType="text/plain") \
                 .execute().decode("utf-8")
 
     def remove_imgs(self, regex):
-        query = f"'{self.img_folder_id}' in parents and mimeType='image/png'"  # reussir à prendre que les self.filename+"_*.(png|gif)"
+        # retirer png? prend pas gifs en compte => pb
+        query = f"'{self.img_folder_id}' in parents and mimeType='image/png'"
 
         # pylint: disable=maybe-no-member
         for file in self.serviceDrive.files().list(q=query).execute()["files"]:
@@ -106,13 +139,13 @@ class Synchronize:
 
             self.serviceDrive.files().delete(fileId=file["id"]).execute()
 
-    def upload_imgs(self):
-        reg = "^"+self.filename+"_[0-9]+.{0}$"
-        regex = re.compile(r""+reg.format("png" if self.save_gif else "gif"))
+    def upload_imgs(self, is_gif):
+        reg = "^"+self.datafile+"_[0-9]+.{0}$"
+        regex = re.compile(r""+reg.format("png" if is_gif else "gif"))
 
         self.remove_imgs(regex)
 
-        regex = re.compile(r""+reg.format("gif" if self.save_gif else "png"))
+        regex = re.compile(r""+reg.format("gif" if is_gif else "png"))
 
         file_metadata = {'name': '', 'parents': [self.img_folder_id]}
 

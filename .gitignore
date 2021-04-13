@@ -7,6 +7,7 @@
 **/*.whl
 **/*.flag
 **/*.tmp
+**/*.data
 
 **/*.shp
 **/*.shx

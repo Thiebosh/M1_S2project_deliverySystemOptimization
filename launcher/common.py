@@ -3,10 +3,17 @@ import asyncio
 import time
 import math
 import os
+import json
 from statistics import mean
 from sys import float_info
 
 from defines import TMP_FILE
+
+
+def load_file(path):
+    with open(path) as file:
+        content = file.read()
+    return content
 
 
 async def execute_heuristic(data, batch_size, nb_process, exe_path):
@@ -142,7 +149,7 @@ def format_csv(local_data, results):
                   "score",
                   "variance des variances des distances",
                   "variance des médianes des distances",
-                  "variance des distances totales des trajets ",
+                  "variance des distances totales des trajets",
                   "total_distance",  # no return to origin
                   "paths",
                   "img"]]

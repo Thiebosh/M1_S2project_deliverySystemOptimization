@@ -2,10 +2,10 @@ import re
 import math
 import numpy as np
 from numba import njit
-import sys 
+from sys import maxsize
 import parse
 
-np.set_printoptions(formatter={'float': "{:.2f}".format}, threshold=sys.maxsize)
+np.set_printoptions(formatter={'float': "{:.2f}".format}, threshold=maxsize)
 
 
 def load_data(file_content):
@@ -164,9 +164,6 @@ def distance(const, demiconst, lat1, long1, lat2, long2):
     return 12742 * math.atan2(math.sqrt(a), math.sqrt(1 - a))  # earth diameter
 
 
-distance(0, 0, 0, 0, 0, 0)  # compile
-
-
 @njit(nogil=True, fastmath=True)
 def compute_arcs(datas):
     const = math.pi/180
@@ -177,9 +174,6 @@ def compute_arcs(datas):
             result[i][j] = distance(const, demiconst, datas[0][i][j], datas[1][i][j], datas[2][i][j], datas[3][i][j])
 
     return result
-
-
-compute_arcs(np.array([np.empty((1, 1), dtype='float32')]*4))  # compile
 
 
 @njit(nogil=True, fastmath=True)
@@ -193,4 +187,7 @@ def compute_traveler(datas):
     return result
 
 
-compute_traveler(np.array([np.empty((1), dtype='float32')]*4))  # compile
+def compile_loader():
+    compute_arcs(np.array([np.empty((1, 1), dtype='float32')]*4))  # compile
+    compute_traveler(np.array([np.empty((1), dtype='float32')]*4))  # compile
+    distance(0, 0, 0, 0, 0, 0)
