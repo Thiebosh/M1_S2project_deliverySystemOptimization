@@ -20,8 +20,7 @@ async def execute_heuristic(data, batch_size, nb_process, exe_path):
                     .replace(",dtype=float32)", "") \
                     .replace("'", '"')
     file_path = exe_path[:exe_path.rfind("\\")]+TMP_FILE
-    with open(file_path, "w") as file:
-        file.write(data)
+    open(file_path, "w").write(data)
     batch_size = str(batch_size)
     running_procs = [Popen([exe_path, file_path, str(current_pid+id), batch_size],
                      stdout=PIPE, stderr=PIPE, text=True)

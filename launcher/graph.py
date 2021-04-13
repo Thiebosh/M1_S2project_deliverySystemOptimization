@@ -20,7 +20,7 @@ def plot_path(link_vertices, background, show_names, countries_map, cities, x, y
 
     if background:
         for country in countries_map:  # print background map
-            country.plot(ax=axe)
+            country.plot(ax=axe, color="lightgray", zorder=-1)
 
     if link_vertices:
         linked = [(id, peak["link"]) for id, peak in enumerate(peaks) if peak["origin"]]
@@ -28,10 +28,10 @@ def plot_path(link_vertices, background, show_names, countries_map, cities, x, y
             x1, y1 = cities[origin]
             for dest in dests:
                 x2, y2 = cities[dest]
-                axe.plot([x1, x2], [y1, y2], zorder=1, linestyle="dashed", c="lightgreen", alpha=0.75)
+                axe.plot([x1, x2], [y1, y2], zorder=0, linestyle="dashed", c="green", alpha=0.3)
 
-    axe.scatter(x_o, y_o, zorder=2, marker="s", c="red")  # , s=8
-    axe.scatter(x_d, y_d, zorder=2, marker="o", c="green")  # , s=12
+    axe.scatter(x_o, y_o, marker="s", c="red")  # , s=8
+    axe.scatter(x_d, y_d, marker="o", c="green")  # , s=12
 
     if show_names:
         coef = 0.3*(axe.get_xlim()[1]-axe.get_xlim()[0])/15
