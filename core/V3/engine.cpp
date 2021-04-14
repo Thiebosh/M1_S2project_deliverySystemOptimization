@@ -46,8 +46,8 @@ int main(int argc, char *argv[])
     string str( (std::istreambuf_iterator<char>(t) ),
                        (std::istreambuf_iterator<char>()) );
 
-    json *inputData;
-    *inputData = json::parse(str);
+    json jsonData = json::parse(str);
+    json* inputData = &jsonData;
 
     int batch_size = atoi(argv[ARG_BATCH_SIZE]);
     vector<vector<int>> path(inputData->at("traveler").size(), vector<int>());
@@ -105,7 +105,6 @@ int main(int argc, char *argv[])
         cout << endl;
     }
     
-
     return 0;
 }
 
@@ -176,18 +175,14 @@ int getIdPoint(vector<int> allPoints){
     double min_val;
     double max_val;
 
-    for(double i = 0; i < allPoints.size(); ++i){
-        weights.push_back(1.0/(i+0.033));
+    for(double i = 0; i < allPoints.size(); i++){
+        weights.push_back(1.0/(i+0.001));
     }
     //normalizing weights 
     min_val = *min_element(weights.begin(), weights.end());
     max_val = *max_element(weights.begin(), weights.end());
     for(int i = 0; i < weights.size(); ++i){
-        if(max_val != min_val){
-            normalized_weights.push_back((double)(weights[i]-min_val)/(double)(max_val-min_val)); 
-        }else{
-            normalized_weights = weights;
-        }
+        normalized_weights.push_back((double)(weights[i]-min_val)/(double)(max_val-min_val));     
     }
     reverse(normalized_weights.begin(), normalized_weights.end());
     double randomValue = (double) rand() / (RAND_MAX);

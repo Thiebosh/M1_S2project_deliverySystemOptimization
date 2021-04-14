@@ -59,11 +59,10 @@ async def execute_heuristic(data, batch_size, nb_process, exe_path):
 
 def make_unique(seed, metrics, paths, current):
     seed = int(seed)
-
     # generate match list : same random = same path = ignored
     if [id for id, couple in enumerate(current) if seed == couple[0]]:
         return current
-
+    
     metrics = tuple(float(x) if x != "inf" else float_info.max for x in metrics)
     score = mean(metrics)
     dist = []
