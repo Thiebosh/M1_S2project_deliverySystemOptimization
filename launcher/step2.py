@@ -40,7 +40,7 @@ def assemble_travs(exe_path, file_path, file2_path, distance_matrix, travs_paths
             endB = travs_paths[id_B][-1]
 
             matrix[id_A][id_B][0] = distance_matrix[beginA][beginB]
-            matrix[id_A][id_B][1] = distance_matrix[beginA][endB]
+            matrix[id_A][id_B][1] = distance_matrix[endB][beginA]
             matrix[id_A][id_B][2] = distance_matrix[beginB][endB]
 
     open(file2_path, "w").write(str(matrix))
