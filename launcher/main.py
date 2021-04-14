@@ -48,10 +48,15 @@ if __name__ == "__main__":
 
     # step4 : compute data
     print(f"{datetime.now().time()} - Simulate paths...\n")
-    inputs = (config["path_generation"]["batch_size"],
-              config["path_generation"]["nb_process"],
-              config["path_generation"]["algorithm"])
-    results = asyncio.run(execute_heuristic(to_compute, *inputs))
+    # inputs = (config["path_generation"]["batch_size"],
+    #           config["path_generation"]["nb_process"],
+    #           config["path_generation"]["algorithm"])
+    # results = asyncio.run(execute_heuristic(to_compute, *inputs))
+    results = [
+        (0, 0, (0, 0, 0, 0), [(0, [0, 2]), (0, [6, 7, 4]), (0, [1, 5])]),
+        (0, 0, (0, 0, 0, 0), [(0, [0, 2]), (0, [6, 7, 4]), (0, [1, 5])]),
+        (0, 0, (0, 0, 0, 0), [(0, [0, 2]), (0, [6, 7, 4]), (0, [1, 5])])
+    ]
 
     # step5 : optional print of results
     if config["results"]["print_console"]:
@@ -59,12 +64,12 @@ if __name__ == "__main__":
         print_results(local_data, results)
 
     # stepx.1 : collect data for path fusion
-    # fusionned_path = path_fusion()
+    fusionned_path = path_fusion(to_compute["arc"], results, config["path_fusion"]["algorithm"])
 
     # stepx.2 : optional print of results
-    # if config["results"]["print_console"]:
-    #     print(f"{datetime.now().time()} - Display step2 results...\n")
-    #     print_fusionned(fusionned_path)
+    if config["results"]["print_console"]:
+        print(f"{datetime.now().time()} - Display step2 results...\n")
+        print_fusionned(fusionned_path)
 
     # step6 : csv formatting and optional saving
     print(f"{datetime.now().time()} - Prepare CSV...\n")

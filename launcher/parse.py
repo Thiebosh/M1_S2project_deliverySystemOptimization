@@ -25,6 +25,7 @@ def user_args(path):
 
 
 def config_verif(path, config_json):
+    # step1 : path_generation
     engine_path = path+ENGINE_FOLDER
 
     if config_json["path_generation"]["algorithm"] == "default":
@@ -41,6 +42,21 @@ def config_verif(path, config_json):
             exit()
 
         config_json["path_generation"]["algorithm"] = engine_path
+
+    # step2 : path_fusion
+    engine_path = path+ENGINE_FOLDER
+
+    if config_json["path_fusion"]["algorithm"] == "default":
+        config_json["path_fusion"]["algorithm"] = \
+            engine_path+"\\v3\\fusion.exe"
+
+    else:
+        engine_path += f"\\v3\\fusion.exe"
+        if not os.path.exists(engine_path):
+            print(f"Engine '{engine_path}' doesn't exist")
+            exit()
+
+        config_json["path_fusion"]["algorithm"] = engine_path
 
     return config_json
 
