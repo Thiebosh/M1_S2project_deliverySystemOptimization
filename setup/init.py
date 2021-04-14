@@ -9,9 +9,10 @@ import re
 
 
 REQUIRE_FILE = "\\requirements.txt"
-EXT_FOLDER = "\\extern_libs\\"
+EXT_PY_FOLDER = "\\ext_py_libs\\"
+EXT_CPP_FOLDER = "\\ext_cpp_libs\\"
 
-DEPENDENCIES_FLAG = "\\dep_v1.flag"  # dependencies versionning
+DEPENDENCIES_FLAG = "\\dep_v2.flag"  # dependencies versionning
 COUNTRIES_FLAG = "\\countries.flag"
 
 PATH_TO_PROJECT = "\\..\\launcher"
@@ -30,7 +31,7 @@ def install_dependencies(path):
     check_call([exe, "-m", "pip", "install", "-q", "-r", path+REQUIRE_FILE])
 
     print("Collect extension packages...")
-    path += EXT_FOLDER
+    path += EXT_PY_FOLDER
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -113,12 +114,58 @@ def import_country_maps(path):
     print("Country files download is done!\n")
 
 
+def dl_specific_lib(path):
+    if "Linux" in platform.architecture()[1]:
+        print("\nInstall c++ library...")
+        check_call(["sudo", "apt", "install", "gifsicle"])
+
+        print("\nInstallation is done!\n")
+
+        return
+
+    print("\nCollect c++ library...")
+    path += EXT_CPP_FOLDER
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    libs = ["gifsicle-1.92-win{0}.zip"]
+
+    archi = int(platform.architecture()[0][:2])
+    libs = [lib.format(archi) for lib in libs]
+
+    remaining = set(libs) - set(os.listdir(path))
+    try:
+        for id, lib in enumerate(remaining):
+            print(f"Download lib {id+1}/{len(remaining)}...")
+            url = "https://eternallybored.org/misc/gifsicle/releases/"+lib
+            r = requests.get(url, headers={'user-agent': 'pip-agent/0.0.1'})
+            with open(path+lib, 'wb') as f:
+                f.write(r.content)
+    except requests.ConnectionError:
+        print("Distant server is down right now. Try later")
+        exit()
+    except requests.Timeout:
+        print("maybe just unlucky for this one ?")
+
+    print("\nExtract libs...\n")
+
+    for zipfile in remaining:
+        with ZipFile(path+zipfile, 'r') as zipObj:
+            zipObj.extractall(path)
+
+    print("Libraries download is done!")
+    print("If not done yet, you need to add this path to your environment variables and maybe restart your system :")
+    print(path+"gifsicle-1.92")  # listdir => remove .zip...
+    print()
+
+
 if __name__ == "__main__":
     path = str(pathlib.Path(__file__).parent.absolute())
 
     # I. dependencies
     if not os.path.exists(path+DEPENDENCIES_FLAG):
         install_dependencies(path)
+        dl_specific_lib(path)
 
         with open(path+DEPENDENCIES_FLAG, "w"):
             pass

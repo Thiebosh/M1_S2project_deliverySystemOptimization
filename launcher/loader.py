@@ -16,7 +16,7 @@ def load_data(file_content):
     # pre allocate everything in the fastest way, without memory share
     ids = {"local_peak": 0, "compute_peak": 0, "compute_arc": 0}
     local_data = {"traveler": [{"name": '', "x": 0.0, "y": 0.0} for _ in range(nb_traveler)],
-                  "peak":     [{"name": '', "x": 0.0, "y": 0.0} for _ in range(nb_peak)]}
+                  "peak":     [{"name": '', "x": 0.0, "y": 0.0, "origin": False} for _ in range(nb_peak)]}
     compute_data = {"peak":     [{"origin": 0, "link": 0, "qty": 1} for _ in range(nb_peak)],
                     # matrix of lat1, long1, lat2, long2
                     "arc":      np.array([np.empty((nb_peak, nb_peak), dtype='float32'), \
@@ -96,6 +96,7 @@ def list_peaks_arcs(peak_lines, local_data, compute_data, nb_peak, nb_trav, ids)
         local_data["peak"][dest_id]["name"] = name
         local_data["peak"][dest_id]["x"] = x
         local_data["peak"][dest_id]["y"] = y
+        local_data["peak"][dest_id]["origin"] = True
 
         # attribue toutes les destinations pour le sommet origine
         for i in range(nb_peak):

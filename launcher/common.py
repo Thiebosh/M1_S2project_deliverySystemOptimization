@@ -3,17 +3,10 @@ import asyncio
 import time
 import math
 import os
-import json
 from statistics import mean
 from sys import float_info
 
 from defines import TMP_FILE
-
-
-def load_file(path):
-    with open(path) as file:
-        content = file.read()
-    return content
 
 
 async def execute_heuristic(data, batch_size, nb_process, exe_path):
@@ -27,8 +20,7 @@ async def execute_heuristic(data, batch_size, nb_process, exe_path):
                     .replace(",dtype=float32)", "") \
                     .replace("'", '"')
     file_path = exe_path[:exe_path.rfind("\\")]+TMP_FILE
-    with open(file_path, "w") as file:
-        file.write(data)
+    open(file_path, "w").write(data)
     batch_size = str(batch_size)
     running_procs = [Popen([exe_path, file_path, str(current_pid+id), batch_size],
                      stdout=PIPE, stderr=PIPE, text=True)
@@ -179,9 +171,3 @@ def format_csv(local_data, results):
         cities_data.append([city['name'], str(city['y']), str(city['x'])])
 
     return path_data, cities_data
-
-
-def save_csv(path, data):
-    with open(path, "w", encoding='utf-8-sig') as file:
-        for line in data:
-            file.write(";".join(line)+"\n")
