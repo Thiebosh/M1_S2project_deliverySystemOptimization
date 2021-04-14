@@ -182,9 +182,9 @@ def make_graph(path, local_data, compute_data, results, result_name, show_names,
                 local_data["traveler"], colors,
                 path, result_name, save_gif, fps, g_files, g_files_lock)
         threads.append(Thread(target=plot_path, args=args))
+        threads[-1].start()
 
     for thread in threads:
-        thread.start()
         thread.join()
 
     return g_files

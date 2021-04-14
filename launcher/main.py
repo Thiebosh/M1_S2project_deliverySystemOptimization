@@ -8,7 +8,9 @@ from parse import user_args, config_verif
 from synchronize import Synchronize
 from loader import compile_loader, load_data
 from files import load_file, save_csv
-from common import execute_heuristic, print_results, format_csv
+from step1 import execute_heuristic
+from step2 import path_fusion
+from common import print_results, print_fusionned, format_csv
 from graph import make_graph
 
 from defines import RESULT_FOLDER, DASHBOAD_URL
@@ -57,12 +59,12 @@ if __name__ == "__main__":
         print_results(local_data, results)
 
     # stepx.1 : collect data for path fusion
-    # todo
+    # fusionned_path = path_fusion()
 
     # stepx.2 : optional print of results
-    if config["results"]["print_console"]:
-        print(f"{datetime.now().time()} - Display step2 results...\n")
-        # todo
+    # if config["results"]["print_console"]:
+    #     print(f"{datetime.now().time()} - Display step2 results...\n")
+    #     print_fusionned(fusionned_path)
 
     # step6 : csv formatting and optional saving
     print(f"{datetime.now().time()} - Prepare CSV...\n")
