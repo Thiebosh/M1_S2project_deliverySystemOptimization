@@ -128,9 +128,8 @@ class Synchronize:
                 .export(fileId=self.input_id, mimeType="text/plain") \
                 .execute().decode("utf-8")
 
-    def remove_imgs(self, regex):
-        # retirer png? prend pas gifs en compte => pb
-        query = f"'{self.img_folder_id}' in parents and mimeType='image/png'"
+    def remove_imgs(self, regex, extension):
+        query = f"'{self.img_folder_id}' in parents and mimeType='image/{extension}'"
 
         # pylint: disable=maybe-no-member
         for file in self.serviceDrive.files().list(q=query).execute()["files"]:
@@ -141,9 +140,9 @@ class Synchronize:
 
     def upload_imgs(self, is_gif):
         reg = "^"+self.datafile+"_[0-9]+.{0}$"
-        regex = re.compile(r""+reg.format("png" if is_gif else "gif"))
 
-        self.remove_imgs(regex)
+        extension = "gif" if is_gif else "png"
+        self.remove_imgs(re.compile(r""+reg.format(extension)), extension)
 
         regex = re.compile(r""+reg.format("gif" if is_gif else "png"))
 
