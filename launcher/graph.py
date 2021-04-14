@@ -2,10 +2,8 @@ import matplotlib.pyplot as plt
 import imageio
 import os
 import geopandas
-import random
 from geopip import search
 from threading import Thread, Lock
-import time
 from pygifsicle import optimize
 import pickle
 import io
@@ -16,13 +14,14 @@ from defines import MAPS_FOLDER, RESULT_FOLDER, MAX_GRAPH, MAX_COUNTRIES
 def plot_path(idThread, fig, results, cities, local_travelers, travel_colors,
               path, result_name, save_gif, fps, g_files, g_files_lock):
     axe = fig.gca()
-    axe.title.set_text(f"{results[2][1]:.1f}km")
+    axe.title.set_text(f"{results[2][1]}km")  # :.1f
 
-    filenames = []
+    img_buffers = []
     if(save_gif):
-        name = f"{idThread}_-1.png"
-        fig.savefig(name)
-        filenames.append(name)
+        b = io.BytesIO()
+        fig.savefig(b, format='png')
+        b.seek(0)  # crucial
+        img_buffers.append(b)
 
     # travel between peaks
     for idTravel, traveler in enumerate(results[-1]):
@@ -38,9 +37,10 @@ def plot_path(idThread, fig, results, cities, local_travelers, travel_colors,
                   width=0.001, color=travel_colors, alpha=0.75)
 
         if(save_gif):
-            name = f"{idThread}_{idTravel}.png"
-            fig.savefig(name)
-            filenames.append(name)
+            b = io.BytesIO()
+            fig.savefig(b, format='png')
+            b.seek(0)  # crucial
+            img_buffers.append(b)
 
         for idCity, city in enumerate(traveler[1][:-1]):
             city = cities[city]
@@ -55,9 +55,10 @@ def plot_path(idThread, fig, results, cities, local_travelers, travel_colors,
 
             # gif img
             if(save_gif):
-                name = f"{idThread}_{idTravel}_{idCity}.png"
-                fig.savefig(name)
-                filenames.append(name)
+                b = io.BytesIO()
+                fig.savefig(b, format='png')
+                b.seek(0)  # crucial
+                img_buffers.append(b)
 
     # assemble gif
     if(save_gif):
@@ -66,10 +67,7 @@ def plot_path(idThread, fig, results, cities, local_travelers, travel_colors,
         with g_files_lock:
             g_files.append(gifname)
 
-        frames = [imageio.imread(img) for img in filenames]
-        for filename in filenames:
-            os.remove(filename)
-
+        frames = [imageio.imread(buffer.read()) for buffer in img_buffers]
         frames.append(frames[-1])
         frames.append(frames[-1])
 
