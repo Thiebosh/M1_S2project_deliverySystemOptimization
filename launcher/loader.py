@@ -9,10 +9,19 @@ np.set_printoptions(formatter={'float': "{:.2f}".format}, threshold=maxsize)
 
 
 def load_data(file_content):
-    travel_lines, peak_lines = acquire_data(file_content)
+    vehicule_lines, travel_lines, peak_lines = acquire_data(file_content)
+
     # intialize
     nb_traveler = len(travel_lines)
     nb_peak = len(peak_lines) + sum([x.count(" - ") for x in peak_lines])
+
+    # apply vehicules to travelers
+    vehicules = {x[0]: x[1]+','+x[2] for x in [line.split(',') for line in vehicule_lines]}
+    for i in range(nb_traveler):
+        trav = travel_lines[i]
+        v = trav[trav.rfind(',')+1:]
+        travel_lines[i] = trav.replace(v, vehicules[v])
+
     # pre allocate everything in the fastest way, without memory share
     ids = {"local_peak": 0, "compute_peak": 0, "compute_arc": 0}
     local_data = {"traveler": [{"name": '', "x": 0.0, "y": 0.0} for _ in range(nb_traveler)],
@@ -58,9 +67,11 @@ def acquire_data(file_content):
                 data_lines.append((last+1, id))
             last = id
         # throw headers lines
-        travel_lines = all_lines[data_lines[0][0]+1:data_lines[0][1]]
-        peak_lines = all_lines[data_lines[1][0]+1:data_lines[1][1]]
-        return travel_lines, peak_lines
+        vehicule_lines = all_lines[data_lines[0][0]+1:data_lines[0][1]]
+        travel_lines = all_lines[data_lines[1][0]+1:data_lines[1][1]]
+        peak_lines = all_lines[data_lines[2][0]+1:data_lines[2][1]]
+
+        return vehicule_lines, travel_lines, peak_lines
 
     except Exception as e:
         print(f"Data acquisition error : {e}")
