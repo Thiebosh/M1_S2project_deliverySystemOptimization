@@ -20,7 +20,11 @@
 
 using namespace std;
 using json = nlohmann::json;
-
+int t0=1000;
+double q=0.99;
+double t_end=1e-8;
+int length=100;
+int t1=t0;
 typedef struct dist_ {
     int id;
     float distance;
@@ -29,7 +33,7 @@ typedef struct dist_ {
 
 vector<int> findsolution(int id, json input, int nbClosest);
 float totaldis(vector<int>& path, json input);
-vector<int> findnei(vector<int> solution, json input);
+vector<int> findnei(vector<int> solution, json input,int t);
 
 int main(int argc, char* argv[]) {
     int id = atoi(argv[ARG_ID]);
@@ -51,17 +55,20 @@ int main(int argc, char* argv[]) {
 
     // declare result tab
     vector<int> currentpath = findsolution(id, inputData, batch_size);
-
+    vector<int> bestpath=currentpath;
     float totalDistance = totaldis(currentpath, inputData) / (float)inputData["traveler"][0]["speed"];
     cout << totalDistance << ";";
     for (int elem : currentpath) cout << elem << ",";
     cout<<endl;
-    for (int i = 0; i < 20; i++) {
-       currentpath=findnei(currentpath, inputData);
+    while(t1>t_end){    
+    for (int i = 0; i < length; i++) {
+       bestpath=findnei(currentpath, inputData,t1);
     }
-    totalDistance = totaldis(currentpath, inputData) / (float)inputData["traveler"][0]["speed"];
+    t1=t1*q;
+    }
+    totalDistance = totaldis(bestpath, inputData) / (float)inputData["traveler"][0]["speed"];
     cout << totalDistance << ";";
-    for (int elem : currentpath) cout << elem << ",";
+    for (int elem : bestpath) cout << elem << ",";
     return 0;
 }
 
@@ -214,45 +221,53 @@ vector<int> findsolution(int id, json input, int nbClosest) {
 
 }
 bool checknei(vector<int> solution,json input) {
-    vector<int> ableclient;
+    int size=input["peak"].size();
+    int ableclient[size]={0};
     int storage = input["traveler"][0]["qty"];
     int des=0;
     for (int i = 0; i < solution.size(); i++) {
         if (input["peak"][solution[i]]["origin"] == 1) {
             if (storage == 0) { des++ ; break; }
-            storage--;
-            for (int j = 0; j < input["peak"][solution[i]]["link"].size();j++) {
-                ableclient.push_back(input["peak"][solution[i]]["link"][j]);
+            int j=0;
+            while(j < input["peak"][solution[i]]["link"].size()&&storage>0) {
+                ableclient[solution[i]]++;
+                storage--;
+                j++;
             }
         }
         if (input["peak"][solution[i]]["origin"] == 0) {
             storage++;
-            int judge = 0;
-            for (int j = 0; j < ableclient.size(); j++) {
-                if (solution[i] == ableclient[j]) { 
-                    judge++;
-                }
-            }
-            if (judge == 0) { des++ ; break; }
+            int position=input["peak"][solution[i]]["link"];
+            if(ableclient[position]>0){ableclient[position]--;}
+            else { des++ ; break; }
         }
     }
     if(des!=0){return 0;}
     else{return 1;}
 }
-vector<int> findnei(vector<int> solution, json input) {
+vector<int> findnei(vector<int> solution, json input,int t) {
     vector<int> nei = solution;
+    vector<int> result=solution;
     int a = rand() % input["peak"].size() + 1;
-    for (int i=0; i < nei.size()&&i!=a; i++) {
+    int i =rand() % input["peak"].size() + 1;
         int nuclear = nei[a];
         nei[a] = nei[i];
         nei[i] = nuclear;
         if (checknei(nei,input)==1) {
             float dis = totaldis(nei, input);
-            if (dis < totaldis(solution, input)) { solution = nei; }
+            float dis_solu=totaldis(solution, input);
+            if (dis < totaldis(solution, input)){
+                solution=nei;
+                result=nei;
+            }
+            else{
+                double r=(rand()%100+1)/100;
+                double d=dis-dis_solu;
+                if(exp(-d/t <= r)){result=solution;solution=nei;}
+            }
         }
+        return result;    
     }
-    return solution;
-}
 float totaldis(vector<int>& path, json input) {
     float total = 0;
     for (int i = 1; i < path.size(); i++) {
