@@ -35,17 +35,16 @@ if __name__ == "__main__":
     if online:
         datafile = drive.set_datafile(config["input_datafile"]).get_input()
     else:
-        if config["input_datafile"][-5:] != ".data":
-            config["input_datafile"] += ".data"
-        datafile = load_file(path+"\\..\\"+config["input_datafile"])
+        ext = "" if config["input_datafile"][-5:] == ".data" else ".data"
+        datafile = load_file(path+"\\..\\"+config["input_datafile"] + ext)
 
     print(f"{datetime.now().time()} - Parsing input...\n")
     local_data, to_compute = load_data(datafile)
 
     print(f"{datetime.now().time()} - Simulate paths...\n")
     inputs = (config["path_generation"]["batch_size"],
-                config["path_generation"]["nb_process"],
-                config["path_generation"]["algorithm"])
+              config["path_generation"]["nb_process"],
+              config["path_generation"]["algorithm"])
     results = asyncio.run(execute_heuristic(to_compute, *inputs))
 
     if config["results"]["print_console"]:

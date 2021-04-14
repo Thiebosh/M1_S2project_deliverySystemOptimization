@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import imageio
 import os
 import geopandas
@@ -7,6 +8,7 @@ from threading import Thread, Lock
 from pygifsicle import optimize
 import pickle
 import io
+import random
 
 from defines import MAPS_FOLDER, RESULT_FOLDER, MAX_GRAPH, MAX_COUNTRIES
 
@@ -34,7 +36,7 @@ def plot_path(idThread, fig, results, cities, local_travelers, travel_colors,
 
         axe.arrow(deltaX*0.05+city[0], deltaY*0.05+city[1], deltaX*0.9, deltaY*0.9,
                   length_includes_head=True, head_width=0.5, head_length=0.5,
-                  width=0.001, color=travel_colors, alpha=0.75)
+                  width=0.001, color=travel_colors[idTravel], alpha=0.75)
 
         if(save_gif):
             b = io.BytesIO()
@@ -51,7 +53,7 @@ def plot_path(idThread, fig, results, cities, local_travelers, travel_colors,
 
             axe.arrow(deltaX*0.05+city[0], deltaY*0.05+city[1], deltaX*0.9, deltaY*0.9,
                       length_includes_head=True, head_width=0.5, head_length=0.5,
-                      width=0.001, color=travel_colors, alpha=0.75)
+                      width=0.001, color=travel_colors[idTravel], alpha=0.75)
 
             # gif img
             if(save_gif):
@@ -88,7 +90,7 @@ def make_graph(path, local_data, compute_data, results, result_name, show_names,
     nb_graph = min(MAX_GRAPH, len(results))
 
     cities = [(peak["x"], peak["y"]) for peak in local_data["peak"]]
-    x, y = zip(*cities)  # extract couples [x, y]
+    x, y = zip(*cities)  # zip because of tuples : extract couples [x, y]
 
     # plot common part
     fig = plt.figure()
@@ -118,20 +120,32 @@ def make_graph(path, local_data, compute_data, results, result_name, show_names,
             x1, y1 = cities[origin]
             for dest in dests:
                 x2, y2 = cities[dest]
-                axe.plot([x1, x2], [y1, y2], zorder=0, linestyle="dashed", c="green", alpha=0.3)
+                line, = axe.plot([x1, x2], [y1, y2], zorder=0, linestyle="dashed", c="green", alpha=0.3)
+        line.set_label('Refers')
 
-    # step3 : display origins, destinations and travelers origins
+    # step3.1 : display origins and destinations
     cities_origin = [(peak["x"], peak["y"]) for peak in local_data["peak"] if peak["origin"]]
     cities_dest = [(peak["x"], peak["y"]) for peak in local_data["peak"] if not peak["origin"]]
-    x_o, y_o = zip(*cities_origin) # donne direct ?
-    x_d, y_d = zip(*cities_dest)
 
-    axe.scatter(x_o, y_o, marker="s", c="red")  # , s=8
-    axe.scatter(x_d, y_d, marker="o", c="green")  # , s=12
+    axe.scatter(*zip(*cities_origin), marker="s", c="red", label="Deposit")
+    axe.scatter(*zip(*cities_dest), marker="o", c="green", label="Client")
+
+    # step3.2 : display travelers origins
+    nb_trav = len(local_data["traveler"])
+    if nb_trav < 10:
+        colors = list(mcolors.TABLEAU_COLORS.values())
+    else:
+        colors = mcolors.CSS4_COLORS  # 148 colors
+        colors.pop("lightgray")
+        colors.pop("lightgrey")
+        colors.pop("gainsboro")
+        colors = [color for color in colors.values() if color.count("F") < 4]  # 128 left
+    random.shuffle(colors)
+    colors = colors[:nb_trav]
 
     travelers = [(trav["x"], trav["y"], trav["name"]) for trav in local_data["traveler"]]
     x_trav, y_trav, _ = zip(*travelers)
-    axe.scatter(x_trav, y_trav, marker="D", c="blue")  # color array
+    axe.scatter(x_trav, y_trav, marker="D", c=colors, label="Traveler")
 
     # step4 : optional display of vertices and travelers names
     if show_names:
@@ -140,22 +154,32 @@ def make_graph(path, local_data, compute_data, results, result_name, show_names,
             axe.text(x[i]+coef, y[i]+coef, local_data["peak"][i]["name"],
                      fontsize='x-small', c="black")
 
-        for x, y, name in travelers:
-            axe.text(x+coef, y+coef, name, fontsize='x-small', c="blue")  # color array
+        for (x, y, name), color in zip(travelers, colors):
+            axe.text(x+coef, y+coef, name, fontsize='x-small', c=color)
 
-    # step5 : dump base graph and enrich it in each thread
+    # step5 : tweak legend order & position
+    if link_vertices:
+        handles, labels = axe.get_legend_handles_labels()
+        handles = handles[1:3]+[handles[0]]+[handles[3]]
+        labels = labels[1:3]+[labels[0]]+[labels[3]]
+        axe.legend(handles, labels, ncol=4, loc='lower center', bbox_to_anchor=(0.5, -0.1))
+    else:
+        axe.legend(ncol=3, loc='lower center', bbox_to_anchor=(0.5, -0.1))
+
+    # step6 : dump base graph and enrich it in each thread
     graph_buffer = io.BytesIO()
     pickle.dump(fig, graph_buffer)
 
-    # step6 : start threads
+    # step7 : start threads
     g_files = []
     g_files_lock = Lock()
     threads = []
     for idThread in range(nb_graph):
         graph_buffer.seek(0)  # crucial
         newfig = pickle.load(graph_buffer)
+
         args = (idThread, newfig, results[idThread], cities,
-                local_data["traveler"], "blue",  # color array
+                local_data["traveler"], colors,
                 path, result_name, save_gif, fps, g_files, g_files_lock)
         threads.append(Thread(target=plot_path, args=args))
 
