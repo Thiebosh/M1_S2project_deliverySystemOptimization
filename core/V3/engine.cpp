@@ -20,13 +20,15 @@
 #define ARG_BATCH_SIZE 3
 #define NB_ARGS 4
 
+using namespace std;
+
 typedef struct dist_
 {
     int id;
     float distance;
 } dist;
 
-void findsolution(json input, int nbClosest, map<int, vector<int>> *restaurantClientLink, vector<vector<int>> *path, mutex *restaurantClientLink_mutex, mutex *path_mutex, int idTraveler);
+void findsolution(json *input, int nbClosest, map<int, vector<int>> *restaurantClientLink, vector<vector<int>> *path, mutex *restaurantClientLink_mutex, mutex *path_mutex, int idTraveler);
 
 int main(int argc, char *argv[])
 {
@@ -44,24 +46,25 @@ int main(int argc, char *argv[])
     string str( (std::istreambuf_iterator<char>(t) ),
                        (std::istreambuf_iterator<char>()) );
 
-    json inputData = json::parse(str);
+    json *inputData;
+    *inputData = json::parse(str);
 
     int batch_size = atoi(argv[ARG_BATCH_SIZE]);
-    vector<vector<int>> path(inputData["traveler"].size(), vector<int>());
+    vector<vector<int>> path(inputData->at("traveler").size(), vector<int>());
 
     mutex path_mutex;
     map<int, vector<int>> restaurantClientLink;
     mutex restaurantClientLink_mutex;
 
     //initializing restaurantClientLink
-    for (int i = 0; i < inputData["peak"].size(); ++i)
+    for (int i = 0; i < inputData->at("peak").size(); ++i)
     {
-        if (inputData["peak"][i]["origin"] == 1)
+        if (inputData->at("peak").at(i).at("origin") == 1)
         {
             vector<int> clients;
-            for (int j = 0; j < inputData["peak"][i]["link"].size(); j++)
+            for (int j = 0; j < inputData->at("peak").at(i).at("link").size(); j++)
             {
-                clients.push_back(inputData["peak"][i]["link"][j]);
+                clients.push_back(inputData->at("peak").at(i).at("link").at(j));
             }
             restaurantClientLink.insert(pair<int, vector<int>>(i, clients));
         }
@@ -70,10 +73,9 @@ int main(int argc, char *argv[])
     // start threads
     // declare result tab
     vector<thread> threads;
-    for(int i = 0; i < inputData["traveler"].size(); i++){
-        threads.push_back(thread(findsolution, inputData, batch_size, &restaurantClientLink, &path, &restaurantClientLink_mutex, &path_mutex, i));
+    for(int i = 0; i < inputData->at("traveler").size(); i++){
+        threads.push_back(thread(findsolution, inputData, batch_size,   &restaurantClientLink, &path, &restaurantClientLink_mutex, &path_mutex, i));
     }
-    
     for(auto& curThread: threads){
         curThread.join();
     }
@@ -82,7 +84,7 @@ int main(int argc, char *argv[])
     vector<float> travelersVar;
     vector<float> travelersMed;
     vector<float> travelerDist;
-    for(int i = 0; i < inputData["traveler"].size(); i++){
+    for(int i = 0; i < inputData->at("traveler").size(); i++){
         travelersVar.push_back(travelerDistVar(path[i], inputData, i));
         travelersMed.push_back(travelerDistMed(path[i], inputData, i));
         travelerDist.push_back(travelerDistTotal(path[i], inputData, i));
@@ -92,8 +94,7 @@ int main(int argc, char *argv[])
     cout << var(travelerDist) << endl;
     cout << accumulate(travelerDist.begin(), travelerDist.end(), 0.0) << endl;
 
-
-    for(int i = 0; i < inputData["traveler"].size(); i++){
+    for(int i = 0; i < inputData->at("traveler").size(); i++){
         if(travelerDist[i] > 0){
             cout << travelerDist[i] << ";";
             for (int elem : path[i]){
@@ -167,7 +168,38 @@ vector<int> getPossibleNextPeak(vector<double> arc, vector<int> possiblePoints, 
     return points;
 }
 
-void findsolution(json input, int nbClosest, map<int, vector<int>> *restaurantClientLink, vector<vector<int>>* path, mutex *restaurantClientLink_mutex, mutex *path_mutex, int idTraveler)
+
+int getIdPoint(vector<int> allPoints){
+    reverse(allPoints.begin(), allPoints.end());
+    vector<double> weights;
+    vector<double> normalized_weights;
+    double min_val;
+    double max_val;
+
+    for(double i = 0; i < allPoints.size(); ++i){
+        weights.push_back(1.0/(i+0.033));
+    }
+    //normalizing weights 
+    min_val = *min_element(weights.begin(), weights.end());
+    max_val = *max_element(weights.begin(), weights.end());
+    for(int i = 0; i < weights.size(); ++i){
+        if(max_val != min_val){
+            normalized_weights.push_back((double)(weights[i]-min_val)/(double)(max_val-min_val)); 
+        }else{
+            normalized_weights = weights;
+        }
+    }
+    reverse(normalized_weights.begin(), normalized_weights.end());
+    double randomValue = (double) rand() / (RAND_MAX);
+    for(int i = 0; i < normalized_weights.size(); i++){
+        if(randomValue < normalized_weights[i]){
+            return allPoints[i];
+        }
+    }
+    return -1;
+}
+
+void findsolution(json *input, int nbClosest, map<int, vector<int>> *restaurantClientLink, vector<vector<int>>* path, mutex *restaurantClientLink_mutex, mutex *path_mutex, int idTraveler)
 {
     // build list of unselected peaks
     vector<int> canDeliverClients;                          //clients
@@ -175,20 +207,19 @@ void findsolution(json input, int nbClosest, map<int, vector<int>> *restaurantCl
     //initializing arrays
 
     //initialize storage's capacity
-    int storage = input["traveler"][idTraveler]["qty"];
+    
+    int storage = input->at("traveler").at(idTraveler).at("qty");
 
     vector<int> possiblePoints;
     int solutionId = 0;
-    bool solutionFound = false;
+    bool solutionFound = true;
     int idPoint = -1;
 
     // select first restaurant
-    restaurantClientLink_mutex->lock();
-    possiblePoints = getPossibleNextPeak(input["traveler"][idTraveler]["arc"], getRemainingRestaurant(restaurantClientLink), nbClosest);
-    restaurantClientLink_mutex->unlock();
     int nbClosestCopy = nbClosest;
     do
-    {  
+    {
+        restaurantClientLink_mutex->lock();
         if (!solutionFound)
         {
             //if no path had been found, remove last tried id and try again
@@ -204,56 +235,49 @@ void findsolution(json input, int nbClosest, map<int, vector<int>> *restaurantCl
             solutionFound = false;
             possiblePoints.clear();
             nbClosestCopy = nbClosest;
-            restaurantClientLink_mutex->lock();
             vector<int> tmpPossiblePoints = getRemainingRestaurant(restaurantClientLink);
-            restaurantClientLink_mutex->unlock();
             if (!canDeliverClients.empty())
             {
                 tmpPossiblePoints.insert(tmpPossiblePoints.end(), canDeliverClients.begin(), canDeliverClients.end());
             }
-            possiblePoints = getPossibleNextPeak(input["arc"][idPoint], tmpPossiblePoints, nbClosestCopy);
+            if(idPoint > 0){
+                possiblePoints = getPossibleNextPeak(input->at("arc").at(idPoint), tmpPossiblePoints, tmpPossiblePoints.size());
+            }else{
+                possiblePoints = getPossibleNextPeak(input->at("traveler").at(idTraveler).at("arc"), tmpPossiblePoints, tmpPossiblePoints.size());
+            }
         }
-        if (possiblePoints.size() == 0 && idPoint > 0)
-        {
-            //if there no way to deliver everyone only by going to the n closest places, we increase this number.
-            nbClosestCopy += 1;
-            restaurantClientLink_mutex->lock();
-            vector<int> tmpPossiblePoints = getRemainingRestaurant(restaurantClientLink);
+        if(possiblePoints.size() == 0){
             restaurantClientLink_mutex->unlock();
-            if (!canDeliverClients.empty())
-            {
-                tmpPossiblePoints.insert(tmpPossiblePoints.end(), canDeliverClients.begin(), canDeliverClients.end());
-            }
-            possiblePoints = getPossibleNextPeak(input["arc"][idPoint], tmpPossiblePoints, nbClosestCopy);
-
-            if(possiblePoints.size() == 0){
-                restaurantClientLink_mutex->unlock();
-                return;
-            }
-        }else if(possiblePoints.size() == 0){
             return;
         }
-        idPoint = possiblePoints[rand() % possiblePoints.size()];
+        double val = getIdPoint(possiblePoints);
+        if(val >= 0){
+            idPoint = val;
+        }else{
+            restaurantClientLink_mutex->unlock();
+            return;
+        }   
 
-        restaurantClientLink_mutex->lock();
-        if (input["peak"][idPoint]["origin"] == 1 && restaurantClientLink->find(idPoint) != restaurantClientLink->end())
+        if (input->at("peak").at(idPoint).at("origin") == 1 && restaurantClientLink->find(idPoint) != restaurantClientLink->end())
         {
             //if point is a restaurant check every clients of this restaurant
             for (int client : restaurantClientLink->at(idPoint))
             {
-                if (storage - (int)input["peak"][client]["qty"] >= 0)
+                if (storage - (int)input->at("peak").at(client).at("qty") >= 0)
                 {
                     /*
                         if deliveryman can store the order, we add this restaurant to the path and this client to 
                         the client that can be delivered and we reduce the storage space.
                     */
                     solutionFound = true;
-                    storage -= (int)input["peak"][client]["qty"];
-                    path_mutex->lock();
+                    storage -= (int)input->at("peak").at(client).at("qty");
                     path->at(idTraveler).push_back(idPoint);
-                    path_mutex->unlock();
                     canDeliverClients.push_back(client);
-                    restaurantClientLink->at(idPoint).erase(find(restaurantClientLink->at(idPoint).begin(), restaurantClientLink->at(idPoint).begin(), client));
+                    vector<int>::iterator it = find(restaurantClientLink->at(idPoint).begin(), restaurantClientLink->at(idPoint).end(), client);
+                    if(it != restaurantClientLink->at(idPoint).end()){
+                         restaurantClientLink->at(idPoint).erase(it);
+                    }
+
                     if (restaurantClientLink->at(idPoint).empty())
                     {
                         restaurantClientLink->erase(idPoint);
@@ -262,19 +286,17 @@ void findsolution(json input, int nbClosest, map<int, vector<int>> *restaurantCl
                 }
             }
         }
-        restaurantClientLink_mutex->unlock();
-        if (input["peak"][idPoint]["origin"] == 0)
+        if (input->at("peak").at(idPoint).at("origin") == 0 && find(canDeliverClients.begin(), canDeliverClients.end(), idPoint) != canDeliverClients.end())
         {
             /*
                 point is a client ready to be delivered, we remove it from the client ready to be delivered and
                 we increase the storage space of the deliveryman
             */
             solutionFound = true;
-            storage += (int)input["peak"][idPoint]["qty"];
-            path_mutex->lock();
+            storage += (int)input->at("peak").at(idPoint).at("qty");
             path->at(idTraveler).push_back(idPoint);
-            path_mutex->unlock();
             canDeliverClients.erase(find(canDeliverClients.begin(), canDeliverClients.end(), idPoint));
         }
+        restaurantClientLink_mutex->unlock();
     } while (!(restaurantClientLink->empty()) || !canDeliverClients.empty());
 }
