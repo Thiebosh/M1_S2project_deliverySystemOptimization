@@ -15,9 +15,10 @@
 #include "pathComparison.h"
 
 //input args
-#define ARG_ID 1
-#define ARG_FILE_PATH 2
-#define NB_ARGS 3
+#define ARG_FILE_PATH 1
+#define ARG_ID 2
+#define ARG_BATCH_SIZE 3
+#define NB_ARGS 4
 
 using namespace std;
 
@@ -27,14 +28,15 @@ typedef struct dist_
     float distance;
 } dist;
 
-void findsolution(json *input, map<int, vector<int>> *restaurantClientLink, vector<vector<int>> *path, mutex *restaurantClientLink_mutex, mutex *path_mutex, int idTraveler);
+map<int, vector<int>> findsolution(json *input);
 
 int main(int argc, char *argv[])
 {
     int id = atoi(argv[ARG_ID]);
     cout << id << endl;
-    
-    if (argc < NB_ARGS) return -1;
+
+    if (argc < NB_ARGS)
+        return -1;
 
     time_t seed = time(NULL) % id;
     srand(seed);
@@ -42,67 +44,57 @@ int main(int argc, char *argv[])
 
     ifstream t(argv[ARG_FILE_PATH], ios::in);
     t.seekg(0);
-    string str( (std::istreambuf_iterator<char>(t) ),
-                       (std::istreambuf_iterator<char>()) );
+    string str((std::istreambuf_iterator<char>(t)),
+               (std::istreambuf_iterator<char>()));
 
     json jsonData = json::parse(str);
-    json* inputData = &jsonData;
+    json *inputData = &jsonData;
 
+    int batch_size = atoi(argv[ARG_BATCH_SIZE]);
     vector<vector<int>> path(inputData->at("traveler").size(), vector<int>());
 
     mutex path_mutex;
     map<int, vector<int>> restaurantClientLink;
+    map<int, vector<int>> canDeliverClient;
     mutex restaurantClientLink_mutex;
 
-    //initializing restaurantClientLink
-    for (int i = 0; i < inputData->at("peak").size(); ++i)
-    {
-        if (inputData->at("peak").at(i).at("origin") == 1)
-        {
-            vector<int> clients;
-            for (int j = 0; j < inputData->at("peak").at(i).at("link").size(); j++)
-            {
-                clients.push_back(inputData->at("peak").at(i).at("link").at(j));
-            }
-            restaurantClientLink.insert(pair<int, vector<int>>(i, clients));
-        }
-    }
+    //initializing restaurantClientLink and canDeliverClient
 
     // start threads
     // declare result tab
     vector<thread> threads;
-    for(int i = 0; i < inputData->at("traveler").size(); i++){
-        threads.push_back(thread(findsolution, inputData,   &restaurantClientLink, &path, &restaurantClientLink_mutex, &path_mutex, i));
-    }
-    for(auto& curThread: threads){
-        curThread.join();
-    }
+    map<int, vector<int>> res = findsolution(inputData);
 
     // Print results
     vector<float> travelersVar;
     vector<float> travelersMed;
     vector<float> travelerDist;
-    for(int i = 0; i < inputData->at("traveler").size(); i++){
-        travelersVar.push_back(travelerDistVar(path[i], inputData, i));
-        travelersMed.push_back(travelerDistMed(path[i], inputData, i));
-        travelerDist.push_back(travelerDistTotal(path[i], inputData, i));
+    for (int i = 0; i < inputData->at("traveler").size(); i++)
+    {
+        travelersVar.push_back(travelerDistVar(res.at(i), inputData, i));
+        travelersMed.push_back(travelerDistMed(res.at(i), inputData, i));
+        travelerDist.push_back(travelerDistTotal(res.at(i), inputData, i));
     }
     cout << var(travelersVar) << endl;
     cout << var(travelersMed) << endl;
     cout << var(travelerDist) << endl;
     cout << accumulate(travelerDist.begin(), travelerDist.end(), 0.0) << endl;
 
-    for(int i = 0; i < inputData->at("traveler").size(); i++){
-        if(travelerDist[i] > 0){
+    for (int i = 0; i < inputData->at("traveler").size(); i++)
+    {
+        if (travelerDist[i] > 0)
+        {
             cout << travelerDist[i] << ";";
-            for (int elem : path[i]){
+            for (int elem : res.at(i))
+            {
                 cout << elem << ",";
             }
         }
-        else cout << "0;-1,";
+        else
+            cout << "0;-1,";
         cout << endl;
     }
-    
+
     return 0;
 }
 
@@ -165,129 +157,228 @@ vector<int> getPossibleNextPeak(vector<double> arc, vector<int> possiblePoints, 
     return points;
 }
 
-
-int getIdPoint(vector<int> allPoints){
+int getIdPoint(vector<int> allPoints, vector<double> distances)
+{
     reverse(allPoints.begin(), allPoints.end());
     vector<double> weights;
     vector<double> normalized_weights;
     double min_val;
     double max_val;
 
-    for(double i = 0; i < allPoints.size(); i++){
-        weights.push_back(1.0/(i+0.001));
+    for (double i = 0; i < allPoints.size(); i++)
+    {
+        weights.push_back(distances[i]);
     }
-    //normalizing weights 
+    //normalizing weights
     min_val = *min_element(weights.begin(), weights.end());
     max_val = *max_element(weights.begin(), weights.end());
-    for(int i = 0; i < weights.size(); ++i){
-        normalized_weights.push_back((double)(weights[i]-min_val)/(double)(max_val-min_val));     
+    for (int i = 0; i < weights.size(); ++i)
+    {
+        if (max_val != min_val)
+        {
+            normalized_weights.push_back((double)(weights[i] - min_val) / (double)(max_val - min_val));
+        }
+        else
+        {
+            normalized_weights.push_back(weights[i]);
+        }
     }
     reverse(normalized_weights.begin(), normalized_weights.end());
-    double randomValue = (double) rand() / (RAND_MAX);
-    for(int i = 0; i < normalized_weights.size(); i++){
-        if(randomValue < normalized_weights[i]){
+    double randomValue = (double)rand() / (RAND_MAX);
+    for (int i = 0; i < normalized_weights.size(); i++)
+    {
+        if (randomValue <= normalized_weights[i])
+        {
             return allPoints[i];
         }
     }
     return -1;
 }
 
-void findsolution(json *input, map<int, vector<int>> *restaurantClientLink, vector<vector<int>>* path, mutex *restaurantClientLink_mutex, mutex *path_mutex, int idTraveler)
+map<int, vector<int>> findsolution(json *input)
 {
     // build list of unselected peaks
-    vector<int> canDeliverClients;                          //clients
-    vector<int>::iterator cand = canDeliverClients.begin(); //the iterator i used
+    map<int, vector<int>> restaurantClientLink;
+    map<int, vector<int>> deliveries;
+    map<int, vector<int>> deliveredByWhom;
+    map<int, vector<int>> banedDeliveryman;
+    map<int, vector<int>> canBeDelivered;
+    vector<double> storages;
+    int nbTravelers = input->at("traveler").size();
     //initializing arrays
+    for (int i = 0; i < nbTravelers; i++)
+    {
+        storages.push_back(input->at("traveler").at(i).at("qty"));
+        deliveries.insert(make_pair(i, vector<int>()));
+        canBeDelivered.insert(make_pair(i, vector<int>()));
+        banedDeliveryman.insert(make_pair(i, vector<int>()));
+    }
+
+    for (int i = 0; i < input->at("peak").size(); ++i)
+    {
+        deliveredByWhom.insert(make_pair(i, vector<int>()));
+        if (input->at("peak").at(i).at("origin") == 1)
+        {
+            vector<int> clients;
+            for (int j = 0; j < input->at("peak").at(i).at("link").size(); j++)
+            {
+                clients.push_back(input->at("peak").at(i).at("link").at(j));
+            }
+            restaurantClientLink.insert(pair<int, vector<int>>(i, clients));
+        }
+    }
 
     //initialize storage's capacity
-    
-    int storage = input->at("traveler").at(idTraveler).at("qty");
 
+    // int storage = input->at("traveler").at(idTraveler).at("qty");
+
+    // int solutionId = 0;
+    bool solutionFound = false;
+    // int idPoint = -1;
     vector<int> possiblePoints;
-    int solutionId = 0;
-    bool solutionFound = true;
+    vector<int> tmpPossiblePoints;
+    int point;
+    int deliver;
     int idPoint = -1;
-
+    int idTraveler;
+    bool allEmpty = true;
     // select first restaurant
     do
     {
-        restaurantClientLink_mutex->lock();
-        if (!solutionFound)
+        //clear deliverByWhom
+        for (map<int, vector<int>>::iterator it = deliveredByWhom.begin(); it != deliveredByWhom.end(); it++)
         {
-            //if no path had been found, remove last tried id and try again
-            auto it = find(possiblePoints.begin(), possiblePoints.end(), idPoint);
-            if (it != possiblePoints.end())
-            {
-                possiblePoints.erase(it);
-            }
+            it->second.clear();
         }
-        else
+        for (int i = 0; i < nbTravelers; i++)
         {
-            //if a path had been found, reinitialize possible destinations
-            solutionFound = false;
             possiblePoints.clear();
-            vector<int> tmpPossiblePoints = getRemainingRestaurant(restaurantClientLink);
-            if (!canDeliverClients.empty())
+            tmpPossiblePoints = getRemainingRestaurant(&restaurantClientLink);
+            if (!canBeDelivered.at(i).empty())
             {
-                tmpPossiblePoints.insert(tmpPossiblePoints.end(), canDeliverClients.begin(), canDeliverClients.end());
+                //case the deliver hasnt moved yet
+                tmpPossiblePoints.insert(tmpPossiblePoints.end(), canBeDelivered.at(i).begin(), canBeDelivered.at(i).end());
             }
-            if(idPoint > 0){
-                possiblePoints = getPossibleNextPeak(input->at("arc").at(idPoint), tmpPossiblePoints, tmpPossiblePoints.size());
-            }else{
-                possiblePoints = getPossibleNextPeak(input->at("traveler").at(idTraveler).at("arc"), tmpPossiblePoints, tmpPossiblePoints.size());
-            }
-        }
-        if(possiblePoints.size() == 0){
-            restaurantClientLink_mutex->unlock();
-            return;
-        }
-        double val = getIdPoint(possiblePoints);
-        if(val >= 0){
-            idPoint = val;
-        }else{
-            restaurantClientLink_mutex->unlock();
-            return;
-        }   
 
-        if (input->at("peak").at(idPoint).at("origin") == 1 && restaurantClientLink->find(idPoint) != restaurantClientLink->end())
-        {
-            //if point is a restaurant check every clients of this restaurant
-            for (int client : restaurantClientLink->at(idPoint))
+            for(auto tmpPoint: banedDeliveryman.at(i)){
+                if(find(tmpPossiblePoints.begin(), tmpPossiblePoints.end(), tmpPoint) != tmpPossiblePoints.end()){
+                    tmpPossiblePoints.erase(find(tmpPossiblePoints.begin(), tmpPossiblePoints.end(), tmpPoint));
+                }
+            }
+            if(deliveries.at(i).empty()){
+                possiblePoints = getPossibleNextPeak(input->at("traveler").at(i).at("arc"), tmpPossiblePoints, tmpPossiblePoints.size());
+            }else{
+                int curPoint = deliveries.at(i).at(deliveries.at(i).size()-1);
+                possiblePoints = getPossibleNextPeak(input->at("arc").at(curPoint), tmpPossiblePoints, tmpPossiblePoints.size());
+            }
+            
+            if (possiblePoints.empty())
             {
-                if (storage - (int)input->at("peak").at(client).at("qty") >= 0)
+                continue;
+            }
+            vector<double> distances;
+            if(deliveries.at(i).empty()){
+                for(int tmpPoint: possiblePoints){
+                    distances.push_back(input->at("traveler").at(i).at("arc").at(tmpPoint));
+                }
+            }else{
+                int curPoint = deliveries.at(i).at(deliveries.at(i).size()-1);
+                for(int tmpPoint: possiblePoints){
+                    distances.push_back(input->at("arc").at(curPoint).at(tmpPoint));
+                }
+            }
+            point = getIdPoint(possiblePoints, distances);
+            if (point >= 0)
+            {
+                deliveredByWhom.at(point).push_back(i);
+            }
+        }
+        for (map<int, vector<int>>::iterator it = deliveredByWhom.begin(); it != deliveredByWhom.end(); it++)
+        {
+            solutionFound = false;
+            if (it->second.empty())
+            {
+                continue;
+            }
+            vector<double> distances;
+            for (int curDeliver : it->second)
+            {
+                if (deliveries.at(curDeliver).empty())
                 {
-                    /*
+                    distances.push_back(input->at("traveler").at(curDeliver).at("arc").at(it->first));
+                }
+                else
+                {
+                    distances.push_back(input->at("arc").at(deliveries.at(curDeliver)[deliveries.at(curDeliver).size() - 1]).at(it->first));
+                }
+            }
+            
+            possiblePoints = getPossibleNextPeak(distances, it->second, it->second.size());
+            if (possiblePoints.empty())
+            {
+                continue;
+            }
+
+            idTraveler = getIdPoint(possiblePoints, distances);
+            idPoint = it->first;
+
+            if (input->at("peak").at(point).at("origin") == 1 && restaurantClientLink.find(idPoint) != restaurantClientLink.end())
+            {
+                //if point is a restaurant check every clients of this restaurant
+                for (int client : restaurantClientLink.at(idPoint))
+                {
+                    if (storages[idTraveler] - (int)input->at("peak").at(client).at("qty") >= 0)
+                    {
+                        /*
                         if deliveryman can store the order, we add this restaurant to the path and this client to 
                         the client that can be delivered and we reduce the storage space.
                     */
-                    solutionFound = true;
-                    storage -= (int)input->at("peak").at(client).at("qty");
-                    path->at(idTraveler).push_back(idPoint);
-                    canDeliverClients.push_back(client);
-                    vector<int>::iterator it = find(restaurantClientLink->at(idPoint).begin(), restaurantClientLink->at(idPoint).end(), client);
-                    if(it != restaurantClientLink->at(idPoint).end()){
-                         restaurantClientLink->at(idPoint).erase(it);
-                    }
+                        solutionFound = true;
+                        storages[idTraveler] -= (int)input->at("peak").at(client).at("qty");
+                        deliveries.at(idTraveler).push_back(idPoint);
+                        canBeDelivered.at(idTraveler).push_back(client);
+                        vector<int>::iterator it = find(restaurantClientLink.at(idPoint).begin(), restaurantClientLink.at(idPoint).end(), client);
+                        if (it != restaurantClientLink.at(idPoint).end())
+                        {
+                            restaurantClientLink.at(idPoint).erase(it);
+                        }
 
-                    if (restaurantClientLink->at(idPoint).empty())
-                    {
-                        restaurantClientLink->erase(idPoint);
+                        if (restaurantClientLink.at(idPoint).empty())
+                        {
+                            restaurantClientLink.erase(idPoint);
+                        }
+                        break;
                     }
-                    break;
                 }
             }
-        }
-        if (input->at("peak").at(idPoint).at("origin") == 0 && find(canDeliverClients.begin(), canDeliverClients.end(), idPoint) != canDeliverClients.end())
-        {
-            /*
+            if (input->at("peak").at(idPoint).at("origin") == 0 && find(canBeDelivered.at(idTraveler).begin(), canBeDelivered.at(idTraveler).end(), idPoint) != canBeDelivered.at(idTraveler).end())
+            {
+                /*
                 point is a client ready to be delivered, we remove it from the client ready to be delivered and
                 we increase the storage space of the deliveryman
-            */
-            solutionFound = true;
-            storage += (int)input->at("peak").at(idPoint).at("qty");
-            path->at(idTraveler).push_back(idPoint);
-            canDeliverClients.erase(find(canDeliverClients.begin(), canDeliverClients.end(), idPoint));
+                */
+                solutionFound = true;
+                storages[idTraveler] += (int)input->at("peak").at(idPoint).at("qty");
+                deliveries.at(idTraveler).push_back(idPoint);
+                canBeDelivered.at(idTraveler).erase(find(canBeDelivered.at(idTraveler).begin(), canBeDelivered.at(idTraveler).end(), idPoint));
+            }
+
+            if(!solutionFound){
+                banedDeliveryman.at(idTraveler).push_back(idPoint);
+            }else{
+                banedDeliveryman.at(idTraveler).clear();
+            }
         }
-        restaurantClientLink_mutex->unlock();
-    } while (!(restaurantClientLink->empty()) || !canDeliverClients.empty());
+
+        allEmpty = true;
+        for (auto k : canBeDelivered)
+        {
+            if (!k.second.empty())
+            {
+                allEmpty = false;
+                break;
+            }
+        }
+    } while (!(restaurantClientLink.empty()) || !allEmpty);
+    return deliveries;
 }
