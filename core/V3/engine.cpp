@@ -15,10 +15,9 @@
 #include "pathComparison.h"
 
 //input args
-#define ARG_FILE_PATH 1
-#define ARG_ID 2
-#define ARG_BATCH_SIZE 3
-#define NB_ARGS 4
+#define ARG_FILE_PATH 2
+#define ARG_ID 1
+#define NB_ARGS 3
 
 using namespace std;
 
@@ -50,7 +49,6 @@ int main(int argc, char *argv[])
     json jsonData = json::parse(str);
     json *inputData = &jsonData;
 
-    int batch_size = atoi(argv[ARG_BATCH_SIZE]);
     vector<vector<int>> path(inputData->at("traveler").size(), vector<int>());
 
     mutex path_mutex;
