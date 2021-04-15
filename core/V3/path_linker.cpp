@@ -27,6 +27,7 @@ typedef struct dist_
     float distance;
 } dist;
 
+void findsolution(json* input, vector<int>& currSolution);
 
 int main(int argc, char *argv[])
 {
@@ -39,43 +40,50 @@ int main(int argc, char *argv[])
 
     vector<int> idPath(inputData->at(0).size());
 
-    for(int i = 0; i < inputData->at(0).size(); ++i) cout << i << ',';
+	findsolution(inputData, idPath);
+
+    for(int i = 0; i < idPath.size(); ++i) cout << i << ',';
 
     return 0;
 }
 
-vector<int> getNthClosest(int n, vector<double> arc)
-{
-    vector<int> closest;
-    vector<double> sortedArc = arc;
-    sort(sortedArc.begin(), sortedArc.end());
-    for (auto i = 0; i < min(n, (int)arc.size()); i++)
-    {
-        vector<double>::iterator itr = find(arc.begin(), arc.end(), sortedArc[i]);
-        closest.push_back(distance(arc.begin(), itr));
-    }
-    return closest;
-}
 
-vector<int> getPossibleNextPeak(vector<double> arc, vector<int> possiblePoints, int nbClosest)
-{
-    vector<double> possiblePointsDistanceList;
-    vector<double> allDistances = arc;
-    vector<int> closestPoints;
-    vector<int> points;
+void findsolution(json* input, vector<int>& currSolution) {
+	// build list of unselected peaks
+	vector<int> remainingPeaks;
+	for(int i=0; i < currSolution.size(); ++i) remainingPeaks.push_back(i);
 
-    for (auto i : possiblePoints)
-    {
-        possiblePointsDistanceList.push_back(allDistances[i]);
-    }
+	// select first peak
+	int currentPeak = rand() % remainingPeaks.size();
+	currSolution[0] = remainingPeaks[currentPeak];
+	remainingPeaks.erase(remainingPeaks.begin() + currentPeak);
 
-    closestPoints = getNthClosest(nbClosest, possiblePointsDistanceList);
+	// select next peak while some remains unselected
+	int currRank = 1;
+	vector<dist> closestPeaks;
+	while(!remainingPeaks.empty()) {
+		closestPeaks.clear();
 
-    for (auto i : closestPoints)
-    {
-        vector<double>::iterator itr = find(allDistances.begin(), allDistances.end(), possiblePointsDistanceList[i]);
-        points.push_back(distance(allDistances.begin(), itr));
-    }
+		// gather remaining peaks and reverse sort them
+		for(auto i: remainingPeaks){
+			dist curPoint;
+			curPoint.distance = input->at(currentPeak).at(i);
+			curPoint.id = i;
+			closestPeaks.push_back(curPoint);
+		}
+		sort(closestPeaks.begin(), closestPeaks.end(), [](dist a, dist b) {return a.distance < b.distance;});
 
-    return points;
+		// select one of the closest remaining
+		int pos = (int)(rand() % remainingPeaks.size());  // bad random
+		currentPeak =  closestPeaks[pos].id;
+		currSolution[currRank++] = currentPeak;
+
+		// remove selected from remaining
+		for(int i = 0; i < remainingPeaks.size(); i++){
+			if(remainingPeaks[i] == currentPeak){
+				remainingPeaks.erase(remainingPeaks.begin()+i);
+				break;
+			}
+		}
+	}
 }
