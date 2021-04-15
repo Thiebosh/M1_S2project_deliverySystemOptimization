@@ -48,15 +48,14 @@ if __name__ == "__main__":
 
     # step4 : compute data
     print(f"{datetime.now().time()} - Simulate paths...\n")
-    # inputs = (config["path_generation"]["batch_size"],
-    #           config["path_generation"]["nb_process"],
-    #           config["path_generation"]["algorithm"])
-    # results = asyncio.run(execute_heuristic(to_compute, *inputs))
-    results = [
-        (0, 0, (0, 0, 0, 0), [(0, [0, 2]), (0, [6, 7, 4]), (0, [1, 5])]),
-        (0, 0, (0, 0, 0, 0), [(0, [0, 2]), (0, [6, 7, 4]), (0, [1, 5])]),
-        (0, 0, (0, 0, 0, 0), [(0, [0, 2]), (0, [6, 7, 4]), (0, [1, 5])])
-    ]
+    inputs = (config["path_generation"]["algorithm"],
+              config["path_generation"]["nb_process"])
+    results = asyncio.run(execute_heuristic(*inputs, to_compute))
+    # results = [
+    #     (842, 0, (0, 0, 0, 0), [(0, [0, 2]), (0, [6, 7, 4]), (0, [1, 5])]),
+    #     (234, 0, (0, 0, 0, 0), [(0, [0, 2]), (0, [6, 7, 4]), (0, [1, 5])]),
+    #     (154, 0, (0, 0, 0, 0), [(0, [0, 2]), (0, [6, 7, 4]), (0, [1, 5])])
+    # ]
 
     # step5 : optional print of results
     if config["results"]["print_console"]:

@@ -15,10 +15,9 @@
 #include "pathComparison.h"
 
 //input args
-#define ARG_FILE_PATH 1
-#define ARG_ID 2
-#define ARG_BATCH_SIZE 3
-#define NB_ARGS 4
+#define ARG_ID 1
+#define ARG_FILE_PATH 2
+#define NB_ARGS 3
 
 using namespace std;
 
@@ -28,7 +27,7 @@ typedef struct dist_
     float distance;
 } dist;
 
-void findsolution(json *input, int nbClosest, map<int, vector<int>> *restaurantClientLink, vector<vector<int>> *path, mutex *restaurantClientLink_mutex, mutex *path_mutex, int idTraveler);
+void findsolution(json *input, map<int, vector<int>> *restaurantClientLink, vector<vector<int>> *path, mutex *restaurantClientLink_mutex, mutex *path_mutex, int idTraveler);
 
 int main(int argc, char *argv[])
 {
@@ -49,7 +48,6 @@ int main(int argc, char *argv[])
     json jsonData = json::parse(str);
     json* inputData = &jsonData;
 
-    int batch_size = atoi(argv[ARG_BATCH_SIZE]);
     vector<vector<int>> path(inputData->at("traveler").size(), vector<int>());
 
     mutex path_mutex;
@@ -74,7 +72,7 @@ int main(int argc, char *argv[])
     // declare result tab
     vector<thread> threads;
     for(int i = 0; i < inputData->at("traveler").size(); i++){
-        threads.push_back(thread(findsolution, inputData, batch_size,   &restaurantClientLink, &path, &restaurantClientLink_mutex, &path_mutex, i));
+        threads.push_back(thread(findsolution, inputData,   &restaurantClientLink, &path, &restaurantClientLink_mutex, &path_mutex, i));
     }
     for(auto& curThread: threads){
         curThread.join();
@@ -194,7 +192,7 @@ int getIdPoint(vector<int> allPoints){
     return -1;
 }
 
-void findsolution(json *input, int nbClosest, map<int, vector<int>> *restaurantClientLink, vector<vector<int>>* path, mutex *restaurantClientLink_mutex, mutex *path_mutex, int idTraveler)
+void findsolution(json *input, map<int, vector<int>> *restaurantClientLink, vector<vector<int>>* path, mutex *restaurantClientLink_mutex, mutex *path_mutex, int idTraveler)
 {
     // build list of unselected peaks
     vector<int> canDeliverClients;                          //clients
@@ -211,7 +209,6 @@ void findsolution(json *input, int nbClosest, map<int, vector<int>> *restaurantC
     int idPoint = -1;
 
     // select first restaurant
-    int nbClosestCopy = nbClosest;
     do
     {
         restaurantClientLink_mutex->lock();
@@ -229,7 +226,6 @@ void findsolution(json *input, int nbClosest, map<int, vector<int>> *restaurantC
             //if a path had been found, reinitialize possible destinations
             solutionFound = false;
             possiblePoints.clear();
-            nbClosestCopy = nbClosest;
             vector<int> tmpPossiblePoints = getRemainingRestaurant(restaurantClientLink);
             if (!canDeliverClients.empty())
             {

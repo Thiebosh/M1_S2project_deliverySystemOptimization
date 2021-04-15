@@ -8,7 +8,7 @@ from sys import float_info
 from defines import TMP_FILE
 
 
-async def execute_heuristic(data, batch_size, nb_process, exe_path):
+async def execute_heuristic(exe_path, nb_process, data):
     nb_trav = len(data["traveler"])
     current_pid = os.getpid()
     # 5 first rules belongs to numpy array print
@@ -20,8 +20,7 @@ async def execute_heuristic(data, batch_size, nb_process, exe_path):
                     .replace("'", '"')
     file_path = exe_path[:exe_path.rfind("\\")]+TMP_FILE
     open(file_path, "w").write(data)
-    batch_size = str(batch_size)
-    running_procs = [Popen([exe_path, file_path, str(current_pid+id), batch_size],
+    running_procs = [Popen([exe_path, str(current_pid+id), file_path],
                      stdout=PIPE, stderr=PIPE, text=True)
                      for id in range(nb_process)]
 
@@ -62,7 +61,7 @@ def make_unique(seed, metrics, paths, current):
     # generate match list : same random = same path = ignored
     if [id for id, couple in enumerate(current) if seed == couple[0]]:
         return current
-    
+
     metrics = tuple(float(x) if x != "inf" else float_info.max for x in metrics)
     score = mean(metrics)
     dist = []
