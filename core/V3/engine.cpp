@@ -6,8 +6,6 @@
 #include <time.h>
 #include <algorithm>
 #include <map>
-#include <mutex>
-#include <thread>
 #include <fstream>
 #include <streambuf>
 #include <numeric>
@@ -21,11 +19,6 @@
 
 using namespace std;
 
-typedef struct dist_
-{
-    int id;
-    float distance;
-} dist;
 
 map<int, vector<int>> findsolution(json *input);
 
@@ -49,18 +42,7 @@ int main(int argc, char *argv[])
     json jsonData = json::parse(str);
     json *inputData = &jsonData;
 
-    vector<vector<int>> path(inputData->at("traveler").size(), vector<int>());
-
-    mutex path_mutex;
-    map<int, vector<int>> restaurantClientLink;
-    map<int, vector<int>> canDeliverClient;
-    mutex restaurantClientLink_mutex;
-
-    //initializing restaurantClientLink and canDeliverClient
-
-    // start threads
     // declare result tab
-    vector<thread> threads;
     map<int, vector<int>> res = findsolution(inputData);
 
     // Print results
@@ -96,7 +78,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-vector<int> getNthClosest(int n, vector<double> arc)
+vector<int> getNthClosest(int n, vector<double>& arc)
 {
     vector<int> closest;
     vector<double> sortedArc = arc;
@@ -109,17 +91,17 @@ vector<int> getNthClosest(int n, vector<double> arc)
     return closest;
 }
 
-vector<int> getRemainingRestaurant(map<int, vector<int>> *map)
+vector<int> getRemainingRestaurant(map<int, vector<int>> &map)
 {
     vector<int> remainingRestaurant;
-    for (auto i : *map)
+    for (auto i : map)
     {
         remainingRestaurant.push_back(i.first);
     }
     return remainingRestaurant;
 }
 
-vector<int> getRemainingClient(map<int, vector<int>> map)
+vector<int> getRemainingClient(map<int, vector<int>> &map)
 {
     vector<int> remainingClients;
     for (auto i : map)
@@ -132,7 +114,7 @@ vector<int> getRemainingClient(map<int, vector<int>> map)
     return remainingClients;
 }
 
-vector<int> getPossibleNextPeak(vector<double> arc, vector<int> possiblePoints, int nbClosest)
+vector<int> getPossibleNextPeak(vector<double> arc, vector<int> &possiblePoints, int nbClosest)
 {
     vector<double> possiblePointsDistanceList;
     vector<double> allDistances = arc;
@@ -155,9 +137,8 @@ vector<int> getPossibleNextPeak(vector<double> arc, vector<int> possiblePoints, 
     return points;
 }
 
-int getIdPoint(vector<int> allPoints, vector<double> distances)
+int getIdPoint(vector<int> &allPoints, vector<double> &distances)
 {
-    reverse(allPoints.begin(), allPoints.end());
     vector<double> weights;
     vector<double> normalized_weights;
     double min_val;
@@ -183,11 +164,11 @@ int getIdPoint(vector<int> allPoints, vector<double> distances)
     }
     reverse(normalized_weights.begin(), normalized_weights.end());
     double randomValue = (double)rand() / (RAND_MAX);
-    for (int i = 0; i < normalized_weights.size(); i++)
+    for (int i = 0, j = normalized_weights.size()-1; i < normalized_weights.size(); i++, j--)
     {
         if (randomValue <= normalized_weights[i])
         {
-            return allPoints[i];
+            return allPoints[j];  // j replace reverse()
         }
     }
     return -1;
@@ -236,7 +217,6 @@ map<int, vector<int>> findsolution(json *input)
     vector<int> possiblePoints;
     vector<int> tmpPossiblePoints;
     int point;
-    int deliver;
     int idPoint = -1;
     int idTraveler;
     bool allEmpty = true;
@@ -251,7 +231,7 @@ map<int, vector<int>> findsolution(json *input)
         for (int i = 0; i < nbTravelers; i++)
         {
             possiblePoints.clear();
-            tmpPossiblePoints = getRemainingRestaurant(&restaurantClientLink);
+            tmpPossiblePoints = getRemainingRestaurant(restaurantClientLink);
             if (!canBeDelivered.at(i).empty())
             {
                 //case the deliver hasnt moved yet
