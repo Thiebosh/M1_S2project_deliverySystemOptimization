@@ -32,7 +32,10 @@ int main(int argc, char *argv[]) {
 
     srand(time_t(argv[ARG_SEED]));
 
-	for (int pathId : findsolution(json::parse(argv[ARG_MATRIX]))) {
+	json input = json::parse(argv[ARG_MATRIX]);
+	for (int i = 0; i < input.at(0).size(); ++i) input.at(i).at(i) = INT_MAX;
+
+	for (int pathId : findsolution(input)) {
 		cout << pathId << ',';
 	}
 
@@ -113,17 +116,16 @@ vector<int> getPossibleNextPeak(vector<double> const &arc, vector<int> const &po
 }
 
 vector<int> findsolution(json const &input) {
-    vector<int> currSolution(input.at(0).size());
+    vector<int> currSolution(input.at(0).size(), -1);
+
+	// select first peak
+	int currentPeak = 0;
+	currSolution[0] = currentPeak;
 
 	// build list of unselected peaks
 	vector<int> remainingPeaks;
-	for(int i=0; i < currSolution.size(); ++i) 
+	for(int i=1; i < currSolution.size(); ++i) 
 		remainingPeaks.push_back(i);
-
-	// select first peak
-	int currentPeak = rand() % remainingPeaks.size();
-	currSolution[0] = remainingPeaks[currentPeak];
-	remainingPeaks.erase(remainingPeaks.begin() + currentPeak);
 
 	// select next peak while some remains unselected
 	int currRank = 1;
@@ -135,7 +137,7 @@ vector<int> findsolution(json const &input) {
 		closestPeaks = getPossibleNextPeak(input.at(currentPeak), remainingPeaks, remainingPeaks.size());
 
 		// select one of the closest remaining
-		currentPeak = getIdPoint(remainingPeaks, input.at(currentPeak));
+		currentPeak = getIdPoint(closestPeaks, input.at(currentPeak));
 		currSolution[currRank++] = currentPeak;
 
 		// remove selected from remaining
