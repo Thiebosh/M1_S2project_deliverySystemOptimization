@@ -4,7 +4,6 @@
 #include "../json.hpp"
 
 using namespace std;
-using json = nlohmann::json;
 
 float avg(vector<float> const &vect);
 

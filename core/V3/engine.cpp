@@ -30,8 +30,7 @@ map<int, vector<int>> findsolution(json const &input);
 
 
 // main function
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     int id = atoi(argv[ARG_ID]);
     cout << id << endl;
 

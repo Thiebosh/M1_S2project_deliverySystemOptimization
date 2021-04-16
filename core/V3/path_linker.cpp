@@ -12,7 +12,6 @@
 #include <streambuf>
 #include <numeric>
 #include "../json.hpp"
-#include "pathComparison.h"
 
 //input args
 #define ARG_SEED 1
@@ -20,6 +19,7 @@
 #define NB_ARGS 3
 
 using namespace std;
+using json = nlohmann::json;
 
 typedef struct dist_
 {
@@ -27,28 +27,28 @@ typedef struct dist_
     float distance;
 } dist;
 
-void findsolution(json* input, vector<int>& currSolution);
 
-int main(int argc, char *argv[])
-{
+// definitions
+vector<int> findsolution(json const &input);
+
+
+// main function
+int main(int argc, char *argv[]) {
     if (argc < NB_ARGS) return -1;
 
     srand(time_t(argv[ARG_SEED]));
 
-    json jsonData = json::parse(argv[ARG_MATRIX]);
-    json* inputData = &jsonData;
-
-    vector<int> idPath(inputData->at(0).size());
-
-	findsolution(inputData, idPath);
-
-    for(int i = 0; i < idPath.size(); ++i) cout << i << ',';
+	for (int pathId : findsolution(json::parse(argv[ARG_MATRIX]))) {
+		cout << pathId << ',';
+	}
 
     return 0;
 }
 
 
-void findsolution(json* input, vector<int>& currSolution) {
+vector<int> findsolution(json const &input) {
+    vector<int> currSolution(input.at(0).size());
+
 	// build list of unselected peaks
 	vector<int> remainingPeaks;
 	for(int i=0; i < currSolution.size(); ++i) remainingPeaks.push_back(i);
@@ -67,7 +67,7 @@ void findsolution(json* input, vector<int>& currSolution) {
 		// gather remaining peaks and reverse sort them
 		for(auto i: remainingPeaks){
 			dist curPoint;
-			curPoint.distance = input->at(currentPeak).at(i);
+			curPoint.distance = input.at(currentPeak).at(i);
 			curPoint.id = i;
 			closestPeaks.push_back(curPoint);
 		}
@@ -86,4 +86,6 @@ void findsolution(json* input, vector<int>& currSolution) {
 			}
 		}
 	}
+
+	return currSolution;
 }
