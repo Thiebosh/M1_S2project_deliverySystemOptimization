@@ -3,7 +3,7 @@ import asyncio
 import time
 
 
-async def path_generation(exe_path, file_path, nb_process, generated_paths):
+async def path_optimization(exe_path, file_path, nb_process, generated_paths):
     running_procs = [Popen([exe_path, str(id), generated_paths["seed"],
                             file_path, generated_paths["path"]],
                      stdout=PIPE, stderr=PIPE, text=True)
