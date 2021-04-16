@@ -1,16 +1,7 @@
 #include <iostream>
-#include <string>
-#include <math.h>
-#include <vector>
-#include <stdlib.h>
 #include <time.h>
-#include <algorithm>
+#include <vector>
 #include <map>
-#include <mutex>
-#include <thread>
-#include <fstream>
-#include <streambuf>
-#include <numeric>
 #include "../json.hpp"
 
 //input args

@@ -43,8 +43,8 @@ async def execute_heuristic(exe_path, nb_process, kpi_weights, data):
             continue
 
         seed = lines[1]
-        kpi = [line for line in lines[1:5]]
-        paths = [line[:-1] for line in lines[6:6+nb_trav]]
+        kpi = lines[2]
+        paths = [line[:-1] for line in lines[3:3+nb_trav]]
 
         # preprocess results rather than sleep
         results = make_unique(seed, kpi, kpi_weights, paths, results)
@@ -61,6 +61,8 @@ def make_unique(seed, kpi, weights, paths, current):
     if [id for id, couple in enumerate(current) if seed == couple[0]]:
         return current
 
+    print("wip sorry")
+    exit()
     kpi = tuple(float(x) if x != "inf" else 10000000 for x in kpi)
     score = average(kpi, weights=weights)
     dist = []

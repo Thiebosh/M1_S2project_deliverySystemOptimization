@@ -4,7 +4,7 @@
 #include <vector>
 #include <map>
 #include "../json.hpp"
-#include "pathComparison.h"
+#include "computeKPI.h"
 
 //input args
 #define ARG_FILE_PATH 2
@@ -49,19 +49,12 @@ int main(int argc, char *argv[]) {
     map<int, vector<int>> res = findsolution(inputData);
 
     // Print results
-    vector<float> travelersVar;
-    vector<float> travelersMed;
     vector<float> travelerDist;
     for (int i = 0; i < inputData.at("traveler").size(); i++)
     {
-        travelersVar.push_back(travelerDistVar(res.at(i), inputData, i));
-        travelersMed.push_back(travelerDistMed(res.at(i), inputData, i));
         travelerDist.push_back(travelerDistTotal(res.at(i), inputData, i));
     }
-    cout << var(travelersVar) << endl;
-    cout << var(travelersMed) << endl;
-    cout << var(travelerDist) << endl;
-    cout << accumulate(travelerDist.begin(), travelerDist.end(), 0.0) << endl;
+    print_kpis(travelerDist);
 
     for (int i = 0; i < inputData.at("traveler").size(); i++)
     {

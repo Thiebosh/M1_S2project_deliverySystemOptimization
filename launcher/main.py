@@ -50,7 +50,7 @@ if __name__ == "__main__":
     print(f"{datetime.now().time()} - Simulate paths...\n")
     inputs = (config["path_generation"]["algorithm"],
               config["path_generation"]["nb_process"],
-              list(config["results"]["weighting"].values()))  # weigths array
+              list(config["results"]["KPI_weighting"].values()))
     results = asyncio.run(execute_heuristic(*inputs, to_compute))
     # results = [
     #     (842, 0, (0, 0, 0, 0), [(0, [0, 2]), (0, [6, 7, 4]), (0, [1, 5])]),
