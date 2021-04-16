@@ -29,23 +29,28 @@ vector<float> non_zero(vector<float> const &vect)
     return non_zero;
 }
 
-float kpi0(vector<float> const &distances) // % trav used
+float kpi0(vector<float> const &distances) //total
+{
+    return accumulate(distances.begin(), distances.end(), 0.0);
+}
+
+float kpi1(vector<float> const &distances) // % trav used
 {
     return (float)non_zero(distances).size() / (float)distances.size();
 }
 
-float kpi1(vector<float> const &distances) // min
+float kpi2(vector<float> const &distances) // min
 {
     auto tmp = non_zero(distances);
     return *min_element(tmp.begin(), tmp.end());
 }
 
-float kpi2(vector<float> const &distances) //max
+float kpi3(vector<float> const &distances) //max
 {
     return *max_element(distances.begin(), distances.end());
 }
 
-float kpi3(vector<float> const &distances) //interval
+float kpi4(vector<float> const &distances) //interval
 {
     auto tmp = non_zero(distances);
     float min = *min_element(tmp.begin(), tmp.end());
@@ -53,23 +58,18 @@ float kpi3(vector<float> const &distances) //interval
     return max - min;
 }
 
-float kpi4(vector<float> const &distances) //mean
+float kpi5(vector<float> const &distances) //mean
 {
     auto tmp = non_zero(distances);
     return accumulate(tmp.begin(), tmp.end(), 0.0) / tmp.size();
 }
 
-float kpi5(vector<float> const &distances) //median
+float kpi6(vector<float> const &distances) //median
 {
     auto tmp = non_zero(distances);
     size_t n = tmp.size() / 2;
     nth_element(tmp.begin(), tmp.begin()+n, tmp.end());
     return tmp[n];
-}
-
-float kpi6(vector<float> const &distances) //total
-{
-    return accumulate(distances.begin(), distances.end(), 0.0);
 }
 
 void print_kpis(vector<float> const &distances) {

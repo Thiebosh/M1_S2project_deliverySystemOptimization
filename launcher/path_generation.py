@@ -7,7 +7,7 @@ from numpy import average
 from defines import TMP_FILE
 
 
-async def execute_heuristic(exe_path, nb_process, kpi_weights, data):
+async def path_generation(exe_path, nb_process, kpi_weights, data):
     nb_trav = len(data["traveler"])
     current_pid = os.getpid()
     # 5 first rules belongs to numpy array print
@@ -52,7 +52,7 @@ async def execute_heuristic(exe_path, nb_process, kpi_weights, data):
     time2 = time.time()
     print(f'heuristics executions took {(time2-time1)*1000.0:.3f} ms\n')
 
-    return sorted(format_result(results), key=lambda x: x[1])
+    return sorted(results, key=lambda x: x[1])  # sort on score
 
 
 def make_unique(seed, kpi, weights, paths, current):
@@ -61,9 +61,7 @@ def make_unique(seed, kpi, weights, paths, current):
     if [id for id, couple in enumerate(current) if seed == couple[0]]:
         return current
 
-    print("wip sorry")
-    exit()
-    kpi = tuple(float(x) if x != "inf" else 10000000 for x in kpi)
+    kpi = tuple(float(x) for x in kpi.split(","))
     score = average(kpi, weights=weights)
     dist = []
     path = []
@@ -71,7 +69,7 @@ def make_unique(seed, kpi, weights, paths, current):
     for line in paths:
         line = line.split(";")
         dist.append(float(line[0]))  # 0 if not used
-        path.append(line[1])  # -1 if not used
+        path.append([int(x) for x in line[1].split(",")])  # -1 if not used
 
     current.append((seed, score, kpi, list(zip(dist, path))))
 
@@ -96,11 +94,3 @@ def make_unique_old(seed, data, current):
             current[index] = (dist, path, seed)
 
     return current
-
-
-def format_result(data):
-    for id_line, line in enumerate(data):
-        for id_tuple, (dist, path) in enumerate(line[-1]):
-            data[id_line][-1][id_tuple] = (dist, [int(x) for x in path.split(",")])
-
-    return data
