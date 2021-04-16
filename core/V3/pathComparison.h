@@ -6,12 +6,12 @@
 using namespace std;
 using json = nlohmann::json;
 
-float avg(vector<float> &vect);
+float avg(vector<float> const &vect);
 
-float var(vector<float> &vect);
+float var(vector<float> const &vect);
 
-float travelerDistVar(vector<int> &path, json *input, int traveler);
+float travelerDistVar(vector<int> const &path, json const &input, int traveler);
 
-float travelerDistTotal(vector<int> &path, json *input, int traveler);
+float travelerDistTotal(vector<int> const &path, json const &input, int traveler);
 
-float travelerDistMed(vector<int> &path, json *input, int traveler);
+float travelerDistMed(vector<int> const &path, json const &input, int traveler);

@@ -1,7 +1,7 @@
 #include "pathComparison.h"
 
 
-float avg(vector<float> &vect){
+float avg(vector<float> const &vect){
     float average = 0;
     for(int i = 0; i < vect.size(); i++){
         average+=vect[i];
@@ -9,7 +9,7 @@ float avg(vector<float> &vect){
     return average/vect.size();
 }
 
-float var(vector<float> &vect){
+float var(vector<float> const &vect){
     if(vect.size() > 0){
         float var = 0;
         float average = avg(vect);
@@ -22,41 +22,41 @@ float var(vector<float> &vect){
     
 }
 
-float travelerDistVar(vector<int> &path, json *input, int traveler){
+float travelerDistVar(vector<int> const &path, json const &input, int traveler){
     vector<float> vect;
     if(path.size() > 0){
-        vect.push_back((float)input->at("traveler").at(traveler).at("arc").at(path[0]));
+        vect.push_back((float)input.at("traveler").at(traveler).at("arc").at(path[0]));
     }
     for (int i = 1; i < path.size(); i++)
     {
-        vect.push_back((float)input->at("arc").at(path[i - 1]).at(path[i]));
+        vect.push_back((float)input.at("arc").at(path[i - 1]).at(path[i]));
     }
     return var(vect);
 }
 
-float travelerDistTotal(vector<int> &path, json *input, int traveler)
+float travelerDistTotal(vector<int> const &path, json const &input, int traveler)
 {
     float total = 0;
     if(path.size() > 0){
-        total += (float)input->at("traveler").at(traveler).at("arc").at(path[0]);
+        total += (float)input.at("traveler").at(traveler).at("arc").at(path[0]);
     }
     for (int i = 1; i < path.size(); i++)
     {
-        total += (float)input->at("arc").at(path[i - 1]).at(path[i]);
+        total += (float)input.at("arc").at(path[i - 1]).at(path[i]);
     }
     return total;
 }
 
-float travelerDistMed(vector<int> &path, json *input, int traveler){
+float travelerDistMed(vector<int> const &path, json const &input, int traveler){
     vector<float> vect;
    if(path.size() > 0){
-        vect.push_back((float)input->at("traveler").at(traveler).at("arc").at(path[0]));
+        vect.push_back((float)input.at("traveler").at(traveler).at("arc").at(path[0]));
     }else{
         return numeric_limits<float>::max();
     }
     for (int i = 1; i < path.size(); i++)
     {
-        vect.push_back((float)input->at("arc").at(path[i - 1]).at(path[i]));
+        vect.push_back((float)input.at("arc").at(path[i - 1]).at(path[i]));
     }
     sort(vect.begin(), vect.end());
 
