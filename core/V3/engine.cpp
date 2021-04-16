@@ -1,14 +1,9 @@
 #include <iostream>
-#include <string>
-#include <math.h>
-#include <vector>
-#include <stdlib.h>
 #include <time.h>
-#include <algorithm>
-#include <map>
 #include <fstream>
-#include <streambuf>
-#include <numeric>
+#include <string>
+#include <vector>
+#include <map>
 #include "../json.hpp"
 #include "pathComparison.h"
 
