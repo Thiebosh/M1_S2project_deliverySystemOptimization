@@ -54,9 +54,9 @@ if __name__ == "__main__":
     #           list(config["results"]["KPI_weighting"].values()))
     # results_gen = asyncio.run(path_generation(*inputs, to_compute))
     results_gen = [
-        (842, 0, (0, 0, 0, 0), [(0, [4, 5]), (0, [0, 1, 2, 3]), (0, [6, 7])]),
-        (234, 0, (0, 0, 0, 0), [(0, [6, 7]), (0, [4, 5]), (0, [0, 3, 1, 2])]),
-        (154, 0, (0, 0, 0, 0), [(0, [4, 6, 7, 5]), (0, [0, 2, 3, 1]), (0, [-1])])
+        (842, 125.45, (45.567, 0, 0, 0), [(14.1, [4, 5]), (25.067, [0, 1, 2, 3]), (6.4, [6, 7])]),
+        (234, 97.45215, (28.456, 0, 0, 0), [(6.4, [6, 7]), (14.1, [4, 5]), (7.956, [0, 3, 1, 2])]),
+        (154, 12554.425, (127.2, 0, 0, 0), [(100, [4, 6, 7, 5]), (27.2, [0, 2, 3, 1]), (0, [-1])])
     ]
 
     # # step2.2 : optional print of results
@@ -86,12 +86,12 @@ if __name__ == "__main__":
 
     # step5.1 : csv formatting and optional saving
     print(f"{datetime.now().time()} - Prepare CSV...\n")
-    coords_csv, orders_csv = format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
-    # path_csv, cities_csv = format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
-    # if config["results"]["keep_local"]:
-    #     result_path = path+RESULT_FOLDER+"\\"+config['input_datafile']+"_{0}.csv"
-    #     save_csv(result_path.format("paths"), path_csv)
-    #     save_csv(result_path.format("cities"), cities_csv)
+    coords_csv, orders_csv, execution_csv = format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
+    if config["results"]["keep_local"]:
+        result_path = path+RESULT_FOLDER+"\\"+config['input_datafile']+"_{0}.csv"
+        save_csv(result_path.format("coords"), coords_csv)
+        save_csv(result_path.format("orders"), orders_csv)
+        save_csv(result_path.format("executions"), execution_csv)
 
     # step5.2 : optional graph generation
     if config["results"]["graph"]["make"]:
@@ -110,9 +110,8 @@ if __name__ == "__main__":
         if config["results"]["graph"]["make"]:
             drive.upload_imgs(config["results"]["graph"]["gif_mode"])
         else:
-            # path_csv[1].append("--")
             # drive.upload_csv(path_csv, cities_csv)
-            drive.upload_csv(orders_csv, coords_csv)
+            drive.upload_csv(orders_csv, coords_csv, execution_csv)
 
     # step6.2 : optional cleaning
     if config["results"]["graph"]["make"] and \

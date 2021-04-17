@@ -90,8 +90,8 @@ def format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
     dep_to_dest_df = pd.merge(client_df, deposit_df, on="deposit_id")
 
     orders_df = pd.DataFrame(
-        [["generated", id_exe, id_client] for id_client in client_df["client_id"] for id_exe in range(len(results_gen))] +
-        [["optimized", id_exe, id_client] for id_client in client_df["client_id"] for id_exe, path in enumerate(results_opti) if path != -1],
+        [["Generated", id_exe, id_client] for id_client in client_df["client_id"] for id_exe in range(len(results_gen))] +
+        [["Optimized", id_exe, id_client] for id_client in client_df["client_id"] for id_exe, path in enumerate(results_opti) if path != -1],
         columns=["calculation_type", "generation_id", "client_id"]
     )
 
@@ -102,7 +102,7 @@ def format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
     # generate assoc origin - dest and evaluate dist
     paths_per_exe = [([origins_to_dests(to_compute, travels[1]) for travels in exe[-1]]) for exe in results_gen]
     # generate lines
-    paths_per_exe = [[[[["generated", id_exe, id_deposit, id_client, id_trav, distance] 
+    paths_per_exe = [[[[["Generated", id_exe, id_deposit, id_client, id_trav, distance] 
                        for id_client, id_deposit, distance in trav_data]
                       for id_trav, trav_data in enumerate(paths)]]
                      for id_exe, paths in enumerate(paths_per_exe)]
@@ -154,10 +154,41 @@ def format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
                            "vehicule_speed",
                            "vehicule_storage"]]
 
-    return vertices_df.to_csv(index=False, sep=";"), \
-           orders_df.to_csv(index=False, sep=";")
-    # exit()
+    execution_tab = [(gen,
+                      id_exe,
+                      id_trav,
+                      " -> ".join([local_data["peak"][x]["name"] if x != -1 else "none" for x in results_gen[id_exe][-1][id_trav][1]]),
+                      str(round(results_gen[id_exe][-1][id_trav][0], 2)).replace(".", ","),
+                      str(round(results_gen[id_exe][2][0], 2)).replace(".", ","),
+                      str(round(results_gen[id_exe][1], 2)).replace(".", ","),
+                      results_gen[id_exe][0])
+                     for gen, id_exe, id_trav
+                     in merge_df[["calculation_type", "generation_id", "trav_id"]]
+                                .drop_duplicates().to_numpy()]
 
+    execution_df = pd.DataFrame(
+        [[*data, "NULL"] for data in execution_tab],
+        columns=["calculation_type",
+                 "generation_id",
+                 "traveler_id",
+                 "trav_path",
+                 "trav_distance",
+                 "total_distance",
+                 "total_score",
+                 "seed",
+                 "gif"]
+    )
+
+    vertices_df = vertices_df.to_csv(index=False, sep=";")
+    vertices_df = [line.split(";") for line in vertices_df.split("\r\n")]
+
+    orders_df = orders_df.to_csv(index=False, sep=";")
+    orders_df = [line.split(";") for line in orders_df.split("\r\n")]
+
+    execution_df = execution_df.to_csv(index=False, sep=";")
+    execution_df = [line.split(";") for line in execution_df.split("\r\n")]
+
+    return vertices_df, orders_df, execution_df
 
     path_data = [["id",
                   "seed",
