@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include "../json.hpp"
+#include "common.hpp"
 #include "pathComparison.h"
 
 //input args
@@ -16,15 +17,9 @@ using json = nlohmann::json;
 
 
 // definitions
-vector<int> getNthClosest(int n, vector<double> &arc);
-
 vector<int> getRemainingRestaurant(map<int, vector<int>> const &map);
 
 vector<int> getRemainingClient(map<int, vector<int>> const &map);
-
-vector<int> getPossibleNextPeak(vector<double> const &arc, vector<int> const &possiblePoints, int nbClosest);
-
-int getIdPoint(vector<int> const &allPoints, vector<double> const &distances);
 
 map<int, vector<int>> findsolution(json const &input);
 
@@ -81,19 +76,6 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-vector<int> getNthClosest(int n, vector<double> &arc)
-{
-    vector<int> closest;
-    vector<double> sortedArc = arc;
-    sort(sortedArc.begin(), sortedArc.end());
-    for (auto i = 0; i < min(n, (int)arc.size()); i++)
-    {
-        vector<double>::iterator itr = find(arc.begin(), arc.end(), sortedArc[i]);
-        closest.push_back(distance(arc.begin(), itr));
-    }
-    return closest;
-}
-
 vector<int> getRemainingRestaurant(map<int, vector<int>> const &map)
 {
     vector<int> remainingRestaurant;
@@ -115,66 +97,6 @@ vector<int> getRemainingClient(map<int, vector<int>> const &map)
         }
     }
     return remainingClients;
-}
-
-vector<int> getPossibleNextPeak(vector<double> const &arc, vector<int> const &possiblePoints, int nbClosest)
-{
-    vector<double> possiblePointsDistanceList;
-    vector<double> allDistances = arc;
-    vector<int> closestPoints;
-    vector<int> points;
-
-    for (auto i : possiblePoints)
-    {
-        possiblePointsDistanceList.push_back(allDistances[i]);
-    }
-
-    closestPoints = getNthClosest(nbClosest, possiblePointsDistanceList);
-
-    for (auto i : closestPoints)
-    {
-        vector<double>::iterator itr = find(allDistances.begin(), allDistances.end(), possiblePointsDistanceList[i]);
-        points.push_back(distance(allDistances.begin(), itr));
-    }
-
-    return points;
-}
-
-int getIdPoint(vector<int> const &allPoints, vector<double> const &distances)
-{
-    vector<double> weights;
-    vector<double> normalized_weights;
-    double min_val;
-    double max_val;
-
-    for (double i = 0; i < allPoints.size(); i++)
-    {
-        weights.push_back(distances[i]);
-    }
-    //normalizing weights
-    min_val = *min_element(weights.begin(), weights.end());
-    max_val = *max_element(weights.begin(), weights.end());
-    for (int i = 0; i < weights.size(); ++i)
-    {
-        if (max_val != min_val)
-        {
-            normalized_weights.push_back((double)(weights[i] - min_val) / (double)(max_val - min_val));
-        }
-        else
-        {
-            normalized_weights.push_back(weights[i]);
-        }
-    }
-    reverse(normalized_weights.begin(), normalized_weights.end());
-    double randomValue = (double)rand() / (RAND_MAX);
-    for (int i = 0, j = normalized_weights.size()-1; i < normalized_weights.size(); i++, j--)
-    {
-        if (randomValue <= normalized_weights[i])
-        {
-            return allPoints[j];  // j replace reverse()
-        }
-    }
-    return -1;
 }
 
 map<int, vector<int>> findsolution(json const &input) {
