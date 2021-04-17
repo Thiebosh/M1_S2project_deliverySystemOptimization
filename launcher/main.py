@@ -68,7 +68,7 @@ if __name__ == "__main__":
     # # step3.1 : apply post processing
     # async run path_optimization()
     results_opti = [-1]*len(results_gen)
-    results_opti[2] = 1
+    # results_opti[2] = 1
 
     # # step3.2 : optional print of results
     # if config["results"]["print_console"]:
@@ -86,11 +86,12 @@ if __name__ == "__main__":
 
     # step5.1 : csv formatting and optional saving
     print(f"{datetime.now().time()} - Prepare CSV...\n")
-    path_csv, cities_csv = format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
-    if config["results"]["keep_local"]:
-        result_path = path+RESULT_FOLDER+"\\"+config['input_datafile']+"_{0}.csv"
-        save_csv(result_path.format("paths"), path_csv)
-        save_csv(result_path.format("cities"), cities_csv)
+    coords_csv, orders_csv = format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
+    # path_csv, cities_csv = format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
+    # if config["results"]["keep_local"]:
+    #     result_path = path+RESULT_FOLDER+"\\"+config['input_datafile']+"_{0}.csv"
+    #     save_csv(result_path.format("paths"), path_csv)
+    #     save_csv(result_path.format("cities"), cities_csv)
 
     # step5.2 : optional graph generation
     if config["results"]["graph"]["make"]:
@@ -109,8 +110,9 @@ if __name__ == "__main__":
         if config["results"]["graph"]["make"]:
             drive.upload_imgs(config["results"]["graph"]["gif_mode"])
         else:
-            path_csv[1].append("--")
-            drive.upload_csv(path_csv, cities_csv)
+            # path_csv[1].append("--")
+            # drive.upload_csv(path_csv, cities_csv)
+            drive.upload_csv(coords_csv, orders_csv)
 
     # step6.2 : optional cleaning
     if config["results"]["graph"]["make"] and \

@@ -10,9 +10,9 @@ from defines import DRIVE_FOLDER, RESULT_FOLDER
 
 # elements to reach into drive account
 DRIVE_FOLDER_IMGS = 'images'
-DRIVE_CSV_RESULTS = 'results_project_future'
-CSV_RESULt_SHEET_PATH = "paths!A:"  # fin calculée
-CSV_RESULt_SHEET_CITY = "cities!A:C"
+DRIVE_CSV_RESULTS = 'Results_project'
+CSV_RESULt_SHEET_PATH = "Orders!A:"  # fin calculée
+CSV_RESULt_SHEET_CITY = "Map_coordinates!A:"  # fin calculée
 
 # global credentials to access drive account
 CREDS_DRIVE = 'credentialsDrive.json'
@@ -167,8 +167,8 @@ class Synchronize:
         bodyPath = {'values': valuesPath}
         bodyCities = {'values': valuesCities}
 
-        for i, img_id in enumerate(self.imgs_id):
-            bodyPath["values"][i+1].append(IMG_URL_ACCESS+img_id)
+        # for i, img_id in enumerate(self.imgs_id):
+        #     bodyPath["values"][i+1].append(IMG_URL_ACCESS+img_id)
 
         # save outputs on drive
         # pylint: disable=maybe-no-member
@@ -176,7 +176,7 @@ class Synchronize:
         csv_id = self.results_id
 
         csv_range_path = CSV_RESULt_SHEET_PATH+shift_letter('A', len(valuesPath[0]))
-        csv_range_city = CSV_RESULt_SHEET_CITY
+        csv_range_city = CSV_RESULt_SHEET_CITY+shift_letter('A', len(valuesCities[0]))
 
         drive_csv.clear(spreadsheetId=csv_id, range=csv_range_path).execute()
         drive_csv.clear(spreadsheetId=csv_id, range=csv_range_city).execute()

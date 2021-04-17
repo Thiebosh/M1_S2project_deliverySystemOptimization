@@ -136,8 +136,9 @@ def format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
 
     orders_df = pd.merge(orders_df, trav_df, on=["trav_id"])
 
-    print(orders_df)
-    exit()
+    return vertices_df.to_csv(index=False, sep=";"), \
+           orders_df.to_csv(index=False, sep=";")
+    # exit()
 
 
     path_data = [["id",
