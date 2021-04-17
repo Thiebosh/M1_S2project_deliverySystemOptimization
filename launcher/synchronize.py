@@ -164,13 +164,17 @@ class Synchronize:
                                            .execute()
             self.imgs_id.append(res["id"])
 
-    def upload_csv(self, valuesOrders, valuesCoords, valuesExes):
+    def upload_csv(self, valuesOrders, valuesCoords, valuesExes, nb_exe):
+        nb_exe = max(nb_exe, len(self.imgs_id))
+        ids_by_exe = [[id for id, line in enumerate(valuesExes[:-1]) if line[1] == str(exe_id)] for exe_id in range(nb_exe+1)]
+
+        for lines, img_id in zip(ids_by_exe, self.imgs_id):
+            for line in lines:
+                valuesExes[line][-1] = IMG_URL_ACCESS+img_id
+
         bodyOrd = {'values': valuesOrders}
         bodyMap = {'values': valuesCoords}
         bodyExe = {'values': valuesExes}
-
-        # for i, img_id in enumerate(self.imgs_id):
-        #     bodyOrd["values"][i+1].append(IMG_URL_ACCESS+img_id)
 
         # save outputs on drive
         # pylint: disable=maybe-no-member

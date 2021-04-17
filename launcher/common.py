@@ -189,39 +189,3 @@ def format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
     execution_df = [line.split(";") for line in execution_df.split("\r\n")]
 
     return vertices_df, orders_df, execution_df
-
-    path_data = [["id",
-                  "seed",
-                  "score",
-                  "variance des variances des distances",
-                  "variance des médianes des distances",
-                  "variance des distances totales des trajets",
-                  "total_distance",  # no return to origin
-                  "paths",
-                  "img"]]
-
-    for id_travel, (seed, score, metrics, travels) in enumerate(results):
-
-        paths = ""
-        for id_path, (_, path) in enumerate(travels):
-            name = local_data['traveler'][id_path]['name']
-            path = [local_data["peak"][x]["name"] if x != -1 else "none" for x in path]
-            paths += f"{name} : {', '.join(path)}\n"
-
-        line = [str(id_travel),
-                str(seed),
-                str(score).replace(".", ","),
-                str(metrics[0]).replace(".", ","),
-                str(metrics[1]).replace(".", ","),
-                str(metrics[2]).replace(".", ","),
-                str(metrics[3]).replace(".", ","),
-                '"'+paths[:-1]+'"']
-
-        path_data.append(line)
-
-    cities_data = [["city_name", "lat", "long"]]
-
-    for city in local_data["peak"]:
-        cities_data.append([city['name'], str(city['y']), str(city['x'])])
-
-    return path_data, cities_data

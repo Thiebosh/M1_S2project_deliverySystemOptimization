@@ -109,9 +109,7 @@ if __name__ == "__main__":
         print(f"{datetime.now().time()} - Upload data...\n")
         if config["results"]["graph"]["make"]:
             drive.upload_imgs(config["results"]["graph"]["gif_mode"])
-        else:
-            # drive.upload_csv(path_csv, cities_csv)
-            drive.upload_csv(orders_csv, coords_csv, execution_csv)
+        drive.upload_csv(orders_csv, coords_csv, execution_csv, config["path_generation"]["nb_process"])
 
     # step6.2 : optional cleaning
     if config["results"]["graph"]["make"] and \
