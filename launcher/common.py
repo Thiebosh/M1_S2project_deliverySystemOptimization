@@ -50,7 +50,7 @@ def origins_to_dests(to_compute, path):
         for index_dest, id_dest in dests:
             dist = sum([to_compute["arc"][id1][id2] for id1 in path[index_origin:index_dest] 
                                                     for id2 in path[index_origin+1:index_dest+1]])
-            assoc.append((id_origin, id_dest, dist))
+            assoc.append((id_origin, id_dest, str(round(dist, 2)).replace(".", ",")))
 
     return assoc
 
