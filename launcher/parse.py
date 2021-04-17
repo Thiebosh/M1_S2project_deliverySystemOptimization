@@ -62,18 +62,18 @@ def config_verif(path, config_json):
 
 
 def traveler_line(line):  # peut remettre précision nom fichier, no ligne...
-    name, x, y, *optional = line.split(",")
+    name, x, y, vehicule, speed, qty = line.split(",")
     try:
         x = float(x)
         y = float(y)
-        speed = float(optional[0]) if len(optional) >= 1 else 1.0
-        qty = int(optional[1]) if len(optional) >= 2 else 1
+        speed = float(speed)
+        qty = int(qty)
 
     except Exception as e:
         print(e)
         exit()
 
-    return name, x, y, speed, qty
+    return name, x, y, vehicule, speed, qty
 
 
 def origin_line(line):  # peut remettre précision nom fichier, no ligne...

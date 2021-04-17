@@ -48,20 +48,27 @@ if __name__ == "__main__":
     local_data, to_compute = load_data(datafile)
 
     # step2.1 : compute data
-    print(f"{datetime.now().time()} - Simulate paths...\n")
-    inputs = (config["path_generation"]["algorithm"],
-              config["path_generation"]["nb_process"],
-              list(config["results"]["KPI_weighting"].values()))
-    results = asyncio.run(path_generation(*inputs, to_compute))
+    # print(f"{datetime.now().time()} - Simulate paths...\n")
+    # inputs = (config["path_generation"]["algorithm"],
+    #           config["path_generation"]["nb_process"],
+    #           list(config["results"]["KPI_weighting"].values()))
+    # results_gen = asyncio.run(path_generation(*inputs, to_compute))
+    results_gen = [
+        (842, 0, (0, 0, 0, 0), [(0, [4, 5]), (0, [0, 1, 2, 3]), (0, [6, 7])]),
+        (234, 0, (0, 0, 0, 0), [(0, [6, 7]), (0, [4, 5]), (0, [0, 3, 1, 2])]),
+        (154, 0, (0, 0, 0, 0), [(0, [4, 6, 7, 5]), (0, [0, 2, 3, 1]), (0, [-1])])
+    ]
 
-    # step2.2 : optional print of results
-    if config["results"]["print_console"]:
-        print(f"{datetime.now().time()} - Display step1 results...\n")
-        print_generated(local_data, results,
-                        list(config["results"]["KPI_weighting"].keys()))
+    # # step2.2 : optional print of results
+    # if config["results"]["print_console"]:
+    #     print(f"{datetime.now().time()} - Display step1 results...\n")
+    #     print_generated(local_data, results_gen,
+    #                     list(config["results"]["KPI_weighting"].keys()))
 
     # # step3.1 : apply post processing
     # async run path_optimization()
+    results_opti = [-1]*len(results_gen)
+    results_opti[2] = 1
 
     # # step3.2 : optional print of results
     # if config["results"]["print_console"]:
@@ -70,6 +77,7 @@ if __name__ == "__main__":
 
     # # step4.1 : collect data for path fusion
     # fusionned_path = path_fusion(to_compute["arc"], results, config["path_fusion"]["algorithm"])
+    result_fusion = ""
 
     # # step4.2 : optional print of results
     # if config["results"]["print_console"]:
@@ -78,7 +86,7 @@ if __name__ == "__main__":
 
     # step5.1 : csv formatting and optional saving
     print(f"{datetime.now().time()} - Prepare CSV...\n")
-    path_csv, cities_csv = format_csv(local_data, results)
+    path_csv, cities_csv = format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
     if config["results"]["keep_local"]:
         result_path = path+RESULT_FOLDER+"\\"+config['input_datafile']+"_{0}.csv"
         save_csv(result_path.format("paths"), path_csv)
@@ -93,7 +101,7 @@ if __name__ == "__main__":
                   config["results"]["graph"]["map_background"],
                   config["results"]["graph"]["gif_mode"],
                   config["results"]["graph"]["fps"])
-        files = make_graph(path, local_data, to_compute, results, *inputs)
+        files = make_graph(path, local_data, to_compute, results_gen, *inputs)
 
     # step6.1 : send results online
     if online:

@@ -1,4 +1,5 @@
 import math
+import pandas as pd
 
 
 def print_generated(local_data, results, kpi_names):
@@ -28,11 +29,117 @@ def print_generated(local_data, results, kpi_names):
         print()
 
 
+def print_optimized(path):
+    pass  # print only if better. Else, print "not better"
+
+
 def print_fusionned(path):
     pass
 
 
-def format_csv(local_data, results):
+def origins_to_dests(to_compute, path):
+    if path == [-1]:
+        return []
+
+    assoc = []
+    origins = [(index, id) for index, id in enumerate(path)
+               if to_compute["peak"][id]["origin"]]
+    for index_origin, id_origin in origins:
+        dests = [(index+index_origin+1, id) for index, id in enumerate(path[index_origin+1:])
+                 if id in to_compute["peak"][id_origin]["link"]]
+        for index_dest, id_dest in dests:
+            dist = sum([to_compute["arc"][id1][id2] for id1 in path[index_origin:index_dest] 
+                                                    for id2 in path[index_origin+1:index_dest+1]])
+            assoc.append((id_origin, id_dest, dist))
+
+    return assoc
+
+
+def format_csv(local_data, to_compute, results_gen, results_opti, result_fusion):
+    vertices_df = pd.DataFrame(
+        [[id,
+          vertice["name"],
+          f"{vertice['x']},{vertice['y']}",
+          "deposit" if vertice["origin"] else "client"]
+         for id, vertice in enumerate(local_data["peak"])],
+        columns=["id",
+                 "name",
+                 "lat_long",
+                 "type"]
+    )
+
+    deposit_df = vertices_df.loc[vertices_df['type'] == "deposit"] \
+                            [["id", "name"]] \
+                            .rename(columns={"id": "deposit_id",
+                                             "name": "deposit_name"})
+
+    client_df = pd.DataFrame(
+        [[id,
+          vertice["name"],
+          to_compute["peak"][id]["link"]]
+         for id, vertice in enumerate(local_data["peak"])
+         if not vertice["origin"]],
+        columns=["client_id",
+                 "client_name",
+                 "deposit_id"]
+    )
+
+    dep_to_dest_df = pd.merge(client_df, deposit_df, on="deposit_id")
+
+    orders_df = pd.DataFrame(
+        [["generated", id_exe, id_client] for id_client in client_df["client_id"] for id_exe in range(len(results_gen))] +
+        [["optimized", id_exe, id_client] for id_client in client_df["client_id"] for id_exe, path in enumerate(results_opti) if path != -1],
+        columns=["calculation_type", "generation_id", "client_id"]
+    )
+
+    orders_df = pd.merge(orders_df, dep_to_dest_df, on="client_id")
+
+    # print(orders_df)
+
+    # generate assoc origin - dest and evaluate dist
+    paths_per_exe = [([origins_to_dests(to_compute, travels[1]) for travels in exe[-1]]) for exe in results_gen]
+    # generate lines
+    paths_per_exe = [[[[["generated", id_exe, id_deposit, id_client, id_trav, distance] 
+                       for id_client, id_deposit, distance in trav_data]
+                      for id_trav, trav_data in enumerate(paths)]]
+                     for id_exe, paths in enumerate(paths_per_exe)]
+    # extract lines
+    paths_per_exe = [value for sublist in paths_per_exe for value in sublist]
+    paths_per_exe = [value for sublist in paths_per_exe for value in sublist]
+    paths_per_exe = [value for sublist in paths_per_exe for value in sublist]
+
+    merge_df = pd.DataFrame(
+        [line for line in paths_per_exe],
+        columns=["calculation_type",
+                 "generation_id",
+                 "client_id",
+                 "deposit_id",
+                 "trav_id",
+                 "delivery_dist"]
+    )
+
+    orders_df = pd.merge(orders_df, merge_df, on=["calculation_type", "generation_id", "client_id", "deposit_id"])
+
+    trav_df = pd.DataFrame(
+        [[id,
+          trav["name"],
+          trav["vehicule"],
+          to_compute["traveler"][id]["speed"],
+          to_compute["traveler"][id]["qty"]]
+         for id, trav in enumerate(local_data["traveler"])],
+        columns=["trav_id",
+                 "trav_name",
+                 "vehicule_name",
+                 "vehicule_speed",
+                 "vehicule_storage"]
+    )
+
+    orders_df = pd.merge(orders_df, trav_df, on=["trav_id"])
+
+    print(orders_df)
+    exit()
+
+
     path_data = [["id",
                   "seed",
                   "score",
