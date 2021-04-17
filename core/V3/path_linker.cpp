@@ -21,7 +21,7 @@ vector<int> findsolution(json const &input);
 int main(int argc, char *argv[]) {
     if (argc < NB_ARGS) return -1;
 
-    srand(time_t(argv[ARG_SEED]));
+    srand(atoi(argv[ARG_SEED])); // reuse seed
 
 	json input = json::parse(argv[ARG_MATRIX]);
 	for (int i = 0; i < input.at(0).size(); ++i) input.at(i).at(i) = INT_MAX;
