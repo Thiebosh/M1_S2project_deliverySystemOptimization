@@ -34,7 +34,8 @@ int main(int argc, char* argv[]) {
 
     if (argc < NB_ARGS) return -1;
 
-    srand(atoi(argv[ARG_SEED])); // reuse seed
+    // srand(atoi(argv[ARG_SEED])); // reuse seed
+    srand(time_t(argv[ARG_SEED])); // debug : works for nearly all seed but sometimes, error. some others, invalid path
 
     ifstream t(argv[ARG_FILE_PATH], ios::in);
     t.seekg(0);
@@ -42,22 +43,25 @@ int main(int argc, char* argv[]) {
 
     json path_list = json::parse(argv[ARG_PATH]);
 
-    // cout << path_list << endl << endl;
-    // cout << path_list.at(0) << endl << endl;
-
     // declare result tab
-    vector<int> currentpath = path_list.at(0);
+    for (int path_id = 0; path_id < path_list.size(); path_id++) {
+        if (path_list.at(path_id).size() <= 2) continue; //not enough vertices
 
-    // float totalDistance = totaldis(currentpath, inputData) / (float)inputData["traveler"][0]["speed"]; //not implemented yet
-    cout << "before : " << totaldis(currentpath, inputData) << ";";
-    for (int elem : currentpath) cout << elem << ",";
-    cout << endl;
+        vector<int> currentpath = path_list.at(path_id);
 
-    for (int i = 0; i < atoi(argv[ARG_TRIES]); i++) findnei(currentpath, inputData);
+        // float totalDistance = totaldis(currentpath, inputData) / (float)inputData["traveler"][0]["speed"]; //not implemented yet
+        cout << endl << path_id << endl;
+        cout << "before : " << totaldis(currentpath, inputData) << ";";
+        for (int elem : currentpath) cout << elem << ",";
+        cout << endl;
 
-    // totalDistance = totaldis(currentpath, inputData) / (float)inputData["traveler"][0]["speed"]; //not implemented yet
-    cout << "after  : " << totaldis(currentpath, inputData) << ";";
-    for (int elem : currentpath) cout << elem << ",";
+        for (int i = 0; i < atoi(argv[ARG_TRIES]); i++) findnei(currentpath, inputData);
+
+        // totalDistance = totaldis(currentpath, inputData) / (float)inputData["traveler"][0]["speed"]; //not implemented yet
+        cout << "after  : " << totaldis(currentpath, inputData) << ";";
+        for (int elem : currentpath) cout << elem << ",";
+        cout << endl;
+    }
 
     return 0;
 }
