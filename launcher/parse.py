@@ -25,6 +25,7 @@ def user_args(path):
 
 
 def config_verif(path, config_json):
+    # step1 : path_generation
     engine_path = path+ENGINE_FOLDER
 
     if config_json["path_generation"]["algorithm"] == "default":
@@ -42,22 +43,37 @@ def config_verif(path, config_json):
 
         config_json["path_generation"]["algorithm"] = engine_path
 
+    # step2 : path_fusion
+    engine_path = path+ENGINE_FOLDER
+
+    if config_json["path_fusion"]["algorithm"] == "default":
+        config_json["path_fusion"]["algorithm"] = \
+            engine_path+"\\v3\\fusion.exe"
+
+    else:
+        engine_path += f"\\v3\\fusion.exe"
+        if not os.path.exists(engine_path):
+            print(f"Engine '{engine_path}' doesn't exist")
+            exit()
+
+        config_json["path_fusion"]["algorithm"] = engine_path
+
     return config_json
 
 
 def traveler_line(line):  # peut remettre précision nom fichier, no ligne...
-    name, x, y, *optional = line.split(",")
+    name, x, y, vehicule, speed, qty = line.split(",")
     try:
         x = float(x)
         y = float(y)
-        speed = float(optional[0]) if len(optional) >= 1 else 1.0
-        qty = int(optional[1]) if len(optional) >= 2 else 1
+        speed = float(speed)
+        qty = int(qty)
 
     except Exception as e:
         print(e)
         exit()
 
-    return name, x, y, speed, qty
+    return name, x, y, vehicule, speed, qty
 
 
 def origin_line(line):  # peut remettre précision nom fichier, no ligne...

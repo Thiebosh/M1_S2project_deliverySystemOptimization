@@ -3,6 +3,7 @@ MAPS_FOLDER = "\\country_maps"
 RESULT_FOLDER = "\\results"
 ENGINE_FOLDER = "\\..\\core"
 TMP_FILE = "\\data.tmp"
+TMP2_FILE = "\\data2.tmp"
 
 MAX_GRAPH = 3
 MAX_COUNTRIES = 5

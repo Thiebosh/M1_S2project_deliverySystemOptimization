@@ -16,15 +16,14 @@ def load_data(file_content):
     nb_peak = len(peak_lines) + sum([x.count(" - ") for x in peak_lines])
 
     # apply vehicules to travelers
-    vehicules = {x[0]: x[1]+','+x[2] for x in [line.split(',') for line in vehicule_lines]}
+    vehicules = {x[0]: ','+x[1]+','+x[2] for x in [line.split(',') for line in vehicule_lines]}
     for i in range(nb_traveler):
         trav = travel_lines[i]
-        v = trav[trav.rfind(',')+1:]
-        travel_lines[i] = trav.replace(v, vehicules[v])
+        travel_lines[i] += vehicules[trav[trav.rfind(',')+1:]]
 
     # pre allocate everything in the fastest way, without memory share
     ids = {"local_peak": 0, "compute_peak": 0, "compute_arc": 0}
-    local_data = {"traveler": [{"name": '', "x": 0.0, "y": 0.0} for _ in range(nb_traveler)],
+    local_data = {"traveler": [{"name": '', "x": 0.0, "y": 0.0, "vehicule": ""} for _ in range(nb_traveler)],
                   "peak":     [{"name": '', "x": 0.0, "y": 0.0, "origin": False} for _ in range(nb_peak)]}
     compute_data = {"peak":     [{"origin": 0, "link": 0, "qty": 1} for _ in range(nb_peak)],
                     # matrix of lat1, long1, lat2, long2
@@ -80,11 +79,12 @@ def acquire_data(file_content):
 
 def list_travelers(travel_lines, local_data, compute_data, nb_peak):
     for count, line in enumerate(travel_lines):
-        name, x, y, speed, qty = parse.traveler_line(line)
+        name, x, y, vehicule, speed, qty = parse.traveler_line(line)
 
         local_data["traveler"][count]["name"] = name
         local_data["traveler"][count]["x"] = x
         local_data["traveler"][count]["y"] = y
+        local_data["traveler"][count]["vehicule"] = vehicule
 
         compute_data["traveler"][count]["speed"] = speed
         compute_data["traveler"][count]["qty"] = qty

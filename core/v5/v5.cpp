@@ -20,7 +20,7 @@
 
 using namespace std;
 using json = nlohmann::json;
-int t0=1000;
+int t0=1000; //
 double q=0.99;
 double t_end=1e-8;
 int length=100;
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     int batch_size = atoi(argv[ARG_BATCH_SIZE]);
 
     // declare result tab
-    vector<int> currentpath = findsolution(id, inputData, batch_size);
+    vector<int> currentpath = findsolution(id, inputData, batch_size); // argv[path];
     vector<int> bestpath=currentpath;
     float totalDistance = totaldis(currentpath, inputData) / (float)inputData["traveler"][0]["speed"];
     cout << totalDistance << ";";
