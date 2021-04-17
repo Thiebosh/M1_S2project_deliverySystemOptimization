@@ -112,7 +112,7 @@ if __name__ == "__main__":
         else:
             # path_csv[1].append("--")
             # drive.upload_csv(path_csv, cities_csv)
-            drive.upload_csv(coords_csv, orders_csv)
+            drive.upload_csv(orders_csv, coords_csv)
 
     # step6.2 : optional cleaning
     if config["results"]["graph"]["make"] and \

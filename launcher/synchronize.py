@@ -164,6 +164,9 @@ class Synchronize:
             self.imgs_id.append(res["id"])
 
     def upload_csv(self, valuesPath, valuesCities):
+        valuesPath = [line.split(";") for line in valuesPath.split("\r\n")]
+        valuesCities = [line.split(";") for line in valuesCities.split("\r\n")]
+
         bodyPath = {'values': valuesPath}
         bodyCities = {'values': valuesCities}
 

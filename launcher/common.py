@@ -69,9 +69,10 @@ def format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
     )
 
     deposit_df = vertices_df.loc[vertices_df['type'] == "deposit"] \
-                            [["id", "name"]] \
+                            [["id", "name", "lat_long"]] \
                             .rename(columns={"id": "deposit_id",
-                                             "name": "deposit_name"})
+                                             "name": "deposit_name",
+                                             "lat_long": "deposit_lat_long"})
 
     client_df = pd.DataFrame(
         [[id,
@@ -83,6 +84,8 @@ def format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
                  "client_name",
                  "deposit_id"]
     )
+    client_df = pd.merge(client_df, vertices_df[["id", "lat_long"]], left_on="client_id", right_on="id")\
+                  .rename(columns={"lat_long": "client_lat_long"})
 
     dep_to_dest_df = pd.merge(client_df, deposit_df, on="deposit_id")
 
@@ -135,6 +138,21 @@ def format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
     )
 
     orders_df = pd.merge(orders_df, trav_df, on=["trav_id"])
+
+    orders_df = orders_df[["calculation_type",
+                           "generation_id",
+                           "trav_id",
+                           "delivery_dist",
+                           "deposit_id",
+                           "client_id",
+                           "client_name",
+                           "client_lat_long",
+                           "deposit_name",
+                           "deposit_lat_long",
+                           "trav_name",
+                           "vehicule_name",
+                           "vehicule_speed",
+                           "vehicule_storage"]]
 
     return vertices_df.to_csv(index=False, sep=";"), \
            orders_df.to_csv(index=False, sep=";")
