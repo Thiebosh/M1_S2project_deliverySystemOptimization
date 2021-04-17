@@ -49,15 +49,15 @@ if __name__ == "__main__":
 
     # step2.1 : compute data
     print(f"{datetime.now().time()} - Simulate paths...\n")
-    inputs = (config["path_generation"]["algorithm"],
-              config["path_generation"]["nb_process"],
-              list(config["results"]["KPI_weighting"].values()))
-    results_gen = asyncio.run(path_generation(*inputs, to_compute))
-    # results_gen = [
-    #     (842, 125.45, (45.567, 0, 0, 0), [(14.1, [4, 5]), (25.067, [0, 1, 2, 3]), (6.4, [6, 7])]),
-    #     (234, 97.45215, (28.456, 0, 0, 0), [(6.4, [6, 7]), (14.1, [4, 5]), (7.956, [0, 3, 1, 2])]),
-    #     (154, 12554.425, (127.2, 0, 0, 0), [(100, [4, 6, 7, 5]), (27.2, [0, 2, 3, 1]), (0, [-1])])
-    # ]
+    # inputs = (config["path_generation"]["algorithm"],
+    #           config["path_generation"]["nb_process"],
+    #           list(config["results"]["KPI_weighting"].values()))
+    # results_gen = asyncio.run(path_generation(*inputs, to_compute))
+    results_gen = [
+        (842, 125.45, (45.567, 0, 0, 0, 0, 0, 0), [(14.1, [4, 5]), (25.067, [0, 1, 2, 3]), (6.4, [6, 7])]),
+        (234, 97.45215, (28.456, 0, 0, 0, 0, 0, 0), [(6.4, [6, 7]), (14.1, [4, 5]), (7.956, [0, 3, 1, 2])]),
+        (154, 12554.425, (127.2, 0, 0, 0, 0, 0, 0), [(100, [4, 6, 7, 5]), (27.2, [0, 2, 3, 1]), (0, [-1])])
+    ]
 
     # step2.2 : optional print of results
     if config["results"]["print_console"]:
