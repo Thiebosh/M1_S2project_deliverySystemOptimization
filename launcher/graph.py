@@ -4,7 +4,7 @@ import imageio
 import os
 import geopandas
 from geopip import search
-from threading import Thread, Lock
+from threading import Thread, Lock, Event
 from pygifsicle import optimize
 import pickle
 import io
@@ -13,74 +13,80 @@ import random
 from defines import MAPS_FOLDER, RESULT_FOLDER, MAX_GRAPH, MAX_COUNTRIES
 
 
-def plot_path(idThread, fig, results, cities, local_travelers, travel_colors,
+def plot_path(idThread, interrupt_event, fig, results, cities,
+              local_travelers, travel_colors,
               path, result_name, save_gif, fps, g_files, g_files_lock):
-    axe = fig.gca()
-    axe.title.set_text(f"{results[2][1]}km")  # :.1f
+    try:
+        axe = fig.gca()
+        axe.title.set_text(f"{results[2][1]}km")  # :.1f
 
-    img_buffers = []
-    if(save_gif):
-        b = io.BytesIO()
-        fig.savefig(b, format='png')
-        b.seek(0)  # crucial
-        img_buffers.append(b)
-
-    # travel between peaks
-    for idTravel, traveler in enumerate(results[-1]):
-        # print travel from origin to first peak
-        city = [local_travelers[idTravel]["x"], local_travelers[idTravel]["y"]]
-        nextCity = cities[traveler[1][0]]
-
-        deltaX = nextCity[0]-city[0]
-        deltaY = nextCity[1]-city[1]
-
-        axe.arrow(deltaX*0.05+city[0], deltaY*0.05+city[1], deltaX*0.9, deltaY*0.9,
-                  length_includes_head=True, head_width=0.5, head_length=0.5,
-                  width=0.001, color=travel_colors[idTravel], alpha=0.75)
-
+        img_buffers = []
         if(save_gif):
             b = io.BytesIO()
             fig.savefig(b, format='png')
             b.seek(0)  # crucial
             img_buffers.append(b)
 
-        for idCity, city in enumerate(traveler[1][:-1]):
-            city = cities[city]
-            nextCity = cities[traveler[1][idCity+1]]
+        # travel between peaks
+        for idTravel, traveler in enumerate(results[-1]):
+            # print travel from origin to first peak
+            city = [local_travelers[idTravel]["x"], local_travelers[idTravel]["y"]]
+            nextCity = cities[traveler[1][0]]
 
             deltaX = nextCity[0]-city[0]
             deltaY = nextCity[1]-city[1]
 
             axe.arrow(deltaX*0.05+city[0], deltaY*0.05+city[1], deltaX*0.9, deltaY*0.9,
-                      length_includes_head=True, head_width=0.5, head_length=0.5,
-                      width=0.001, color=travel_colors[idTravel], alpha=0.75)
+                    length_includes_head=True, head_width=0.5, head_length=0.5,
+                    width=0.001, color=travel_colors[idTravel], alpha=0.75)
 
-            # gif img
             if(save_gif):
                 b = io.BytesIO()
                 fig.savefig(b, format='png')
                 b.seek(0)  # crucial
                 img_buffers.append(b)
 
-    # assemble gif
-    if(save_gif):
-        gifname = path+RESULT_FOLDER+f"\\{result_name}_{idThread}.gif"
+            for idCity, city in enumerate(traveler[1][:-1]):
+                city = cities[city]
+                nextCity = cities[traveler[1][idCity+1]]
 
-        with g_files_lock:
-            g_files.append(gifname)
+                deltaX = nextCity[0]-city[0]
+                deltaY = nextCity[1]-city[1]
 
-        frames = [imageio.imread(buffer.read()) for buffer in img_buffers]
-        frames.append(frames[-1])
-        frames.append(frames[-1])
+                axe.arrow(deltaX*0.05+city[0], deltaY*0.05+city[1], deltaX*0.9, deltaY*0.9,
+                        length_includes_head=True, head_width=0.5, head_length=0.5,
+                        width=0.001, color=travel_colors[idTravel], alpha=0.75)
 
-        imageio.mimsave(gifname, frames, fps=fps)
-        optimize(gifname)
+                # gif img
+                if(save_gif):
+                    b = io.BytesIO()
+                    fig.savefig(b, format='png')
+                    b.seek(0)  # crucial
+                    img_buffers.append(b)
 
-    else:
-        filename = path+RESULT_FOLDER+f"\\{result_name}_{idThread}.png"
-        with g_files_lock:
-            g_files.append(filename)
-        fig.savefig(filename, dpi=500)
+        # assemble gif
+        if(save_gif):
+            gifname = path+RESULT_FOLDER+f"\\{result_name}_{idThread}.gif"
+
+            with g_files_lock:
+                g_files.append(gifname)
+
+            frames = [imageio.imread(buffer.read()) for buffer in img_buffers]
+            frames.append(frames[-1])
+            frames.append(frames[-1])
+
+            imageio.mimsave(gifname, frames, fps=fps)
+            optimize(gifname)
+
+        else:
+            filename = path+RESULT_FOLDER+f"\\{result_name}_{idThread}.png"
+            with g_files_lock:
+                g_files.append(filename)
+            fig.savefig(filename, dpi=500)
+
+    except KeyboardInterrupt:
+        interrupt_event.set()
+        return
 
 
 def make_graph(path, local_data, compute_data, results, result_name, show_names, link_vertices, background, save_gif, fps):
@@ -173,18 +179,23 @@ def make_graph(path, local_data, compute_data, results, result_name, show_names,
     # step7 : start threads
     g_files = []
     g_files_lock = Lock()
+    interrupt_event = Event()
     threads = []
     for idThread in range(nb_graph):
         graph_buffer.seek(0)  # crucial
         newfig = pickle.load(graph_buffer)
 
-        args = (idThread, newfig, results[idThread], cities,
+        args = (idThread, interrupt_event, newfig, results[idThread], cities,
                 local_data["traveler"], colors,
                 path, result_name, save_gif, fps, g_files, g_files_lock)
         threads.append(Thread(target=plot_path, args=args))
+        threads[-1].start()
 
     for thread in threads:
-        thread.start()
         thread.join()
+
+    if interrupt_event.is_set():
+        print("Close program")
+        exit()
 
     return g_files

@@ -10,9 +10,10 @@ from defines import DRIVE_FOLDER, RESULT_FOLDER
 
 # elements to reach into drive account
 DRIVE_FOLDER_IMGS = 'images'
-DRIVE_CSV_RESULTS = 'results_project_future'
-CSV_RESULt_SHEET_PATH = "paths!A:"  # fin calculée
-CSV_RESULt_SHEET_CITY = "cities!A:C"
+DRIVE_CSV_RESULTS = 'Results_project'
+CSV_RESULT_SHEET_ORD = "Orders!A:"  # fin calculée
+CSV_RESULT_SHEET_MAP = "Map_coordinates!A:"  # fin calculée
+CSV_RESULT_SHEET_EXE = "Executions!A:"  # fin calculée
 
 # global credentials to access drive account
 CREDS_DRIVE = 'credentialsDrive.json'
@@ -163,26 +164,34 @@ class Synchronize:
                                            .execute()
             self.imgs_id.append(res["id"])
 
-    def upload_csv(self, valuesPath, valuesCities):
-        bodyPath = {'values': valuesPath}
-        bodyCities = {'values': valuesCities}
+    def upload_csv(self, valuesOrders, valuesCoords, valuesExes, nb_exe):
+        nb_exe = max(nb_exe, len(self.imgs_id))
+        ids_by_exe = [[id for id, line in enumerate(valuesExes[:-1]) if line[1] == str(exe_id)] for exe_id in range(nb_exe+1)]
 
-        for i, img_id in enumerate(self.imgs_id):
-            bodyPath["values"][i+1].append(IMG_URL_ACCESS+img_id)
+        for lines, img_id in zip(ids_by_exe, self.imgs_id):
+            for line in lines:
+                valuesExes[line][-1] = IMG_URL_ACCESS+img_id
+
+        bodyOrd = {'values': valuesOrders}
+        bodyMap = {'values': valuesCoords}
+        bodyExe = {'values': valuesExes}
 
         # save outputs on drive
         # pylint: disable=maybe-no-member
         drive_csv = self.serviceSheet.spreadsheets().values()
         csv_id = self.results_id
 
-        csv_range_path = CSV_RESULt_SHEET_PATH+shift_letter('A', len(valuesPath[0]))
-        csv_range_city = CSV_RESULt_SHEET_CITY
+        csv_range_ord = CSV_RESULT_SHEET_ORD+shift_letter('A', len(valuesOrders[0]))
+        csv_range_map = CSV_RESULT_SHEET_MAP+shift_letter('A', len(valuesCoords[0]))
+        csv_range_exe = CSV_RESULT_SHEET_EXE+shift_letter('A', len(valuesExes[0]))
 
-        drive_csv.clear(spreadsheetId=csv_id, range=csv_range_path).execute()
-        drive_csv.clear(spreadsheetId=csv_id, range=csv_range_city).execute()
+        drive_csv.clear(spreadsheetId=csv_id, range=csv_range_ord).execute()
+        drive_csv.clear(spreadsheetId=csv_id, range=csv_range_map).execute()
+        drive_csv.clear(spreadsheetId=csv_id, range=csv_range_exe).execute()
 
-        drive_csv.update(spreadsheetId=csv_id, range=csv_range_path, body=bodyPath, valueInputOption="USER_ENTERED").execute()
-        drive_csv.update(spreadsheetId=csv_id, range=csv_range_city, body=bodyCities, valueInputOption="USER_ENTERED").execute()
+        drive_csv.update(spreadsheetId=csv_id, range=csv_range_ord, body=bodyOrd, valueInputOption="USER_ENTERED").execute()
+        drive_csv.update(spreadsheetId=csv_id, range=csv_range_map, body=bodyMap, valueInputOption="USER_ENTERED").execute()
+        drive_csv.update(spreadsheetId=csv_id, range=csv_range_exe, body=bodyExe, valueInputOption="USER_ENTERED").execute()
 
 
 def shift_letter(letter, shift):
