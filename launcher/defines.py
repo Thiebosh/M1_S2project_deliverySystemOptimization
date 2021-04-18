@@ -2,10 +2,16 @@ DRIVE_FOLDER = "\\driveAccess"
 MAPS_FOLDER = "\\country_maps"
 RESULT_FOLDER = "\\results"
 ENGINE_FOLDER = "\\..\\core"
+GENERATOR_FOLDER = "\\generation"
+OPTIMIZER_FOLDER = "\\optimization"
+FUSIONNER_FOLDER = "\\fusion"
+GENERATOR_EXE = "\\generator"
+OPTIMIZER_EXE = "\\optimizer"
+FUSIONNER_EXE = "\\fusionner"
 TMP_FILE = "\\data.tmp"
 TMP2_FILE = "\\data2.tmp"
 
 MAX_GRAPH = 3
 MAX_COUNTRIES = 5
 
-DASHBOAD_URL = "https://datastudio.google.com/u/2/reporting/cd241e7b-cec2-4227-976e-857c5c7bf6c0/page/qRZ9B"
+DASHBOAD_URL = "https://datastudio.google.com/u/2/reporting/719e36c2-23e3-4697-8a94-30e2cb147167/page/ZNsDC"

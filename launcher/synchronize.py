@@ -140,7 +140,8 @@ class Synchronize:
             self.serviceDrive.files().delete(fileId=file["id"]).execute()
 
     def upload_imgs(self, is_gif):
-        reg = "^"+self.datafile+"_[0-9]+.{0}$"
+        # pylint: disable=anomalous-backslash-in-string
+        reg = "^"+self.datafile+"_[0-9]+\.{0}$"
 
         extension = "gif" if is_gif else "png"
         self.remove_imgs(re.compile(r""+reg.format(extension)), extension)

@@ -7,22 +7,13 @@ from numpy import average
 from defines import TMP_FILE
 
 
-async def path_generation(exe_path, nb_process, kpi_weights, data):
-    nb_trav = len(data["traveler"])
+async def path_generation(exe_path, nb_process, file_path, kpi_weights, data):
     current_pid = os.getpid()
-    # 5 first rules belongs to numpy array print
-    data = str(data).replace("\n", "") \
-                    .replace("      ", "") \
-                    .replace("array(", "") \
-                    .replace(", dtype=float32)", "") \
-                    .replace(",dtype=float32)", "") \
-                    .replace("'", '"')
-    file_path = exe_path[:exe_path.rfind("\\")]+TMP_FILE
-    open(file_path, "w").write(data)
     running_procs = [Popen([exe_path, str(current_pid+id), file_path],
                      stdout=PIPE, stderr=PIPE, text=True)
                      for id in range(nb_process)]
 
+    nb_trav = len(data["traveler"])
     results = []
     time1 = time.time()
     while running_procs:
@@ -37,9 +28,11 @@ async def path_generation(exe_path, nb_process, kpi_weights, data):
                 continue
 
         lines = proc.communicate()[0].split("\n")
-        if retcode and retcode != 0:  # execution error
-            print(f"process {current_pid - int(lines[0])} return error '{retcode}'")
+        if lines[2] == "error":  # retcode and retcode != 0:  # execution error
+            print(f"process {int(lines[0]) - current_pid} return error '{retcode}'")
             print(lines[1:])
+            if proc in running_procs:
+                running_procs.remove(proc)
             continue
 
         seed = lines[1]

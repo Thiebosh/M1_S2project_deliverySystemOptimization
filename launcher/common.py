@@ -59,7 +59,7 @@ def format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
     vertices_df = pd.DataFrame(
         [[id,
           vertice["name"],
-          f"{vertice['x']},{vertice['y']}",
+          f"{vertice['y']},{vertice['x']}",
           "deposit" if vertice["origin"] else "client"]
          for id, vertice in enumerate(local_data["peak"])],
         columns=["id",
@@ -182,9 +182,11 @@ def format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
     vertices_df = vertices_df.to_csv(index=False, sep=";")
     vertices_df = [line.split(";") for line in vertices_df.split("\r\n")]
 
+    orders_df["generation_id"] += 1
     orders_df = orders_df.to_csv(index=False, sep=";")
     orders_df = [line.split(";") for line in orders_df.split("\r\n")]
 
+    execution_df["generation_id"] += 1
     execution_df = execution_df.to_csv(index=False, sep=";")
     execution_df = [line.split(";") for line in execution_df.split("\r\n")]
 

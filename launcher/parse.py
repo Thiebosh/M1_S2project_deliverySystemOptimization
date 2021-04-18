@@ -3,7 +3,7 @@ import re
 import argparse
 from distutils.util import strtobool
 
-from defines import ENGINE_FOLDER
+from defines import ENGINE_FOLDER, GENERATOR_FOLDER, GENERATOR_EXE
 
 
 def user_args(path):
@@ -26,37 +26,51 @@ def user_args(path):
 
 def config_verif(path, config_json):
     # step1 : path_generation
-    engine_path = path+ENGINE_FOLDER
+    path += ENGINE_FOLDER
 
+    generator_path = path+GENERATOR_FOLDER
     if config_json["path_generation"]["algorithm"] == "default":
-        regex = re.compile(r"^(v|V)[0-9]+$")
-        nb_versions = [x for x in os.listdir(engine_path) if regex.match(x)]
-        last_engine = sorted(nb_versions, key=lambda x: int(x[1:]))[-1]
-        config_json["path_generation"]["algorithm"] = \
-            engine_path+f"\\v{last_engine}\\engine.exe"
+        # pylint: disable=anomalous-backslash-in-string
+        regex = re.compile(r""+"^"+GENERATOR_EXE[1:]+"[0-9]+\.exe$")
+        nb_versions = [x for x in os.listdir(generator_path) if regex.match(x)]
+        generator_path += "\\"+sorted(nb_versions, key=lambda x: int(x[len(GENERATOR_EXE)-1:-4]))[-1]
 
     else:
-        engine_path += f"\\v{config_json['path_generation']['algorithm']}\\engine.exe"
-        if not os.path.exists(engine_path):
-            print(f"Engine '{engine_path}' doesn't exist")
+        generator_path += GENERATOR_EXE+str(config_json['path_generation']['algorithm'])+".exe"
+        if not os.path.exists(generator_path):
+            print(f"Engine '{GENERATOR_EXE}{config_json['path_generation']['algorithm']}' doesn't exist")
             exit()
+    config_json["path_generation"]["algorithm"] = generator_path
 
-        config_json["path_generation"]["algorithm"] = engine_path
+    # # step2 : path_optimization
+    # engine_path = path+ENGINE_FOLDER
 
-    # step2 : path_fusion
-    engine_path = path+ENGINE_FOLDER
+    # if config_json["path_fusion"]["algorithm"] == "default":
+    #     config_json["path_fusion"]["algorithm"] = \
+    #         engine_path+"\\v3\\fusion.exe"
 
-    if config_json["path_fusion"]["algorithm"] == "default":
-        config_json["path_fusion"]["algorithm"] = \
-            engine_path+"\\v3\\fusion.exe"
+    # else:
+    #     engine_path += f"\\v3\\fusion.exe"
+    #     if not os.path.exists(engine_path):
+    #         print(f"Engine '{engine_path}' doesn't exist")
+    #         exit()
 
-    else:
-        engine_path += f"\\v3\\fusion.exe"
-        if not os.path.exists(engine_path):
-            print(f"Engine '{engine_path}' doesn't exist")
-            exit()
+    #     config_json["path_fusion"]["algorithm"] = engine_path
 
-        config_json["path_fusion"]["algorithm"] = engine_path
+    # # step3 : path_fusion
+    # engine_path = path+ENGINE_FOLDER
+
+    # if config_json["path_fusion"]["algorithm"] == "default":
+    #     config_json["path_fusion"]["algorithm"] = \
+    #         engine_path+"\\v3\\fusion.exe"
+
+    # else:
+    #     engine_path += f"\\v3\\fusion.exe"
+    #     if not os.path.exists(engine_path):
+    #         print(f"Engine '{engine_path}' doesn't exist")
+    #         exit()
+
+    #     config_json["path_fusion"]["algorithm"] = engine_path
 
     return config_json
 

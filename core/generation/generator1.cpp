@@ -139,8 +139,13 @@ map<int, vector<int>> findsolution(json const &input)
     int idTraveler;
     bool allEmpty = true;
     // select first restaurant
+    int break_counter = 0;
     do
     {
+        if (break_counter++ == 100) {
+            cout << "error" << endl;
+            exit(1); //erreur
+        }
         //clear deliverByWhom
         for (map<int, vector<int>>::iterator it = deliveredByWhom.begin(); it != deliveredByWhom.end(); it++)
         {
