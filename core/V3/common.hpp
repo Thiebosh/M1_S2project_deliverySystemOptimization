@@ -10,24 +10,23 @@ int getIdPoint(vector<int> const &allPoints, vector<double> const &distances)
 {
 	vector<double> weights;
 	vector<double> normalized_weights;
-	double min_val;
-	double max_val;
+
 	for (int i = allPoints.size()-1; i >= 0; i--)
 	{
 		weights.push_back(1/distances[i]);
 	}
 
-	max_val = *max_element(weights.begin(), weights.end());
-	min_val = *min_element(weights.begin(), weights.end());
-	for(auto i: weights){
-		normalized_weights.push_back(i*100/max_val);
+	double max_val = *max_element(weights.begin(), weights.end());
+	for(auto w: weights){
+		normalized_weights.push_back(w*100/max_val);
 	}
+
 	double randomValue =  rand()%100;
-	for (int j = 0; j < normalized_weights.size(); j++)
+	for (int i = 0; i < normalized_weights.size(); i++)
 	{
-		if (randomValue <= normalized_weights[j])  // j replace reverse()
+		if (randomValue <= normalized_weights[i])
 		{
-			return allPoints[j];
+			return allPoints[i];
 		}
 	}
 	return -1;
