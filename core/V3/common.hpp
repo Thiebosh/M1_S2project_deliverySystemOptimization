@@ -1,8 +1,7 @@
 #include <vector>
 #include <algorithm>
-#include "../json.hpp"
-#include <iostream>
 #include <random>
+#include "../json.hpp"
 
 using namespace std;
 using json = nlohmann::json;
@@ -13,7 +12,7 @@ int getIdPoint(vector<int> const &allPoints, vector<double> const &distances)
 	vector<double> normalized_weights;
 	double min_val;
 	double max_val;
-	for (double i = 0; i < allPoints.size(); i++)
+	for (int i = allPoints.size()-1; i >= 0; i--)
 	{
 		weights.push_back(1/distances[i]);
 	}
@@ -24,8 +23,7 @@ int getIdPoint(vector<int> const &allPoints, vector<double> const &distances)
 		normalized_weights.push_back(i*100/max_val);
 	}
 	double randomValue =  rand()%100;
-	cout << "rand: " << randomValue << endl;
-	for (int j = normalized_weights.size()-1; j >= 0; j--)
+	for (int j = 0; j < normalized_weights.size(); j++)
 	{
 		if (randomValue <= normalized_weights[j])  // j replace reverse()
 		{
