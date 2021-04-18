@@ -3,9 +3,9 @@
 #include <fstream>
 #include <vector>
 #include <map>
-#include "../json.hpp"
-#include "common.hpp"
-#include "computeKPI.h"
+#include "..\json.hpp"
+#include "..\heuristic.hpp"
+#include "..\kpi.hpp"
 
 //input args
 #define ARG_FILE_PATH 2

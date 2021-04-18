@@ -1,8 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include "../json.hpp"
-#include "common.hpp"
+#include "..\json.hpp"
+#include "..\heuristic.hpp"
 
 //input args
 #define ARG_SEED 1

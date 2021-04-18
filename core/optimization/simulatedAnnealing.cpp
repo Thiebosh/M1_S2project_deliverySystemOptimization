@@ -1,17 +1,14 @@
 #include <iostream>
-#include <string>
+#include <stdlib.h>
 #include <math.h>
 #include <vector>
-#include <stdlib.h>
+#include <map>
 #include <time.h>
 #include <algorithm>
-#include <map>
-#include <limits>
-#include <typeinfo>
 #include <fstream>
 #include <streambuf>
-#include "../json.hpp"
-#include "computeKPI.h"
+#include "..\json.hpp"
+#include "..\kpi.hpp"
 
 //input args
 #define ARG_ID 1
@@ -24,15 +21,19 @@
 using namespace std;
 using json = nlohmann::json;
 
+int t0=1000;
+double q=0.99;
+double t_end=1e-8;
+int length=100;
+int t1=t0;
 
-void findnei(vector<int> &solution, json const &input, int const path_id);
+vector<int> findnei(vector<int> solution, json const &input, int const path_id, int t);
 
-// .\opti_localSearch.exe 0 125 data.tmp "[[0, 2, 3, 1], [4, 6, 7, 5], [-1]]" 1
 int main(int argc, char* argv[]) {
     int id = atoi(argv[ARG_ID]);
     cout << id << endl;
 
-    if (argc < NB_ARGS) return -1;
+    if (argc != NB_ARGS) return -1;
 
     // srand(atoi(argv[ARG_SEED])); // reuse seed
     srand(time_t(argv[ARG_SEED])); // debug : works for nearly all seed but sometimes, error. some others, invalid path
@@ -48,6 +49,7 @@ int main(int argc, char* argv[]) {
         if (path_list.at(path_id).size() <= 2) continue; //not enough vertices
 
         vector<int> currentpath = path_list.at(path_id);
+        vector<int> bestpath = currentpath;
 
         // float totalDistance = travelerDistTotal(currentpath, inputData, path_id) / (float)inputData["traveler"][0]["speed"]; //not implemented yet
         cout << endl << path_id << endl;
@@ -55,11 +57,14 @@ int main(int argc, char* argv[]) {
         for (int elem : currentpath) cout << elem << ",";
         cout << endl;
 
-        for (int i = 0; i < atoi(argv[ARG_TRIES]); i++) findnei(currentpath, inputData, path_id);
-
-        // totalDistance = travelerDistTotal(currentpath, inputData, path_id) / (float)inputData["traveler"][0]["speed"]; //not implemented yet
-        cout << "after  : " << travelerDistTotal(currentpath, inputData, path_id) << ";";
-        for (int elem : currentpath) cout << elem << ",";
+        while (t1 > t_end) {
+            for (int i = 0; i < length; i++) bestpath = findnei(currentpath, inputData, path_id, t1);
+            t1 *= q;
+        }
+        
+        // totalDistance = travelerDistTotal(bestpath, inputData, path_id) / (float)inputData["traveler"][0]["speed"]; //not implemented yet
+        cout << "after  : " << travelerDistTotal(bestpath, inputData, path_id) << ";";
+        for (int elem : bestpath) cout << elem << ",";
         cout << endl;
     }
 
@@ -67,7 +72,7 @@ int main(int argc, char* argv[]) {
 }
 
 bool checknei(vector<int> const &solution, json const &input) {
-    vector<int> ableclient;
+    vector<int> ableclient(input["peak"].size(), 0);
     int storage = input["traveler"][0]["qty"];
     int des = 0;
 
@@ -77,21 +82,17 @@ bool checknei(vector<int> const &solution, json const &input) {
                 des++;
                 break;
             }
-            storage--;
-            for (int j = 0; j < input["peak"][solution[i]]["link"].size(); j++) {
-                ableclient.push_back(input["peak"][solution[i]]["link"][j]);
+            int j = 0;
+            while(j++ < input["peak"][solution[i]]["link"].size() && storage-- > 0) {
+                ableclient[solution[i]]++;
             }
         }
 
         if (input["peak"][solution[i]]["origin"] == 0) {
             storage++;
-            int judge = 0;
-            for (int j = 0; j < ableclient.size(); j++) {
-                if (solution[i] == ableclient[j]) {
-                    judge++;
-                }
-            }
-            if (judge == 0) {
+            int position = input["peak"][solution[i]]["link"];
+            if(ableclient[position] > 0) ableclient[position]--;
+            else {
                 des++;
                 break;
             }
@@ -101,18 +102,32 @@ bool checknei(vector<int> const &solution, json const &input) {
     return !des;
 }
 
-void findnei(vector<int> &solution, json const &input, int const path_id) {
+vector<int> findnei(vector<int> solution, json const &input, int const path_id, int t) {
     vector<int> nei = solution;
+    vector<int> result = solution;
     int a = rand() % input["peak"].size() + 1;
+    int i = rand() % input["peak"].size() + 1;
+    int nuclear = nei[a];
+    nei[a] = nei[i];
+    nei[i] = nuclear;
 
-    for (int i = 0; i < nei.size() && i != a; i++) {
-        int nuclear = nei[a];
-        nei[a] = nei[i];
-        nei[i] = nuclear;
+    if (checknei(nei, input)) {
+        float dis = travelerDistTotal(nei, input, path_id);
+        float dis_solu = travelerDistTotal(solution, input, path_id);
 
-        if (checknei(nei,input) &&
-            travelerDistTotal(nei, input, path_id) < travelerDistTotal(solution, input, path_id)) {
+        if (dis < travelerDistTotal(solution, input, path_id)) {
             solution = nei;
+            result = nei;
+        }
+        else {
+            double r = (rand() % 100 + 1) / 100;
+            double d = dis - dis_solu;
+            if (exp(-d / t) <= r) {
+                result = solution;
+                solution = nei;
+            }
         }
     }
+
+    return result;    
 }
