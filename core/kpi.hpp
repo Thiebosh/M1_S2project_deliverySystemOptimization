@@ -1,7 +1,7 @@
 #include <vector>
 #include <algorithm>
 #include <limits>
-#include "../json.hpp"
+#include "json.hpp"
 
 using namespace std;
 using json = nlohmann::json;

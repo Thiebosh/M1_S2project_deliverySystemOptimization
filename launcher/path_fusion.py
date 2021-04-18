@@ -3,6 +3,7 @@ from subprocess import run
 
 
 def path_fusion(distances, results, exe_path):
+    # update paths
     file_path = exe_path[:exe_path.rfind("\\")]+TMP_FILE
     file2_path = exe_path[:exe_path.rfind("\\")]+TMP2_FILE
 

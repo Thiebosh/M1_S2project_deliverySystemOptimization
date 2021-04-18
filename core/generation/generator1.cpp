@@ -3,8 +3,9 @@
 #include <fstream>
 #include <vector>
 #include <map>
-#include "../json.hpp"
-#include "computeKPI.h"
+#include "..\json.hpp"
+#include "..\heuristic.hpp"
+#include "..\kpi.hpp"
 
 //input args
 #define ARG_FILE_PATH 2
@@ -14,23 +15,16 @@
 using namespace std;
 using json = nlohmann::json;
 
-
 // definitions
-vector<int> getNthClosest(int n, vector<double> &arc);
-
 vector<int> getRemainingRestaurant(map<int, vector<int>> const &map);
 
 vector<int> getRemainingClient(map<int, vector<int>> const &map);
 
-vector<int> getPossibleNextPeak(vector<double> const &arc, vector<int> const &possiblePoints, int nbClosest);
-
-int getIdPoint(vector<int> const &allPoints, vector<double> const &distances);
-
 map<int, vector<int>> findsolution(json const &input);
 
-
 // main function
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     int id = atoi(argv[ARG_ID]);
     cout << id << endl;
 
@@ -74,19 +68,6 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-vector<int> getNthClosest(int n, vector<double> &arc)
-{
-    vector<int> closest;
-    vector<double> sortedArc = arc;
-    sort(sortedArc.begin(), sortedArc.end());
-    for (auto i = 0; i < min(n, (int)arc.size()); i++)
-    {
-        vector<double>::iterator itr = find(arc.begin(), arc.end(), sortedArc[i]);
-        closest.push_back(distance(arc.begin(), itr));
-    }
-    return closest;
-}
-
 vector<int> getRemainingRestaurant(map<int, vector<int>> const &map)
 {
     vector<int> remainingRestaurant;
@@ -110,72 +91,14 @@ vector<int> getRemainingClient(map<int, vector<int>> const &map)
     return remainingClients;
 }
 
-vector<int> getPossibleNextPeak(vector<double> const &arc, vector<int> const &possiblePoints, int nbClosest)
+map<int, vector<int>> findsolution(json const &input)
 {
-    vector<double> possiblePointsDistanceList;
-    vector<double> allDistances = arc;
-    vector<int> closestPoints;
-    vector<int> points;
-
-    for (auto i : possiblePoints)
-    {
-        possiblePointsDistanceList.push_back(allDistances[i]);
-    }
-
-    closestPoints = getNthClosest(nbClosest, possiblePointsDistanceList);
-
-    for (auto i : closestPoints)
-    {
-        vector<double>::iterator itr = find(allDistances.begin(), allDistances.end(), possiblePointsDistanceList[i]);
-        points.push_back(distance(allDistances.begin(), itr));
-    }
-
-    return points;
-}
-
-int getIdPoint(vector<int> const &allPoints, vector<double> const &distances)
-{
-    vector<double> weights;
-    vector<double> normalized_weights;
-    double min_val;
-    double max_val;
-
-    for (double i = 0; i < allPoints.size(); i++)
-    {
-        weights.push_back(distances[i]);
-    }
-    //normalizing weights
-    min_val = *min_element(weights.begin(), weights.end());
-    max_val = *max_element(weights.begin(), weights.end());
-    for (int i = 0; i < weights.size(); ++i)
-    {
-        if (max_val != min_val)
-        {
-            normalized_weights.push_back((double)(weights[i] - min_val) / (double)(max_val - min_val));
-        }
-        else
-        {
-            normalized_weights.push_back(weights[i]);
-        }
-    }
-    reverse(normalized_weights.begin(), normalized_weights.end());
-    double randomValue = (double)rand() / (RAND_MAX);
-    for (int i = 0, j = normalized_weights.size()-1; i < normalized_weights.size(); i++, j--)
-    {
-        if (randomValue <= normalized_weights[i])
-        {
-            return allPoints[j];  // j replace reverse()
-        }
-    }
-    return -1;
-}
-
-map<int, vector<int>> findsolution(json const &input) {
     // build list of unselected peaks
     map<int, vector<int>> restaurantClientLink;
     map<int, vector<int>> deliveries;
     map<int, vector<int>> deliveredByWhom;
     map<int, vector<int>> banedDeliveryman;
+    vector<int> bannedPoints;
     map<int, vector<int>> canBeDelivered;
     vector<double> storages;
     int nbTravelers = input.at("traveler").size();
@@ -216,13 +139,19 @@ map<int, vector<int>> findsolution(json const &input) {
     int idTraveler;
     bool allEmpty = true;
     // select first restaurant
+    int break_counter = 0;
     do
     {
+        if (break_counter++ == 100) {
+            cout << "error" << endl;
+            exit(1); //erreur
+        }
         //clear deliverByWhom
         for (map<int, vector<int>>::iterator it = deliveredByWhom.begin(); it != deliveredByWhom.end(); it++)
         {
             it->second.clear();
         }
+    
         for (int i = 0; i < nbTravelers; i++)
         {
             possiblePoints.clear();
@@ -233,30 +162,48 @@ map<int, vector<int>> findsolution(json const &input) {
                 tmpPossiblePoints.insert(tmpPossiblePoints.end(), canBeDelivered.at(i).begin(), canBeDelivered.at(i).end());
             }
 
-            for(auto tmpPoint: banedDeliveryman.at(i)){
-                if(find(tmpPossiblePoints.begin(), tmpPossiblePoints.end(), tmpPoint) != tmpPossiblePoints.end()){
+            for(auto curPoint: bannedPoints){
+                if(find(tmpPossiblePoints.begin(), tmpPossiblePoints.end(), curPoint) != tmpPossiblePoints.end()){
+                    tmpPossiblePoints.erase(find(tmpPossiblePoints.begin(), tmpPossiblePoints.end(), curPoint));
+                }
+            }
+
+            for (auto tmpPoint : banedDeliveryman.at(i))
+            {
+                if (find(tmpPossiblePoints.begin(), tmpPossiblePoints.end(), tmpPoint) != tmpPossiblePoints.end())
+                {
                     tmpPossiblePoints.erase(find(tmpPossiblePoints.begin(), tmpPossiblePoints.end(), tmpPoint));
                 }
             }
-            if(deliveries.at(i).empty()){
+
+            if (deliveries.at(i).empty())
+            {
                 possiblePoints = getPossibleNextPeak(input.at("traveler").at(i).at("arc"), tmpPossiblePoints, tmpPossiblePoints.size());
-            }else{
-                int curPoint = deliveries.at(i).at(deliveries.at(i).size()-1);
+            }
+            else
+            {
+                int curPoint = deliveries.at(i).at(deliveries.at(i).size() - 1);
                 possiblePoints = getPossibleNextPeak(input.at("arc").at(curPoint), tmpPossiblePoints, tmpPossiblePoints.size());
             }
-            
+
             if (possiblePoints.empty())
             {
                 continue;
             }
+
             vector<double> distances;
-            if(deliveries.at(i).empty()){
-                for(int tmpPoint: possiblePoints){
+            if (deliveries.at(i).empty())
+            {
+                for (int tmpPoint : possiblePoints)
+                {
                     distances.push_back(input.at("traveler").at(i).at("arc").at(tmpPoint));
                 }
-            }else{
-                int curPoint = deliveries.at(i).at(deliveries.at(i).size()-1);
-                for(int tmpPoint: possiblePoints){
+            }
+            else
+            {
+                int curPoint = deliveries.at(i).at(deliveries.at(i).size() - 1);
+                for (int tmpPoint : possiblePoints)
+                {
                     distances.push_back(input.at("arc").at(curPoint).at(tmpPoint));
                 }
             }
@@ -266,11 +213,13 @@ map<int, vector<int>> findsolution(json const &input) {
                 deliveredByWhom.at(point).push_back(i);
             }
         }
+        
         for (map<int, vector<int>>::iterator it = deliveredByWhom.begin(); it != deliveredByWhom.end(); it++)
         {
             solutionFound = false;
             if (it->second.empty())
             {
+                // bannedPoints.push_back(it->first);
                 continue;
             }
             vector<double> distances;
@@ -285,7 +234,7 @@ map<int, vector<int>> findsolution(json const &input) {
                     distances.push_back(input.at("arc").at(deliveries.at(curDeliver)[deliveries.at(curDeliver).size() - 1]).at(it->first));
                 }
             }
-            
+
             possiblePoints = getPossibleNextPeak(distances, it->second, it->second.size());
             if (possiblePoints.empty())
             {
@@ -336,9 +285,13 @@ map<int, vector<int>> findsolution(json const &input) {
                 canBeDelivered.at(idTraveler).erase(find(canBeDelivered.at(idTraveler).begin(), canBeDelivered.at(idTraveler).end(), idPoint));
             }
 
-            if(!solutionFound){
+            if (!solutionFound)
+            {
                 banedDeliveryman.at(idTraveler).push_back(idPoint);
-            }else{
+            }
+            else
+            {
+                bannedPoints.clear();
                 banedDeliveryman.at(idTraveler).clear();
             }
         }
