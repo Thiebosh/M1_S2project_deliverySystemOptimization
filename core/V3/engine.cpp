@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     if (argc < NB_ARGS)
         return -1;
 
-    time_t seed = time_t(85);
+    time_t seed = time(NULL) % id;
     srand(seed);
     cout << seed << endl;
 
