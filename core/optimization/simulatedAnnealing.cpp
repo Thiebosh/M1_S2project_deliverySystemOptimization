@@ -21,14 +21,10 @@
 using namespace std;
 using json = nlohmann::json;
 
-int t0=1000;
-double q=0.99;
-double t_end=1e-8;
-int length=100;
-int t1=t0;
 
-vector<int> findnei(vector<int> solution, json const &input, int const path_id, int t);
+void findnei(vector<int> &solution, json const &input, int const path_id, int t);
 
+// .\localSearch.exe 0 125 ../data.tmp "[[0, 2, 3, 1], [4, 6, 7, 5], [-1]]" 100
 int main(int argc, char* argv[]) {
     int id = atoi(argv[ARG_ID]);
     cout << id << endl;
@@ -57,8 +53,14 @@ int main(int argc, char* argv[]) {
         for (int elem : currentpath) cout << elem << ",";
         cout << endl;
 
+        double q = 0.99;
+        double t_end = 1e-8;
+        int t1 = 1000;
+
         while (t1 > t_end) {
-            for (int i = 0; i < length; i++) bestpath = findnei(currentpath, inputData, path_id, t1);
+            for (int i = 0; i < atoi(argv[ARG_TRIES]); i++) {
+                findnei(bestpath, inputData, path_id, t1);
+            }
             t1 *= q;
         }
         
@@ -102,7 +104,7 @@ bool checknei(vector<int> const &solution, json const &input) {
     return !des;
 }
 
-vector<int> findnei(vector<int> solution, json const &input, int const path_id, int t) {
+void findnei(vector<int> &solution, json const &input, int const path_id, int t) {
     vector<int> nei = solution;
     vector<int> result = solution;
     int a = rand() % input["peak"].size() + 1;
@@ -128,6 +130,4 @@ vector<int> findnei(vector<int> solution, json const &input, int const path_id, 
             }
         }
     }
-
-    return result;    
 }

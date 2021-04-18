@@ -52,7 +52,9 @@ int main(int argc, char* argv[]) {
         for (int elem : currentpath) cout << elem << ",";
         cout << endl;
 
-        for (int i = 0; i < atoi(argv[ARG_TRIES]); i++) findnei(currentpath, inputData, path_id);
+        for (int i = 0; i < atoi(argv[ARG_TRIES]); i++) {
+            findnei(currentpath, inputData, path_id);
+        }
 
         // totalDistance = travelerDistTotal(currentpath, inputData, path_id) / (float)inputData["traveler"][0]["speed"]; //not implemented yet
         cout << "after  : " << travelerDistTotal(currentpath, inputData, path_id) << ";";
