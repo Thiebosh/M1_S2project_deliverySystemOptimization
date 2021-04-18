@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 	if (argc < NB_ARGS)
 		return -1;
 
-    srand(atoi(argv[ARG_SEED]));  // reuse same seed
+    srand(atoi(argv[ARG_SEED])); // reuse seed
 
 	json input = json::parse(argv[ARG_MATRIX]);
 
