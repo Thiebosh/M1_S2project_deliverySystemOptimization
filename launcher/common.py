@@ -55,7 +55,7 @@ def origins_to_dests(to_compute, path):
     return assoc
 
 
-def format_csv(local_data, to_compute, results_gen, results_opti, result_fusion):
+def format_csv(local_data, to_compute, results_gen, results_opti):
     vertices_df = pd.DataFrame(
         [[id,
           vertice["name"],

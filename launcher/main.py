@@ -83,8 +83,7 @@ if __name__ == "__main__":
     #     print_optimized(fusionned_path)
 
     # # step4.1 : collect data for path fusion
-    # fusionned_path = path_fusion(to_compute["arc"], results, config["path_fusion"]["algorithm"])
-    result_fusion = ""
+    # result_fusion = path_fusion(to_compute["arc"], results, config["path_fusion"]["algorithm"])
 
     # # step4.2 : optional print of results
     # if config["results"]["print_console"]:
@@ -93,7 +92,7 @@ if __name__ == "__main__":
 
     # step5.1 : csv formatting and optional saving
     print(f"{datetime.now().time()} - Prepare CSV...\n")
-    coords_csv, orders_csv, execution_csv = format_csv(local_data, to_compute, results_gen, results_opti, result_fusion)
+    coords_csv, orders_csv, execution_csv = format_csv(local_data, to_compute, results_gen, results_opti)
     if config["results"]["keep_local"]:
         result_path = path+RESULT_FOLDER+"\\"+config['input_datafile']+"_{0}.csv"
         save_csv(result_path.format("coords"), coords_csv)
