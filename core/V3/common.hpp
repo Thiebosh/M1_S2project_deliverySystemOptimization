@@ -1,6 +1,8 @@
 #include <vector>
 #include <algorithm>
 #include "../json.hpp"
+#include <iostream>
+#include <random>
 
 using namespace std;
 using json = nlohmann::json;
@@ -11,32 +13,23 @@ int getIdPoint(vector<int> const &allPoints, vector<double> const &distances)
 	vector<double> normalized_weights;
 	double min_val;
 	double max_val;
-
 	for (double i = 0; i < allPoints.size(); i++)
 	{
-		weights.push_back(1 / distances[i]);
-	}
-	//normalizing weights
-	min_val = *min_element(weights.begin(), weights.end());
-	max_val = *max_element(weights.begin(), weights.end());
-	for (int i = 0; i < weights.size(); ++i)
-	{
-		if (max_val != min_val)
-		{
-			normalized_weights.push_back((double)(weights[i] - min_val) / (double)(max_val - min_val));
-		}
-		else
-		{
-			normalized_weights.push_back(0);
-		}
+		weights.push_back(1/distances[i]);
 	}
 
-	double randomValue = (double)rand() / (RAND_MAX);
-	for (int i = 0, j = normalized_weights.size()-1; i < normalized_weights.size(); i++, j--)
+	max_val = *max_element(weights.begin(), weights.end());
+	min_val = *min_element(weights.begin(), weights.end());
+	for(auto i: weights){
+		normalized_weights.push_back(i*100/max_val);
+	}
+	double randomValue =  rand()%100;
+	cout << "rand: " << randomValue << endl;
+	for (int j = normalized_weights.size()-1; j >= 0; j--)
 	{
-		if (randomValue > normalized_weights[j])  // j replace reverse()
+		if (randomValue <= normalized_weights[j])  // j replace reverse()
 		{
-			return allPoints[i];
+			return allPoints[j];
 		}
 	}
 	return -1;
