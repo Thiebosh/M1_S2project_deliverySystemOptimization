@@ -18,7 +18,7 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
               path, result_name, save_gif, fps, g_files, g_files_lock):
     try:
         axe = fig.gca()
-        axe.title.set_text(f"{results[2][1]}km")  # :.1f
+        axe.title.set_text(f"{results[2][0]}km")  # :.1f
 
         img_buffers = []
         if(save_gif):
@@ -82,7 +82,7 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
             filename = path+RESULT_FOLDER+f"\\{result_name}_{idThread}.png"
             with g_files_lock:
                 g_files.append(filename)
-            fig.savefig(filename, dpi=500)
+            fig.savefig(filename)
 
     except KeyboardInterrupt:
         interrupt_event.set()
@@ -99,7 +99,7 @@ def make_graph(path, local_data, compute_data, results, result_name, show_names,
     x, y = zip(*cities)  # zip because of tuples : extract couples [x, y]
 
     # plot common part
-    fig = plt.figure()
+    fig = plt.figure(figsize=(6, 3))
     axe = fig.gca()
     axe.axis('off')
 
@@ -168,9 +168,9 @@ def make_graph(path, local_data, compute_data, results, result_name, show_names,
         handles, labels = axe.get_legend_handles_labels()
         handles = handles[1:3]+[handles[0]]+[handles[3]]
         labels = labels[1:3]+[labels[0]]+[labels[3]]
-        axe.legend(handles, labels, ncol=4, loc='lower center', bbox_to_anchor=(0.5, -0.1))
+        axe.legend(handles, labels, ncol=4, loc='lower center', bbox_to_anchor=(0.5, -0.15))
     else:
-        axe.legend(ncol=3, loc='lower center', bbox_to_anchor=(0.5, -0.1))
+        axe.legend(ncol=3, loc='lower center', bbox_to_anchor=(0.5, -0.15))
 
     # step6 : dump base graph and enrich it in each thread
     graph_buffer = io.BytesIO()
