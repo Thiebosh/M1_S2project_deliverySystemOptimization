@@ -139,13 +139,8 @@ map<int, vector<int>> findsolution(json const &input)
     int idTraveler;
     bool allEmpty = true;
     // select first restaurant
-    int break_counter = 0;
     do
     {
-        if (break_counter++ == 100) {
-            cout << "error" << endl;
-            exit(1); //erreur
-        }
         //clear deliverByWhom
         for (map<int, vector<int>>::iterator it = deliveredByWhom.begin(); it != deliveredByWhom.end(); it++)
         {
@@ -178,12 +173,20 @@ map<int, vector<int>> findsolution(json const &input)
 
             if (deliveries.at(i).empty())
             {
-                possiblePoints = getPossibleNextPeak(input.at("traveler").at(i).at("arc"), tmpPossiblePoints, tmpPossiblePoints.size());
+                vector<double> distances;
+                for(auto j: tmpPossiblePoints){
+                    distances.push_back(input.at("traveler").at(i).at("arc").at(j));
+                }
+                possiblePoints = getPossibleNextPeak(distances, tmpPossiblePoints, tmpPossiblePoints.size());
             }
             else
             {
                 int curPoint = deliveries.at(i).at(deliveries.at(i).size() - 1);
-                possiblePoints = getPossibleNextPeak(input.at("arc").at(curPoint), tmpPossiblePoints, tmpPossiblePoints.size());
+                vector<double> distances;
+                for(auto j: tmpPossiblePoints){
+                    distances.push_back(input.at("arc").at(curPoint).at(j));
+                }
+                possiblePoints = getPossibleNextPeak(distances, tmpPossiblePoints, tmpPossiblePoints.size());
             }
 
             if (possiblePoints.empty())
@@ -207,13 +210,26 @@ map<int, vector<int>> findsolution(json const &input)
                     distances.push_back(input.at("arc").at(curPoint).at(tmpPoint));
                 }
             }
+
             point = getIdPoint(possiblePoints, distances);
             if (point >= 0)
             {
                 deliveredByWhom.at(point).push_back(i);
             }
         }
-        
+        // if(bannedPoints.size() == deliveries.size()){
+        //     return deliveries;
+        // }
+        // cout << "DELIVERD BY WHOME" << endl;
+        // for(auto i : deliveredByWhom){
+        //     cout << i.first <<": "<<endl;
+        //     cout << "\t";
+        //     for(auto j: i.second){
+        //         cout << j << ", ";
+        //     }
+        //     cout << endl;
+        // }
+        // cout << endl;
         for (map<int, vector<int>>::iterator it = deliveredByWhom.begin(); it != deliveredByWhom.end(); it++)
         {
             solutionFound = false;
@@ -236,6 +252,11 @@ map<int, vector<int>> findsolution(json const &input)
             }
 
             possiblePoints = getPossibleNextPeak(distances, it->second, it->second.size());
+            // cout << "possible points" << endl;
+            // for(auto i:  possiblePoints){
+            //     cout << i << ", ";
+            // }
+            // cout<< endl;
             if (possiblePoints.empty())
             {
                 continue;
@@ -243,6 +264,8 @@ map<int, vector<int>> findsolution(json const &input)
 
             idTraveler = getIdPoint(possiblePoints, distances);
             idPoint = it->first;
+            // cout << "traveler: " << idTraveler << endl; 
+            // cout << "point: " << idPoint << endl; 
 
             if (input.at("peak").at(point).at("origin") == 1 && restaurantClientLink.find(idPoint) != restaurantClientLink.end())
             {
@@ -259,10 +282,10 @@ map<int, vector<int>> findsolution(json const &input)
                         storages[idTraveler] -= (int)input.at("peak").at(client).at("qty");
                         deliveries.at(idTraveler).push_back(idPoint);
                         canBeDelivered.at(idTraveler).push_back(client);
-                        vector<int>::iterator it = find(restaurantClientLink.at(idPoint).begin(), restaurantClientLink.at(idPoint).end(), client);
-                        if (it != restaurantClientLink.at(idPoint).end())
+                        vector<int>::iterator it2 = find(restaurantClientLink.at(idPoint).begin(), restaurantClientLink.at(idPoint).end(), client);
+                        if (it2 != restaurantClientLink.at(idPoint).end())
                         {
-                            restaurantClientLink.at(idPoint).erase(it);
+                            restaurantClientLink.at(idPoint).erase(it2);
                         }
 
                         if (restaurantClientLink.at(idPoint).empty())
@@ -295,6 +318,15 @@ map<int, vector<int>> findsolution(json const &input)
                 banedDeliveryman.at(idTraveler).clear();
             }
         }
+        // cout << "DELIVERIES" << endl;
+        // for(auto i : deliveries){
+        //     cout << i.first <<": "<<endl;
+        //     cout << "\t";
+        //     for(auto j: i.second){
+        //         cout << j << ", ";
+        //     }
+        //     cout << endl;
+        // }
 
         allEmpty = true;
         for (auto k : canBeDelivered)
