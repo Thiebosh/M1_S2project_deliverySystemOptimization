@@ -3,7 +3,9 @@ import re
 import argparse
 from distutils.util import strtobool
 
-from defines import ENGINE_FOLDER, GENERATOR_FOLDER, GENERATOR_EXE
+from defines import ENGINE_FOLDER
+from defines import GENERATOR_FOLDER, GENERATOR_EXE
+from defines import OPTIMIZER_FOLDER, OPTIMIZER_EXE
 
 
 def user_args(path):
@@ -25,61 +27,50 @@ def user_args(path):
 
 
 def config_verif(path, config_json):
-    # step1 : path_generation
     path += ENGINE_FOLDER
 
     if not config_json["path_generation"]["nb_process"]:
         print("Asked for 0 path generation : done.")
         exit()
 
+    # step1 : path_generation
     generator_path = path+GENERATOR_FOLDER
     if config_json["path_generation"]["algorithm"] == "default":
-        # pylint: disable=anomalous-backslash-in-string
-        regex = re.compile(r""+"^"+GENERATOR_EXE[1:]+"[0-9]+\.exe$")
+        regex = re.compile(r"^"+GENERATOR_EXE[1:]+r"[0-9]+\.exe$")
         nb_versions = [x for x in os.listdir(generator_path) if regex.match(x)]
         generator_path += "\\"+sorted(nb_versions, key=lambda x: int(x[len(GENERATOR_EXE)-1:-4]))[-1]
 
     else:
         generator_path += GENERATOR_EXE+str(config_json['path_generation']['algorithm'])+".exe"
         if not os.path.exists(generator_path):
-            print(f"Engine '{GENERATOR_EXE}{config_json['path_generation']['algorithm']}' doesn't exist")
+            print(f"Engine '{GENERATOR_EXE[1:]}{config_json['path_generation']['algorithm']}.exe' doesn't exist")
             exit()
     config_json["path_generation"]["algorithm"] = generator_path
 
-    # # step2 : path_optimization
-    # engine_path = path+ENGINE_FOLDER
-
-    # if config_json["path_fusion"]["algorithm"] == "default":
-    #     config_json["path_fusion"]["algorithm"] = \
-    #         engine_path+"\\v3\\fusion.exe"
-
-    # else:
-    #     engine_path += f"\\v3\\fusion.exe"
-    #     if not os.path.exists(engine_path):
-    #         print(f"Engine '{engine_path}' doesn't exist")
-    #         exit()
-
-    #     config_json["path_fusion"]["algorithm"] = engine_path
+    # step2 : path_optimization
+    optimizer_path = path+OPTIMIZER_FOLDER
+    if config_json["path_optimization"]["algorithm"] != "default":
+        optimizer_path += OPTIMIZER_EXE+config_json['path_optimization']['algorithm']+".exe"
+        if not os.path.exists(generator_path):
+            print(f"Engine '{OPTIMIZER_EXE[1:]}{config_json['path_optimization']['algorithm']}.exe' doesn't exist")
+            exit()
+        config_json["path_optimization"]["algorithm"] = optimizer_path
 
     # # step3 : path_fusion
-    # engine_path = path+ENGINE_FOLDER
-
-    # if config_json["path_fusion"]["algorithm"] == "default":
-    #     config_json["path_fusion"]["algorithm"] = \
-    #         engine_path+"\\v3\\fusion.exe"
-
-    # else:
-    #     engine_path += f"\\v3\\fusion.exe"
-    #     if not os.path.exists(engine_path):
-    #         print(f"Engine '{engine_path}' doesn't exist")
+    # fusionner_path = path+FUSIONNER_FOLDER
+    # if config_json["path_fusion"]["algorithm"] != "default":
+    #     fusionner_path += FUSIONNER_EXE+config_json['path_fusion']['algorithm']+".exe"
+    #     if not os.path.exists(generator_path):
+    #         print(f"Engine '{FUSIONNER_EXE[1:]}{config_json['path_fusion']['algorithm']}.exe' doesn't exist")
     #         exit()
+    #     config_json["path_fusion"]["algorithm"] = fusionner_path
 
-    #     config_json["path_fusion"]["algorithm"] = engine_path
+    # # step3 : path_fusion
 
     return config_json
 
 
-def traveler_line(line):  # peut remettre précision nom fichier, no ligne...
+def traveler_line(line, id_line):
     name, x, y, vehicule, speed, qty = line.split(",")
     try:
         x = float(x)
@@ -88,13 +79,13 @@ def traveler_line(line):  # peut remettre précision nom fichier, no ligne...
         qty = int(qty)
 
     except Exception as e:
-        print(e)
+        print(f"Traveler block, line {id_line+1} : {e}")
         exit()
 
     return name, x, y, vehicule, speed, qty
 
 
-def origin_line(line):  # peut remettre précision nom fichier, no ligne...
+def origin_line(line, id_line):
     name, x, y = line.split(",")
 
     try:
@@ -102,13 +93,13 @@ def origin_line(line):  # peut remettre précision nom fichier, no ligne...
         y = float(y)
 
     except Exception as e:
-        print(e)
+        print(f"Vertice block, deposit line {id_line+1} : {e}")
         exit()
 
     return name, x, y
 
 
-def dest_line(line):  # peut remettre précision nom fichier, no ligne...
+def dest_line(line, id_line, id_vertice):
     name, x, y, *optional = line.split(",")
 
     try:
@@ -117,7 +108,7 @@ def dest_line(line):  # peut remettre précision nom fichier, no ligne...
         qty = int(optional[0]) if len(optional) >= 1 else 1
 
     except Exception as e:
-        print(e)
+        print(f"Vertice block, line {id_line+1}, client {id_vertice+1} : {e}")
         exit()
 
     return name, x, y, qty

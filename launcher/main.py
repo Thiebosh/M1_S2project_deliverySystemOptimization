@@ -8,10 +8,10 @@ from parse import user_args, config_verif
 from synchronize import Synchronize
 from loader import compile_loader, load_data
 from files import load_file, save_csv
-from path_generation import path_generation
-from path_optimization import path_optimization
-from path_fusion import path_fusion
-from common import print_generated, print_fusionned, format_csv
+from path_generation import path_generation, print_generated
+from path_optimization import path_optimization, print_optimized
+# from path_fusion import path_fusion, print_fusionned
+from common import format_csv
 from graph import make_graph
 
 from defines import ENGINE_FOLDER, TMP_FILE, RESULT_FOLDER, DASHBOAD_URL
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     gen_algo = config["path_generation"]["algorithm"][config["path_generation"]["algorithm"].rfind('\\')+1:]
     max_recurs = config["path_generation"]["max_recursivity"]
     return_origin = "with" if config["path_generation"]["back_to_origin"] else "without"
-    opt_algo = config["path_optimization"]["algorithm"]
+    opt_algo = config["path_optimization"]["algorithm"][config["path_optimization"]["algorithm"].rfind('\\')+1:]
     nb_graph = f"A maximum of {config['results']['graph']['nb_max']}" if config["results"]["graph"]["make"] else "No"
 
     print(f"{datetime.now().time()} - You will run '{config['input_datafile']}' ({repartition}) with '{single_name}' parameters :")
@@ -85,37 +85,46 @@ if __name__ == "__main__":
 
     # step2.1 : compute data
     print(f"{datetime.now().time()} - Simulate paths...\n")
+    kpi_weights = list(config["results"]["KPI_weighting"].values())
     inputs = (config["path_generation"]["algorithm"],
               config["path_generation"]["max_recursivity"],
               int(config["path_generation"]["back_to_origin"] == True),
               config["path_generation"]["nb_process"],
               file_path,
-              list(config["results"]["KPI_weighting"].values()))
-    results_gen = asyncio.run(path_generation(*inputs, to_compute))
+              kpi_weights,
+              len(to_compute["traveler"]))
+    results_gen = asyncio.run(path_generation(*inputs))
 
     # step2.2 : optional print of results
     if config["results"]["print_console"]:
+        kpi_names = list(config["results"]["KPI_weighting"].keys())
         print(f"{datetime.now().time()} - Display step1 results...\n")
-        print_generated(local_data, results_gen,
-                        list(config["results"]["KPI_weighting"].keys()))
+        print_generated(local_data, results_gen, kpi_names)
 
-    # # step3.1 : apply post processing
-    # async run path_optimization()
-    results_opti = [-1]*len(results_gen)
-    # results_opti[2] = 1
+    # step3.1 : optional application of post processing
+    results_opti = []
+    if opt_algo != "default":
+        # exe_path, file_path, generated_paths, nb_tries
+        inputs = (config["path_optimization"]["algorithm"],
+                  file_path,
+                  results_gen,
+                  config["path_optimization"]["limit"],
+                  kpi_weights)
+        results_opti = asyncio.run(path_optimization(*inputs))
 
-    # # step3.2 : optional print of results
-    # if config["results"]["print_console"]:
-    #     print(f"{datetime.now().time()} - Display step2 results...\n")
-    #     print_optimized(fusionned_path)
+        # step3.2 : optional print of results
+        if config["results"]["print_console"]:
+            print(f"{datetime.now().time()} - Display step2 results...\n")
+            print_optimized(local_data, results_opti, kpi_names, opt_algo)
 
     # # step4.1 : collect data for path fusion
-    # result_fusion = path_fusion(to_compute["arc"], results, config["path_fusion"]["algorithm"])
+    # if fu_algo != "default":
+    #     result_fusion = path_fusion(to_compute["arc"], results, config["path_fusion"]["algorithm"])
 
-    # # step4.2 : optional print of results
-    # if config["results"]["print_console"]:
-    #     print(f"{datetime.now().time()} - Display step3 results...\n")
-    #     print_fusionned(fusionned_path)
+    #     # step4.2 : optional print of results
+    #     if config["results"]["print_console"]:
+    #         print(f"{datetime.now().time()} - Display step3 results...\n")
+    #         print_fusionned(fusionned_path)
 
     # step5.1 : csv formatting and optional saving
     print(f"{datetime.now().time()} - Prepare CSV...\n")

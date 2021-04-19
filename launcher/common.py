@@ -1,40 +1,4 @@
-import math
 import pandas as pd
-
-
-def print_generated(local_data, results, kpi_names):
-    # higher_dist = max([value for sublist in [([travels[0] for travels in exe[-1]]) for exe in results] for value in sublist])
-
-    digit_seed = 1+int(math.log10(max([exe[0] for exe in results])))
-    digit_score = 1+int(math.log10(max([exe[1] for exe in results])))
-    digit_name = max([len(x["name"]) for x in local_data["traveler"]])
-    digit_kpi = max([len(x) for x in kpi_names])
-
-    print(f"{len(results)} distinc(s) peaks travel(s) order(s) :")
-
-    for seed, score, kpi_values, travel_list in results:
-        print(f"- seed {seed:{digit_seed}d} : score of {score:{digit_score}f}")
-        print(f"\tKey performance indicators :")
-        for id, name in enumerate(kpi_names):
-            print(f"\t- {name:{digit_kpi}s} : {kpi_values[id]}")
-
-        for id, (dist, travel) in enumerate(travel_list):
-            travel = [local_data["peak"][x]["name"] for x in travel]
-
-            a = f"{local_data['traveler'][id]['name']:{digit_name}s}"
-            b = f"{dist:{digit_score+3}.2f}"
-            c = "with "+" -> ".join(travel) if dist > 0 else ""
-            print(f"\t\t{a} : {b}km {c}")
-
-        print()
-
-
-def print_optimized(path):
-    pass  # print only if better. Else, print "not better"
-
-
-def print_fusionned(path):
-    pass
 
 
 def origins_to_dests(to_compute, path):

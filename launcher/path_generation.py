@@ -3,17 +3,15 @@ import asyncio
 import time
 import os
 from numpy import average
+import math
 
-from defines import TMP_FILE
 
-
-async def path_generation(exe_path, recurs, back_origin, nb_process, file_path, kpi_weights, data):
+async def path_generation(exe_path, recurs, back_origin, nb_process, file_path, kpi_weights, nb_trav):
     current_pid = os.getpid()
     running_procs = [Popen([exe_path, str(current_pid+id), str(recurs), str(back_origin), file_path],
                      stdout=PIPE, stderr=PIPE, text=True)
                      for id in range(nb_process)]
 
-    nb_trav = len(data["traveler"])
     results = []
     time1 = time.time()
     while running_procs:
@@ -87,3 +85,30 @@ def make_unique_old(seed, data, current):
             current[index] = (dist, path, seed)
 
     return current
+
+
+def print_generated(local_data, results, kpi_names):
+    # higher_dist = max([value for sublist in [([travels[0] for travels in exe[-1]]) for exe in results] for value in sublist])
+
+    digit_seed = 1+int(math.log10(max([exe[0] for exe in results])))
+    digit_score = 1+int(math.log10(max([exe[1] for exe in results])))
+    digit_name = max([len(x["name"]) for x in local_data["traveler"]])
+    digit_kpi = max([len(x) for x in kpi_names])
+
+    print(f"{len(results)} distinc(s) peaks travel(s) order(s) :")
+
+    for seed, score, kpi_values, travel_list in results:
+        print(f"- seed {seed:{digit_seed}d} : score of {score:{digit_score}f}")
+        print(f"\tKey performance indicators :")
+        for id, name in enumerate(kpi_names):
+            print(f"\t- {name:{digit_kpi}s} : {kpi_values[id]}")
+
+        for id, (dist, travel) in enumerate(travel_list):
+            travel = [local_data["peak"][x]["name"] for x in travel]
+
+            a = f"{local_data['traveler'][id]['name']:{digit_name}s}"
+            b = f"{dist:{digit_score+3}.2f}"
+            c = "with "+" -> ".join(travel) if dist > 0 else ""
+            print(f"\t\t{a} : {b}km {c}")
+
+        print()

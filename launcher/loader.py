@@ -79,7 +79,7 @@ def acquire_data(file_content):
 
 def list_travelers(travel_lines, local_data, compute_data, nb_peak):
     for count, line in enumerate(travel_lines):
-        name, x, y, vehicule, speed, qty = parse.traveler_line(line)
+        name, x, y, vehicule, speed, qty = parse.traveler_line(line, count)
 
         local_data["traveler"][count]["name"] = name
         local_data["traveler"][count]["x"] = x
@@ -100,7 +100,7 @@ def list_peaks_arcs(peak_lines, local_data, compute_data, nb_peak, nb_trav, ids)
         origin = peaks[0]
         dests = peaks[1:] if type(peaks[1:]) is list else [peaks[1:]]
 
-        name, x, y = parse.origin_line(origin)
+        name, x, y = parse.origin_line(origin, count)
 
         dest_id = ids["local_peak"]
         ids["local_peak"] += 1
@@ -134,7 +134,7 @@ def list_peaks_arcs(peak_lines, local_data, compute_data, nb_peak, nb_trav, ids)
 
 
 def list_dests(local_data, compute_data, count, p_count, peak, origin_id, nb_peak, nb_trav, ids):
-    name, x, y, qty = parse.dest_line(peak)
+    name, x, y, qty = parse.dest_line(peak, count, p_count)
 
     dest_id = ids["local_peak"]
     ids["local_peak"] += 1
