@@ -70,6 +70,16 @@ def acquire_data(file_content):
         travel_lines = all_lines[data_lines[1][0]+1:data_lines[1][1]]
         peak_lines = all_lines[data_lines[2][0]+1:data_lines[2][1]]
 
+        if len(vehicule_lines) == 0:
+            print("no vehicule")
+            exit()
+        if len(travel_lines) == 0:
+            print("no traveler")
+            exit()
+        if len(peak_lines) == 0:
+            print("no vertices")
+            exit()
+
         return vehicule_lines, travel_lines, peak_lines
 
     except Exception as e:
@@ -99,6 +109,10 @@ def list_peaks_arcs(peak_lines, local_data, compute_data, nb_peak, nb_trav, ids)
         peaks = line.split(" - ")
         origin = peaks[0]
         dests = peaks[1:] if type(peaks[1:]) is list else [peaks[1:]]
+
+        if len(dests) == 0:
+            print(f"deposit {count+1} : no client")
+            exit()
 
         name, x, y = parse.origin_line(origin, count)
 
