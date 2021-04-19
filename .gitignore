@@ -183,3 +183,5 @@ dmypy.json
 *.app
 
 tests/
+
+*.bat

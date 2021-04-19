@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
         return -1;
 
     time_t seed = time(NULL) % id;
+    // seed = time_t(10);
     srand(seed);
     cout << seed << endl;
 
@@ -96,8 +97,10 @@ vector<int> getRemainingClient(map<int, vector<int>> const &map)
     return remainingClients;
 }
 
-double computeRecurDistance(int deep, vector<vector<double>> const &distMatrix, vector<int> &left, int curPoint) {
-    if (!deep || left.size() <= 1 || curPoint == -1) return 0;
+double computeRecurDistance(int deep, vector<vector<double>> const &distMatrix, vector<int> &left, int curPoint)
+{
+    if (!deep || left.size() <= 1 || curPoint == -1)
+        return 0;
 
     left.erase(remove(left.begin(), left.end(), curPoint), left.end());
 
@@ -119,9 +122,9 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
     map<int, vector<int>> deliveries;
     map<int, vector<int>> deliveredByWhom;
     map<int, vector<int>> banedDeliveryman;
-    vector<int> bannedPoints;
     map<int, vector<int>> canBeDelivered;
     vector<double> storages;
+    vector<int> tmpDeliveries;
     int nbTravelers = input.at("traveler").size();
     //initializing arrays
     for (int i = 0; i < nbTravelers; i++)
@@ -162,14 +165,16 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
     // select first restaurant
     do
     {
+        // cout << "START WHILE" << endl;
         //clear deliverByWhom
         for (map<int, vector<int>>::iterator it = deliveredByWhom.begin(); it != deliveredByWhom.end(); it++)
         {
             it->second.clear();
         }
-    
+
         for (int i = 0; i < nbTravelers; i++)
         {
+            // cout << "ppppp" << endl;
             possiblePoints.clear();
             tmpPossiblePoints = getRemainingRestaurant(restaurantClientLink);
             if (!canBeDelivered.at(i).empty())
@@ -177,66 +182,76 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                 //case the deliver hasnt moved yet
                 tmpPossiblePoints.insert(tmpPossiblePoints.end(), canBeDelivered.at(i).begin(), canBeDelivered.at(i).end());
             }
+            // cout << "qqqqq" << endl;
 
-            for(auto curPoint: bannedPoints){
-                if(find(tmpPossiblePoints.begin(), tmpPossiblePoints.end(), curPoint) != tmpPossiblePoints.end()){
-                    tmpPossiblePoints.erase(find(tmpPossiblePoints.begin(), tmpPossiblePoints.end(), curPoint));
-                }
-            }
-
-            for (auto tmpPoint : banedDeliveryman.at(i))
-            {
-                if (find(tmpPossiblePoints.begin(), tmpPossiblePoints.end(), tmpPoint) != tmpPossiblePoints.end())
-                {
-                    tmpPossiblePoints.erase(find(tmpPossiblePoints.begin(), tmpPossiblePoints.end(), tmpPoint));
-                }
-            }
+            // for (auto tmpPoint : banedDeliveryman.at(i))
+            // {
+            //     if (find(tmpPossiblePoints.begin(), tmpPossiblePoints.end(), tmpPoint) != tmpPossiblePoints.end())
+            //     {
+            //         tmpPossiblePoints.erase(find(tmpPossiblePoints.begin(), tmpPossiblePoints.end(), tmpPoint));
+            //     }
+            // }
 
             if (deliveries.at(i).empty())
             {
                 vector<double> distances;
-                for(auto j: tmpPossiblePoints){
+                for (auto j : tmpPossiblePoints)
+                {
                     distances.push_back(input.at("traveler").at(i).at("arc").at(j));
                 }
                 possiblePoints = getPossibleNextPeak(distances, tmpPossiblePoints, tmpPossiblePoints.size());
+                // cout << "possiblePoints" << endl;
+                // for(auto i: possiblePoints){
+                //     cout << i << ", ";
+                // }
+                // cout << endl; 
             }
             else
             {
                 int curPoint = deliveries.at(i).at(deliveries.at(i).size() - 1);
                 vector<double> distances;
-                for(auto j: tmpPossiblePoints){
+                for (auto j : tmpPossiblePoints)
+                {
                     distances.push_back(input.at("arc").at(curPoint).at(j));
                 }
                 possiblePoints = getPossibleNextPeak(distances, tmpPossiblePoints, tmpPossiblePoints.size());
             }
 
+            // cout << "rrrrrr" << endl;
+
             if (possiblePoints.empty())
             {
                 continue;
             }
+            // cout << "99999999" << endl;
 
             vector<double> distances;
             if (deliveries.at(i).empty())
             {
+                // cout << "8888888" << endl;
                 for (int tmpPoint : possiblePoints)
                 {
                     double dist = input.at("traveler").at(i).at("arc").at(tmpPoint);
-                    vector<int> left(possiblePoints);
-                    dist += computeRecurDistance(deepRecur, input.at("arc"), left, tmpPoint);
+                    // vector<int> left(possiblePoints);
+                    // cout << "aaa" << endl;
+                    // dist += computeRecurDistance(deepRecur, input.at("arc"), left, tmpPoint);
+                    // cout << "bbb" << endl;
                     distances.push_back(dist);
                 }
             }
             else
             {
+                // cout << "777777777" << endl;
                 int curPoint = deliveries.at(i).at(deliveries.at(i).size() - 1);
                 for (int tmpPoint : possiblePoints)
                 {
                     double dist = input.at("arc").at(curPoint).at(tmpPoint);
-                    vector<int> left(possiblePoints);
-                    dist += computeRecurDistance(deepRecur, input.at("arc"), left, tmpPoint);
+                    // vector<int> left(possiblePoints);
+                    // dist += computeRecurDistance(deepRecur, input.at("arc"), left, tmpPoint);
                     distances.push_back(dist);
                 }
             }
+            // cout << "sssssss" << endl;
 
             point = getIdPoint(possiblePoints, distances);
             if (point >= 0)
@@ -244,25 +259,19 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                 deliveredByWhom.at(point).push_back(i);
             }
         }
-        // if(bannedPoints.size() == deliveries.size()){
-        //     return deliveries;
-        // }
-        // cout << "DELIVERD BY WHOME" << endl;
-        // for(auto i : deliveredByWhom){
-        //     cout << i.first <<": "<<endl;
-        //     cout << "\t";
-        //     for(auto j: i.second){
-        //         cout << j << ", ";
+        // cout << "DELIVERD BY WHOM" << endl;
+        // for(auto k: deliveredByWhom){
+        //     cout << k.first<<": ";
+        //     for(auto r: k.second){
+        //         cout << r <<", ";
         //     }
         //     cout << endl;
         // }
-        // cout << endl;
+
         for (map<int, vector<int>>::iterator it = deliveredByWhom.begin(); it != deliveredByWhom.end(); it++)
         {
-            solutionFound = false;
             if (it->second.empty())
             {
-                // bannedPoints.push_back(it->first);
                 continue;
             }
             vector<double> distances;
@@ -274,16 +283,12 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                 }
                 else
                 {
-                    distances.push_back(input.at("arc").at(deliveries.at(curDeliver)[deliveries.at(curDeliver).size() - 1]).at(it->first));
+                    distances.push_back(input.at("arc").at(deliveries.at(curDeliver).at(deliveries.at(curDeliver).size() - 1)).at(it->first));
                 }
             }
 
             possiblePoints = getPossibleNextPeak(distances, it->second, it->second.size());
-            // cout << "possible points" << endl;
-            // for(auto i:  possiblePoints){
-            //     cout << i << ", ";
-            // }
-            // cout<< endl;
+
             if (possiblePoints.empty())
             {
                 continue;
@@ -291,10 +296,8 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
 
             idTraveler = getIdPoint(possiblePoints, distances);
             idPoint = it->first;
-            // cout << "traveler: " << idTraveler << endl; 
-            // cout << "point: " << idPoint << endl; 
-
-            if (input.at("peak").at(point).at("origin") == 1 && restaurantClientLink.find(idPoint) != restaurantClientLink.end())
+            // cout << "aaaa" << endl;
+            if (input.at("peak").at(idPoint).at("origin") == 1 && restaurantClientLink.find(idPoint) != restaurantClientLink.end())
             {
                 //if point is a restaurant check every clients of this restaurant
                 for (int client : restaurantClientLink.at(idPoint))
@@ -305,65 +308,217 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                         if deliveryman can store the order, we add this restaurant to the path and this client to 
                         the client that can be delivered and we reduce the storage space.
                     */
-                        solutionFound = true;
-                        storages[idTraveler] -= (int)input.at("peak").at(client).at("qty");
-                        deliveries.at(idTraveler).push_back(idPoint);
-                        canBeDelivered.at(idTraveler).push_back(client);
-                        vector<int>::iterator it2 = find(restaurantClientLink.at(idPoint).begin(), restaurantClientLink.at(idPoint).end(), client);
-                        if (it2 != restaurantClientLink.at(idPoint).end())
-                        {
-                            restaurantClientLink.at(idPoint).erase(it2);
-                        }
-
-                        if (restaurantClientLink.at(idPoint).empty())
-                        {
-                            restaurantClientLink.erase(idPoint);
-                        }
+                        // cout <<"CLIENT " << client << endl;
+                        tmpDeliveries.push_back(idTraveler);
+                        tmpDeliveries.push_back(idPoint);
+                        tmpDeliveries.push_back(client);
                         break;
                     }
                 }
             }
-            if (input.at("peak").at(idPoint).at("origin") == 0 && find(canBeDelivered.at(idTraveler).begin(), canBeDelivered.at(idTraveler).end(), idPoint) != canBeDelivered.at(idTraveler).end())
+            if (input.at("peak").at(idPoint).at("origin") == 0)
             {
                 /*
                 point is a client ready to be delivered, we remove it from the client ready to be delivered and
                 we increase the storage space of the deliveryman
                 */
-                solutionFound = true;
-                storages[idTraveler] += (int)input.at("peak").at(idPoint).at("qty");
-                deliveries.at(idTraveler).push_back(idPoint);
-                canBeDelivered.at(idTraveler).erase(find(canBeDelivered.at(idTraveler).begin(), canBeDelivered.at(idTraveler).end(), idPoint));
+                tmpDeliveries.push_back(idTraveler);
+                tmpDeliveries.push_back(idPoint);
             }
+        }
 
-            if (!solutionFound)
+        //check avg;
+        // cout << "test" << endl;
+        double avg = 0;
+        int nbPoint = 0;
+        // cout << "TMP DELIVERIES" << endl;
+        // for(auto i: tmpDeliveries){
+        //     cout << i <<", ";
+        // }
+        // cout << endl;
+        for (map<int, vector<int>>::iterator i = deliveries.begin(); i != deliveries.end(); i++)
+        {
+            if (i->second.empty())
+                continue;
+            avg += (double)input.at("traveler").at(i->first).at("arc").at(i->second.at(0));
+            for (auto j = 1; j < i->second.size(); j++)
             {
-                banedDeliveryman.at(idTraveler).push_back(idPoint);
+                avg += (double)input.at("arc").at(i->second.at(j - 1)).at(i->second.at(j));
+                nbPoint++;
+            }
+        }
+        // cout << "le gang" << endl;
+        for (int i = 0; i < tmpDeliveries.size(); i += 2)
+        {
+            idTraveler = tmpDeliveries.at(i);
+            idPoint = tmpDeliveries.at(i+1);
+            if (deliveries.at(idTraveler).empty())
+            {
+                avg += (double)input.at("traveler").at(idTraveler).at("arc").at(idPoint);
+                nbPoint++;
             }
             else
             {
-                bannedPoints.clear();
-                banedDeliveryman.at(idTraveler).clear();
+                int lastPoint = deliveries.at(idTraveler).at(deliveries.at(idTraveler).size()-1);
+                avg += (double)input.at("arc").at(lastPoint).at(idPoint);
+                nbPoint++;
+            }
+            if (input.at("peak").at(tmpDeliveries.at(i + 1)).at("origin") == 1)
+            {
+                i += 1;
             }
         }
+        avg = avg / nbPoint;
+        // cout << "avg: " << avg << endl;
+
+
+
         // cout << "DELIVERIES" << endl;
-        // for(auto i : deliveries){
-        //     cout << i.first <<": "<<endl;
-        //     cout << "\t";
-        //     for(auto j: i.second){
+        // for (auto i : deliveries)
+        // {
+        //     cout << "Traveler" << i.first << ": ";
+        //     for (auto j : i.second)
+        //     {
         //         cout << j << ", ";
         //     }
         //     cout << endl;
         // }
 
+        vector<int> pointsNoSolution;
+        int countPoint = 0;
+        for (int i = 0; i < tmpDeliveries.size(); i += 2)
+        {
+            countPoint++;
+            solutionFound = false;
+            idTraveler = tmpDeliveries.at(i);
+            idPoint = tmpDeliveries.at(i + 1);
+            // cout << "aaa" << idTraveler << "  " << idPoint << endl;
+            double dist;
+            if (deliveries.at(idTraveler).empty())
+            {
+                dist = input.at("traveler").at(idTraveler).at("arc").at(idPoint);
+            }
+            else
+            {
+                int lastPoint = deliveries.at(idTraveler).at(deliveries.at(idTraveler).size()-1);
+                dist = input.at("arc").at(lastPoint).at(idPoint);
+            }
+            if (dist < avg)
+            {
+                deliveries.at(idTraveler).push_back(idPoint);
+                solutionFound = true;
+                if (input.at("peak").at(idPoint).at("origin") == 1)
+                {
+                    // cout << "case resto" << endl;
+                    int client = tmpDeliveries.at(i + 2);
+                    storages[idTraveler] -= (int)input.at("peak").at(client).at("qty");
+                    canBeDelivered.at(idTraveler).push_back(client);
+                    vector<int>::iterator it2 = find(restaurantClientLink.at(idPoint).begin(), restaurantClientLink.at(idPoint).end(), client);
+                    if (it2 != restaurantClientLink.at(idPoint).end())
+                    {
+                        restaurantClientLink.at(idPoint).erase(it2);
+                    }
+
+                    if (restaurantClientLink.at(idPoint).empty())
+                    {
+                        restaurantClientLink.erase(idPoint);
+                    }
+                }
+                else if (input.at("peak").at(idPoint).at("origin") == 0)
+                {
+                    // cout << "case client" << endl;
+                    storages[idTraveler] += (int)input.at("peak").at(idPoint).at("qty");
+                    canBeDelivered.at(idTraveler).erase(find(canBeDelivered.at(idTraveler).begin(), canBeDelivered.at(idTraveler).end(), idPoint));
+                }
+                banedDeliveryman.at(idTraveler).clear();
+            }
+            // cout << "dddd" << endl;
+            if (!solutionFound)
+            {
+                pointsNoSolution.push_back(i);
+            }
+
+            // cout << "ffff" << endl;
+            if (input.at("peak").at(idPoint).at("origin") == 1)
+            {
+                i += 1;
+            }
+            // cout << "ggggg" << endl;
+        }
+
+        if (pointsNoSolution.size() == countPoint && !tmpDeliveries.empty())
+        {
+            // cout << "NO SOL FOUND" << endl;
+            vector<double> dists;
+            for (auto i : pointsNoSolution)
+            {
+                idTraveler = tmpDeliveries.at(i);
+                idPoint = tmpDeliveries.at(i + 1);
+                if (deliveries.at(idTraveler).empty())
+                {
+                    dists.push_back(input.at("traveler").at(idTraveler).at("arc").at(idPoint));
+                }
+                else
+                {
+                    int lastPoint = deliveries.at(idTraveler).at(deliveries.at(idTraveler).size()-1);
+                    dists.push_back(input.at("arc").at(lastPoint).at(idPoint));
+                }
+            }
+            // cout << "1111111" << endl;
+            int id = pointsNoSolution.at(min_element(dists.begin(), dists.end()) - dists.begin());
+            // cout << "aaaa" << endl;
+            idTraveler = tmpDeliveries.at(id);
+            idPoint = tmpDeliveries.at(id + 1);
+            // cout << "bbbbb" << endl;
+            deliveries.at(idTraveler).push_back(idPoint);
+            // cout << "ccccc" << endl;
+            if (input.at("peak").at(idPoint).at("origin") == 1)
+            {
+                int client = tmpDeliveries.at(id + 2);
+                storages[idTraveler] -= (int)input.at("peak").at(client).at("qty");
+                canBeDelivered.at(idTraveler).push_back(client);
+                vector<int>::iterator it2 = find(restaurantClientLink.at(idPoint).begin(), restaurantClientLink.at(idPoint).end(), client);
+                if (it2 != restaurantClientLink.at(idPoint).end())
+                {
+                    restaurantClientLink.at(idPoint).erase(it2);
+                }
+
+                if (restaurantClientLink.at(idPoint).empty())
+                {
+                    restaurantClientLink.erase(idPoint);
+                }
+            }
+            else if (input.at("peak").at(idPoint).at("origin") == 0)
+            {
+                // cout << "case client" << endl;
+                storages[idTraveler] += (int)input.at("peak").at(idPoint).at("qty");
+                canBeDelivered.at(idTraveler).erase(find(canBeDelivered.at(idTraveler).begin(), canBeDelivered.at(idTraveler).end(), idPoint));
+            }
+            // banedDeliveryman.at(idTraveler).clear();
+            // cout << "NO SOL FOUND END" << endl;
+        }
+        tmpDeliveries.clear();
+        pointsNoSolution.clear();
+        // cout << "BANNED DELIVERY MAN" << endl;
+        // for(auto k: banedDeliveryman){
+        //     cout << k.first<<": ";
+        //     for(auto r: k.second){
+        //         cout << r << ", ";
+        //     }
+        //     cout << endl;
+        // }
         allEmpty = true;
         for (auto k : canBeDelivered)
         {
+
             if (!k.second.empty())
             {
                 allEmpty = false;
                 break;
             }
         }
+
+        // cout << "END WHILE " << endl;
     } while (!(restaurantClientLink.empty()) || !allEmpty);
     return deliveries;
 }
