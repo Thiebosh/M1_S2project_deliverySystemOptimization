@@ -28,6 +28,10 @@ def config_verif(path, config_json):
     # step1 : path_generation
     path += ENGINE_FOLDER
 
+    if not config_json["path_generation"]["nb_process"]:
+        print("Asked for 0 path generation : done.")
+        exit()
+
     generator_path = path+GENERATOR_FOLDER
     if config_json["path_generation"]["algorithm"] == "default":
         # pylint: disable=anomalous-backslash-in-string
