@@ -1,6 +1,7 @@
 #include <vector>
 #include <algorithm>
 #include <random>
+#include <iostream>
 #include "json.hpp"
 
 using namespace std;
@@ -10,11 +11,15 @@ int getIdPoint(vector<int> const &allPoints, vector<double> const &distances)
 {
 	vector<double> weights;
 	vector<double> normalized_weights;
-
+	double sum = 0;
 	for (int i = allPoints.size() - 1; i >= 0; i--)
 	{
-		weights.push_back(1 / distances[i]);
+		// cout << "dist: " << distances[i] << endl;
+		sum += 1 / distances[i];
+		// cout << "sum: " << sum << endl;
+		weights.push_back(sum);
 	}
+	// cout << "end" << endl;
 
 	double max_val = *max_element(weights.begin(), weights.end());
 	for (auto w : weights)
@@ -27,7 +32,7 @@ int getIdPoint(vector<int> const &allPoints, vector<double> const &distances)
 	{
 		if (randomValue <= normalized_weights[i])
 		{
-			return allPoints[i];
+			return allPoints[normalized_weights.size()-1-i];
 		}
 	}
 	return -1;
