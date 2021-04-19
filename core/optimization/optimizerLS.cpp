@@ -65,53 +65,46 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
+
 bool checknei(vector<int> const &solution, json const &input) {
-    vector<int> ableclient;
+    vector<int> ableclient(input["peak"].size(), 0);
     int storage = input["traveler"][0]["qty"];
     int des = 0;
-
     for (int i = 0; i < solution.size(); i++) {
         if (input["peak"][solution[i]]["origin"] == 1) {
             if (!storage) {
                 des++;
                 break;
             }
-            storage--;
-            for (int j = 0; j < input["peak"][solution[i]]["link"].size(); j++) {
-                ableclient.push_back(input["peak"][solution[i]]["link"][j]);
+            int j = 0;
+            while(j++ < input["peak"][solution[i]]["link"].size() && storage> 0) {
+                ableclient[solution[i]]++;
+                storage--;
             }
         }
 
         if (input["peak"][solution[i]]["origin"] == 0) {
             storage++;
-            int judge = 0;
-            for (int j = 0; j < ableclient.size(); j++) {
-                if (solution[i] == ableclient[j]) {
-                    judge++;
-                }
-            }
-            if (judge == 0) {
+            int position = input["peak"][solution[i]]["link"];
+            if(ableclient[position] > 0) ableclient[position]--;
+            else {
                 des++;
                 break;
             }
-        }
+        }        
     }
-
-    return !des;
+       return !des;
 }
-
 void findnei(vector<int> &solution, json const &input, int const path_id) {
-    vector<int> nei = solution;
-    int a = rand() % input["peak"].size() + 1;
-
-    for (int i = 0; i < nei.size() && i != a; i++) {
-        int nuclear = nei[a];
-        nei[a] = nei[i];
-        nei[i] = nuclear;
-
+    vector<int> bestnei=solution;
+    for(int a=0;a<solution.size();a++){    
+        for (int i = 0; i < solution.size()&&i!=a ; i++) {
+        vector<int> nei = solution;
+        swap(nei[a],nei[i]);
         if (checknei(nei,input) &&
             travelerDistTotal(nei, input, path_id) < travelerDistTotal(solution, input, path_id)) {
-            solution = nei;
+            bestnei = nei;
         }
-    }
+    }}
+    solution=bestnei;
 }

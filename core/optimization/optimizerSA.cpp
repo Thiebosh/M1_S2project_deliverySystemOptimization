@@ -22,7 +22,7 @@ using namespace std;
 using json = nlohmann::json;
 
 
-void findnei(vector<int> &solution, json const &input, int const path_id, int t);
+void findnei(vector<int> &bestsolution,vector<int> &solution, json const &input, int const path_id, int t);
 
 // .\localSearch.exe 0 125 ../data.tmp "[[0, 2, 3, 1], [4, 6, 7, 5], [-1]]" 100
 int main(int argc, char* argv[]) {
@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
 
         while (t1 > t_end) {
             for (int i = 0; i < atoi(argv[ARG_TRIES]); i++) {
-                findnei(bestpath, inputData, path_id, t1);
+                findnei(bestpath,currentpath, inputData, path_id, t1);
             }
             t1 *= q;
         }
@@ -102,30 +102,27 @@ bool checknei(vector<int> const &solution, json const &input) {
     }
 
     return !des;
-}
+}   
+    
 
-void findnei(vector<int> &solution, json const &input, int const path_id, int t) {
+void findnei(vector<int> &bestsolution,vector<int> &solution, json const &input, int const path_id, int t) {
     vector<int> nei = solution;
-    vector<int> result = solution;
-    int a = rand() % input["peak"].size() + 1;
-    int i = rand() % input["peak"].size() + 1;
-    int nuclear = nei[a];
-    nei[a] = nei[i];
-    nei[i] = nuclear;
-
+    srand(unsigned(time(0)));
+    int a = rand() % solution.size() ;
+    int i = rand() % solution.size() ;
+    swap(nei[a],nei[i]);
     if (checknei(nei, input)) {
         float dis = travelerDistTotal(nei, input, path_id);
         float dis_solu = travelerDistTotal(solution, input, path_id);
-
         if (dis < travelerDistTotal(solution, input, path_id)) {
             solution = nei;
-            result = nei;
+            bestsolution = nei;
         }
         else {
             double r = (rand() % 100 + 1) / 100;
             double d = dis - dis_solu;
             if (exp(-d / t) <= r) {
-                result = solution;
+                bestsolution = solution;
                 solution = nei;
             }
         }
