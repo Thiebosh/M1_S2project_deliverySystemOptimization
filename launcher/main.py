@@ -58,6 +58,30 @@ if __name__ == "__main__":
     file_path = path+ENGINE_FOLDER+TMP_FILE
     open(file_path, "w").write(data)
 
+    # step1.4 : confirm
+    nb_trav = len(local_data["traveler"])
+    nb_deposit = len([line for line in local_data["peak"] if line["origin"]])
+    nb_client = len([line for line in local_data["peak"] if not line["origin"]])
+    repartition = f"{nb_trav} travelers, {nb_deposit} deposits and {nb_client} clients"
+    single_name = config_name[config_name.rfind('\\')+1:]
+    nb_exe = config["path_generation"]["nb_process"]
+    gen_algo = config["path_generation"]["algorithm"][config["path_generation"]["algorithm"].rfind('\\')+1:]
+    return_origin = "with" if config["path_generation"]["back_to_origin"] else "without"
+    opt_algo = config["path_optimization"]["algorithm"]
+    nb_graph = f"A maximum of {3}" if config["results"]["graph"]["make"] else "No"
+
+    print(f"{datetime.now().time()} - You will run '{config['input_datafile']}' ({repartition}) with '{single_name}' parameters :")
+    print("Following KPI values :")
+    for key, value in config["results"]["KPI_weighting"].items():
+        print(f"  - {key} : {value}")
+    print(f"{nb_exe} executions of {gen_algo} algorithm {return_origin} return to origin")
+    if opt_algo != "default":
+        print(f"Application of {opt_algo} optimisation algorithm on distincts paths")
+    print(f"{nb_graph} graphs generation")
+
+    if input("\nContinue(y) ? ").upper() != "Y":
+        exit()
+
     # step2.1 : compute data
     print(f"{datetime.now().time()} - Simulate paths...\n")
     inputs = (config["path_generation"]["algorithm"],
