@@ -52,3 +52,7 @@ def assemble_travs(exe_path, file_path, distances, seed, travs_paths):
         assembled += travs_paths[id]
 
     return assembled
+
+
+def print_fusionned(path):
+    pass

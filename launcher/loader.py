@@ -70,6 +70,16 @@ def acquire_data(file_content):
         travel_lines = all_lines[data_lines[1][0]+1:data_lines[1][1]]
         peak_lines = all_lines[data_lines[2][0]+1:data_lines[2][1]]
 
+        if len(vehicule_lines) == 0:
+            print("no vehicule")
+            exit()
+        if len(travel_lines) == 0:
+            print("no traveler")
+            exit()
+        if len(peak_lines) == 0:
+            print("no vertices")
+            exit()
+
         return vehicule_lines, travel_lines, peak_lines
 
     except Exception as e:
@@ -79,7 +89,7 @@ def acquire_data(file_content):
 
 def list_travelers(travel_lines, local_data, compute_data, nb_peak):
     for count, line in enumerate(travel_lines):
-        name, x, y, vehicule, speed, qty = parse.traveler_line(line)
+        name, x, y, vehicule, speed, qty = parse.traveler_line(line, count)
 
         local_data["traveler"][count]["name"] = name
         local_data["traveler"][count]["x"] = x
@@ -100,7 +110,11 @@ def list_peaks_arcs(peak_lines, local_data, compute_data, nb_peak, nb_trav, ids)
         origin = peaks[0]
         dests = peaks[1:] if type(peaks[1:]) is list else [peaks[1:]]
 
-        name, x, y = parse.origin_line(origin)
+        if len(dests) == 0:
+            print(f"deposit {count+1} : no client")
+            exit()
+
+        name, x, y = parse.origin_line(origin, count)
 
         dest_id = ids["local_peak"]
         ids["local_peak"] += 1
@@ -134,7 +148,7 @@ def list_peaks_arcs(peak_lines, local_data, compute_data, nb_peak, nb_trav, ids)
 
 
 def list_dests(local_data, compute_data, count, p_count, peak, origin_id, nb_peak, nb_trav, ids):
-    name, x, y, qty = parse.dest_line(peak)
+    name, x, y, qty = parse.dest_line(peak, count, p_count)
 
     dest_id = ids["local_peak"]
     ids["local_peak"] += 1

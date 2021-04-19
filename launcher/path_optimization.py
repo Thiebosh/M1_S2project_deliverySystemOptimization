@@ -1,15 +1,18 @@
 from subprocess import Popen, PIPE
 import asyncio
+from distutils.util import strtobool
 import time
+import math
 
 
-async def path_optimization(exe_path, file_path, nb_process, generated_paths):
-    running_procs = [Popen([exe_path, str(id), generated_paths["seed"],
-                            file_path, generated_paths["path"]],
+async def path_optimization(exe_path, file_path, generated_paths, nb_tries, kpi_weights):
+    # .\localSearch.exe id seed datafile path nb_tries
+    running_procs = [Popen([exe_path, str(id), generated_paths[id][0],
+                            file_path, generated_paths[id][-1]],
                      stdout=PIPE, stderr=PIPE, text=True)
-                     for id in range(nb_process)]
+                     for id in range(len(generated_paths))]
 
-    # results = []
+    nb_trav = len(generated_paths[0][-1])
     time1 = time.time()
     while running_procs:
         for proc in running_procs:
@@ -28,14 +31,24 @@ async def path_optimization(exe_path, file_path, nb_process, generated_paths):
             print(lines[1:])
             continue
 
-        # seed = lines[1]
-        # kpi = lines[2]
-        # paths = [line[:-1] for line in lines[3:3+nb_trav]]
+        id = int(lines[0])
+        generated_paths[id].append(strtobool(lines[1]))  # is better
 
-        # preprocess results rather than sleep
-        # results = make_unique(seed, kpi, kpi_weights, paths, results)
+        if generated_paths[id][-1]:
+            kpi = lines[2]
+            paths = [line[:-1] for line in lines[3:3+nb_trav]]
+
+            # # preprocess results rather than sleep
+            # generated_paths[id][1] = total score
+            # generated_paths[id][2] = kpi bien parsé
+            # generated_paths[id][-1] = paths bien parsé
 
     time2 = time.time()
     print(f'Improvement executions took {(time2-time1)*1000.0:.3f} ms\n')
 
-    return
+    return generated_paths
+
+
+def print_optimized(local_data, results, kpi_names, algo):
+    for line in [line for line in results if line[-1]]:  # print only better
+        pass
