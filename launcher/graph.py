@@ -10,7 +10,7 @@ import pickle
 import io
 import random
 
-from defines import MAPS_FOLDER, RESULT_FOLDER, MAX_GRAPH, MAX_COUNTRIES
+from defines import MAPS_FOLDER, RESULT_FOLDER, MAX_COUNTRIES
 
 
 def plot_path(idThread, interrupt_event, fig, results, cities,
@@ -89,11 +89,11 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
         return
 
 
-def make_graph(path, local_data, compute_data, results, result_name, show_names, link_vertices, background, save_gif, fps):
+def make_graph(path, local_data, compute_data, results, nb_graph, result_name, show_names, link_vertices, background, save_gif, fps):
     plt.switch_backend('agg')
 
     # prepare graphs
-    nb_graph = min(MAX_GRAPH, len(results))
+    nb_graph = min(nb_graph, len(results))
 
     cities = [(peak["x"], peak["y"]) for peak in local_data["peak"]]
     x, y = zip(*cities)  # zip because of tuples : extract couples [x, y]

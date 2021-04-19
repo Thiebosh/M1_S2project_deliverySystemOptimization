@@ -68,7 +68,7 @@ if __name__ == "__main__":
     gen_algo = config["path_generation"]["algorithm"][config["path_generation"]["algorithm"].rfind('\\')+1:]
     return_origin = "with" if config["path_generation"]["back_to_origin"] else "without"
     opt_algo = config["path_optimization"]["algorithm"]
-    nb_graph = f"A maximum of {3}" if config["results"]["graph"]["make"] else "No"
+    nb_graph = f"A maximum of {config['results']['graph']['nb_max']}" if config["results"]["graph"]["make"] else "No"
 
     print(f"{datetime.now().time()} - You will run '{config['input_datafile']}' ({repartition}) with '{single_name}' parameters :")
     print("Following KPI values :")
@@ -126,7 +126,8 @@ if __name__ == "__main__":
     # step5.2 : optional graph generation
     if config["results"]["graph"]["make"]:
         print(f"{datetime.now().time()} - Generate graphs...\n")
-        inputs = (config["input_datafile"],
+        inputs = (config['results']['graph']['nb_max'],
+                  config["input_datafile"],
                   config["results"]["graph"]["show_names"],
                   config["results"]["graph"]["link_vertices"],
                   config["results"]["graph"]["map_background"],
