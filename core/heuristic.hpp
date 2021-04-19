@@ -13,13 +13,14 @@ int getIdPoint(vector<int> const &allPoints, vector<double> const &distances)
 
 	for (int i = allPoints.size()-1; i >= 0; i--)
 	{
-		weights.push_back(1/distances[i]);
+		weights.push_back(pow(1/distances[i], 2));
 	}
 
-	double max_val = *max_element(weights.begin(), weights.end());
+	double max_val_coeff = 100 / weights[weights.size()-1];
 	for(auto w: weights){
-		normalized_weights.push_back(w*100/max_val);
+		normalized_weights.push_back(w*max_val_coeff);
 	}
+	normalized_weights[0] /= 2;
 
 	double randomValue =  rand()%100;
 	for (int i = 0; i < normalized_weights.size(); i++)

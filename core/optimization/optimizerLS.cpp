@@ -3,12 +3,12 @@
 #include <math.h>
 #include <vector>
 #include <map>
-#include <time.h>
 #include <algorithm>
 #include <fstream>
 #include <streambuf>
 #include "..\json.hpp"
 #include "..\kpi.hpp"
+#include "common.hpp"
 
 //input args
 #define ARG_ID 1
@@ -38,62 +38,24 @@ int main(int argc, char* argv[]) {
     json inputData = json::parse((std::istreambuf_iterator<char>(t)), (std::istreambuf_iterator<char>()));
 
     json path_list = json::parse(argv[ARG_PATH]);
-
-    double scoreBefore = 0;
+    json best_path_list = path_list;
 
     // search for each traveler path
-    for (int path_id = 0; path_id < path_list.size(); path_id++) {
-        if (path_list.at(path_id).size() <= 2) continue; //not enough vertices
+    for (int path_id = 0; path_id < best_path_list.size(); path_id++) {
+        if (best_path_list.at(path_id).size() <= 2) continue; //not enough vertices
 
-        vector<int> currentpath = path_list.at(path_id);
-
-        cout << endl << path_id << endl;
-        cout << "before : " << travelerDistTotal(currentpath, inputData, path_id) << ";";
-        for (int elem : currentpath) cout << elem << ",";
-        cout << endl;
+        vector<int> currentpath = best_path_list.at(path_id);
 
         for (int i = 0; i < atoi(argv[ARG_TRIES]); i++) {
             findnei(currentpath, inputData, path_id);
         }
 
-        cout << "after  : " << travelerDistTotal(currentpath, inputData, path_id) << ";";
-        for (int elem : currentpath) cout << elem << ",";
-        cout << endl;
+        best_path_list.at(path_id) = currentpath;
     }
+
+    print_results(inputData, path_list, best_path_list);
 
     return 0;
-}
-
-
-bool checknei(vector<int> const &solution, json const &input) {
-    vector<int> ableclient(input["peak"].size(), 0);
-    int storage = input["traveler"][0]["qty"];
-    int des = 0;
-
-    for (int i = 0; i < solution.size(); i++) {
-        if (input["peak"][solution[i]]["origin"] == 1) {
-            if (!storage) {
-                des++;
-                break;
-            }
-            int j = 0;
-            while(j++ < input["peak"][solution[i]]["link"].size() && storage-- > 0) {
-                ableclient[solution[i]]++;
-            }
-        }
-
-        if (input["peak"][solution[i]]["origin"] == 0) {
-            storage++;
-            int position = input["peak"][solution[i]]["link"];
-            if(ableclient[position] > 0) ableclient[position]--;
-            else {
-                des++;
-                break;
-            }
-        }        
-    }
-
-    return !des;
 }
 
 
@@ -102,10 +64,10 @@ void findnei(vector<int> &solution, json const &input, int const path_id) {
 
     for(int a = 0; a < solution.size(); a++){    
         for (int i = 0; i < solution.size() && i != a; i++) {
-            vector<int> nei = solution;
+            vector<int> nei = bestnei;
             swap(nei[a], nei[i]);
 
-            double before = travelerDistTotal(solution, input, path_id);
+            double before = travelerDistTotal(bestnei, input, path_id);
             double after = travelerDistTotal(nei, input, path_id);
 
             if (checknei(nei, input) && before > after) bestnei = nei;

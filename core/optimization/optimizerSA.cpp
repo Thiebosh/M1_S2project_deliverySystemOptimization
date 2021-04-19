@@ -3,12 +3,12 @@
 #include <math.h>
 #include <vector>
 #include <map>
-#include <time.h>
 #include <algorithm>
 #include <fstream>
 #include <streambuf>
 #include "..\json.hpp"
 #include "..\kpi.hpp"
+#include "common.hpp"
 
 //input args
 #define ARG_ID 1
@@ -38,8 +38,7 @@ int main(int argc, char* argv[]) {
     json inputData = json::parse((std::istreambuf_iterator<char>(t)), (std::istreambuf_iterator<char>()));
 
     json path_list = json::parse(argv[ARG_PATH]);
-
-    double scoreBefore = 0;
+    json best_path_list = path_list;
 
     // search for each traveler path
     for (int path_id = 0; path_id < path_list.size(); path_id++) {
@@ -54,53 +53,19 @@ int main(int argc, char* argv[]) {
 
         while (t1 > t_end) {
             for (int i = 0; i < atoi(argv[ARG_TRIES]); i++) {
-                findnei(bestpath,currentpath, inputData, path_id, t1);
+                findnei(bestpath, currentpath, inputData, path_id, t1);
             }
             t1 *= q;
         }
+
+        best_path_list[path_id] = bestpath;
     }
 
-    double scoreAfter = 0;
-
-    if (scoreBefore > scoreAfter) {
-        cout << "better" << endl;
-    }
-
+    print_results(inputData, path_list, best_path_list);
+    
     return 0;
 }
 
-
-bool checknei(vector<int> const &solution, json const &input) {
-    vector<int> ableclient(input["peak"].size(), 0);
-    int storage = input["traveler"][0]["qty"];
-    int des = 0;
-
-    for (int i = 0; i < solution.size(); i++) {
-        if (input["peak"][solution[i]]["origin"] == 1) {
-            if (!storage) {
-                des++;
-                break;
-            }
-            int j = 0;
-            while(j++ < input["peak"][solution[i]]["link"].size() && storage-- > 0) {
-                ableclient[solution[i]]++;
-            }
-        }
-
-        if (input["peak"][solution[i]]["origin"] == 0) {
-            storage++;
-            int position = input["peak"][solution[i]]["link"];
-            if(ableclient[position] > 0) ableclient[position]--;
-            else {
-                des++;
-                break;
-            }
-        }
-    }
-
-    return !des;
-}   
-    
 
 void findnei(vector<int> &bestsolution, vector<int> &solution, json const &input, int const path_id, int t) {
     vector<int> nei = solution;
