@@ -6,7 +6,6 @@
 using namespace std;
 using json = nlohmann::json;
 
-// % trav, min, max, écart (max-min), moyenne, médiane et total
 
 float travelerDistTotal(vector<int> const &path, json const &input, int traveler, bool back_origin)
 {
@@ -31,6 +30,8 @@ vector<float> non_zero(vector<float> const &vect)
     non_zero.resize(distance(non_zero.begin(), it));
     return non_zero;
 }
+
+// total, % trav, min, max, écart (max-min), moyenne, médiane
 
 float kpi0(vector<float> const &distances) //total
 {
