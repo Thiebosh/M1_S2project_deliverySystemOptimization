@@ -87,6 +87,7 @@ if __name__ == "__main__":
     print(f"{datetime.now().time()} - Simulate paths...\n")
     inputs = (config["path_generation"]["algorithm"],
               config["path_generation"]["max_recursivity"],
+              int(config["path_generation"]["back_to_origin"] == True),
               config["path_generation"]["nb_process"],
               file_path,
               list(config["results"]["KPI_weighting"].values()))

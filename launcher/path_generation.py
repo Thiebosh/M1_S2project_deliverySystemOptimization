@@ -7,9 +7,9 @@ from numpy import average
 from defines import TMP_FILE
 
 
-async def path_generation(exe_path, recurs, nb_process, file_path, kpi_weights, data):
+async def path_generation(exe_path, recurs, back_origin, nb_process, file_path, kpi_weights, data):
     current_pid = os.getpid()
-    running_procs = [Popen([exe_path, str(current_pid+id), str(recurs), file_path],
+    running_procs = [Popen([exe_path, str(current_pid+id), str(recurs), str(back_origin), file_path],
                      stdout=PIPE, stderr=PIPE, text=True)
                      for id in range(nb_process)]
 

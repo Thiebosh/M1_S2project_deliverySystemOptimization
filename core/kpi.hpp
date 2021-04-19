@@ -8,11 +8,14 @@ using json = nlohmann::json;
 
 // % trav, min, max, écart (max-min), moyenne, médiane et total
 
-float travelerDistTotal(vector<int> const &path, json const &input, int traveler)
+float travelerDistTotal(vector<int> const &path, json const &input, int traveler, bool back_origin)
 {
     float total = 0;
-    if(path.size() > 0){
+    if (path.size() > 0) {
         total += (float)input.at("traveler").at(traveler).at("arc").at(path[0]);
+        if (back_origin) {
+            total += (float)input.at("traveler").at(traveler).at("arc").at(path[path.size()-1]);
+        }
     }
     for (int i = 1; i < path.size(); i++)
     {

@@ -10,8 +10,9 @@
 //input args
 #define ARG_ID 1
 #define ARG_RECUR 2
-#define ARG_FILE_PATH 3
-#define NB_ARGS 4
+#define ARG_BACK_ORIGIN 3
+#define ARG_FILE_PATH 4
+#define NB_ARGS 5
 
 using namespace std;
 using json = nlohmann::json;
@@ -49,7 +50,7 @@ int main(int argc, char *argv[])
     vector<float> travelerDist;
     for (int i = 0; i < inputData.at("traveler").size(); i++)
     {
-        travelerDist.push_back(travelerDistTotal(res.at(i), inputData, i));
+        travelerDist.push_back(travelerDistTotal(res.at(i), inputData, i, atoi(argv[ARG_BACK_ORIGIN]) == 1));
     }
 
     print_kpis(travelerDist);
