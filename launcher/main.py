@@ -66,6 +66,7 @@ if __name__ == "__main__":
     single_name = config_name[config_name.rfind('\\')+1:]
     nb_exe = config["path_generation"]["nb_process"]
     gen_algo = config["path_generation"]["algorithm"][config["path_generation"]["algorithm"].rfind('\\')+1:]
+    max_recurs = config["path_generation"]["max_recursivity"]
     return_origin = "with" if config["path_generation"]["back_to_origin"] else "without"
     opt_algo = config["path_optimization"]["algorithm"]
     nb_graph = f"A maximum of {config['results']['graph']['nb_max']}" if config["results"]["graph"]["make"] else "No"
@@ -74,7 +75,7 @@ if __name__ == "__main__":
     print("Following KPI values :")
     for key, value in config["results"]["KPI_weighting"].items():
         print(f"  - {key} : {value}")
-    print(f"{nb_exe} executions of {gen_algo} algorithm {return_origin} return to origin")
+    print(f"{nb_exe} executions of {gen_algo} algorithm with recursivity of {max_recurs}, {return_origin} return to origin")
     if opt_algo != "default":
         print(f"Application of {opt_algo} optimisation algorithm on distincts paths")
     print(f"{nb_graph} graphs generation")
@@ -85,6 +86,7 @@ if __name__ == "__main__":
     # step2.1 : compute data
     print(f"{datetime.now().time()} - Simulate paths...\n")
     inputs = (config["path_generation"]["algorithm"],
+              config["path_generation"]["max_recursivity"],
               config["path_generation"]["nb_process"],
               file_path,
               list(config["results"]["KPI_weighting"].values()))

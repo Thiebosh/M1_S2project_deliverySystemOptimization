@@ -8,9 +8,10 @@
 #include "..\kpi.hpp"
 
 //input args
-#define ARG_FILE_PATH 2
 #define ARG_ID 1
-#define NB_ARGS 3
+#define ARG_RECUR 2
+#define ARG_FILE_PATH 3
+#define NB_ARGS 4
 
 using namespace std;
 using json = nlohmann::json;
@@ -20,7 +21,9 @@ vector<int> getRemainingRestaurant(map<int, vector<int>> const &map);
 
 vector<int> getRemainingClient(map<int, vector<int>> const &map);
 
-map<int, vector<int>> findsolution(json const &input);
+double computeRecurDistance(int deep, vector<vector<double>> const &distMatrix, vector<int> &left, int curPoint);
+
+map<int, vector<int>> findsolution(json const &input, int deepRecur);
 
 // main function
 int main(int argc, char *argv[])
@@ -40,7 +43,7 @@ int main(int argc, char *argv[])
     json inputData = json::parse((istreambuf_iterator<char>(t)), (istreambuf_iterator<char>()));
 
     // declare result tab
-    map<int, vector<int>> res = findsolution(inputData);
+    map<int, vector<int>> res = findsolution(inputData, atoi(argv[ARG_RECUR]));
 
     // Print results
     vector<float> travelerDist;
@@ -48,6 +51,7 @@ int main(int argc, char *argv[])
     {
         travelerDist.push_back(travelerDistTotal(res.at(i), inputData, i));
     }
+
     print_kpis(travelerDist);
 
     for (int i = 0; i < inputData.at("traveler").size(); i++)
@@ -91,7 +95,23 @@ vector<int> getRemainingClient(map<int, vector<int>> const &map)
     return remainingClients;
 }
 
-map<int, vector<int>> findsolution(json const &input)
+double computeRecurDistance(int deep, vector<vector<double>> const &distMatrix, vector<int> &left, int curPoint) {
+    if (!deep || left.size() <= 1 || curPoint == -1) return 0;
+
+    left.erase(remove(left.begin(), left.end(), curPoint), left.end());
+
+    vector<double> distances;
+    for (int tmpPoint : left)
+    {
+        distances.push_back(distMatrix[curPoint][tmpPoint]);
+    }
+
+    int nextPoint = getIdPoint(left, distances);
+
+    return distances[nextPoint] + computeRecurDistance(deep - 1, distMatrix, left, nextPoint);
+}
+
+map<int, vector<int>> findsolution(json const &input, int deepRecur)
 {
     // build list of unselected peaks
     map<int, vector<int>> restaurantClientLink;
@@ -199,7 +219,10 @@ map<int, vector<int>> findsolution(json const &input)
             {
                 for (int tmpPoint : possiblePoints)
                 {
-                    distances.push_back(input.at("traveler").at(i).at("arc").at(tmpPoint));
+                    double dist = input.at("traveler").at(i).at("arc").at(tmpPoint);
+                    vector<int> left(possiblePoints);
+                    dist += computeRecurDistance(deepRecur, input.at("arc"), left, tmpPoint);
+                    distances.push_back(dist);
                 }
             }
             else
@@ -207,7 +230,10 @@ map<int, vector<int>> findsolution(json const &input)
                 int curPoint = deliveries.at(i).at(deliveries.at(i).size() - 1);
                 for (int tmpPoint : possiblePoints)
                 {
-                    distances.push_back(input.at("arc").at(curPoint).at(tmpPoint));
+                    double dist = input.at("arc").at(curPoint).at(tmpPoint);
+                    vector<int> left(possiblePoints);
+                    dist += computeRecurDistance(deepRecur, input.at("arc"), left, tmpPoint);
+                    distances.push_back(dist);
                 }
             }
 
