@@ -75,7 +75,7 @@ def print_optimized(local_data, results, results_before, kpi_names, algo):
 
     for seed, score, kpi_values, travel_list, id_exe in results:
         ratio = 100-score/results_before[id_exe][1]*100
-        print(f"- Generation {id_exe}, seed {seed:{digit_seed}d} :")
+        print(f"- Generation {id_exe+1}, seed {seed:{digit_seed}d} :")
         print(f"    Old score : {results_before[id_exe][1]:{digit_score}.2f}")
         print(f"    New score : {score:{digit_score}.2f} (+{ratio:.1f}%)")
         print(f"\tKey performance indicators :")

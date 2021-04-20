@@ -33,12 +33,13 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
             city = [local_travelers[idTravel]["x"], local_travelers[idTravel]["y"]]
             nextCity = cities[traveler[1][0]]
 
-            # deltaX = nextCity[0]-city[0]
-            # deltaY = nextCity[1]-city[1]
+            if True:  # if distinct
+                deltaX = nextCity[0]-city[0]
+                deltaY = nextCity[1]-city[1]
 
-            # axe.arrow(deltaX*0.05+city[0], deltaY*0.05+city[1], deltaX*0.9, deltaY*0.9,
-            #         length_includes_head=True, head_width=0.5, head_length=0.5,
-            #         width=0.001, color=travel_colors[idTravel], alpha=0.75)
+                axe.arrow(deltaX*0.05+city[0], deltaY*0.05+city[1], deltaX*0.9, deltaY*0.9,
+                        length_includes_head=True, head_width=0.5, head_length=0.5,
+                        width=0.001, color=travel_colors[idTravel], alpha=0.75)
 
             if(save_gif):
                 b = io.BytesIO()
