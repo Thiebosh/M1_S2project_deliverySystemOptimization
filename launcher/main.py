@@ -68,7 +68,6 @@ if __name__ == "__main__":
     gen_algo = config["path_generation"]["algorithm"][config["path_generation"]["algorithm"].rfind('\\')+1:]
     max_recurs = config["path_generation"]["max_recursivity"]
     return_origin = "with" if config["back_to_origin"] else "without"
-    opt_algo = config["path_optimization"]["algorithm"][config["path_optimization"]["algorithm"].rfind('\\')+1:]
     nb_graph = f"A maximum of {config['results']['graph']['nb_max']}" if config["results"]["graph"]["make"] else "No"
 
     print(f"{datetime.now().time()} - You will run '{config['input_datafile']}' ({repartition}) with '{single_name}' parameters :")
@@ -76,8 +75,10 @@ if __name__ == "__main__":
     for key, value in config["KPI_weighting"].items():
         print(f"  - {key} : {value}")
     print(f"{nb_exe} executions of {gen_algo} algorithm with recursivity of {max_recurs}, {return_origin} return to origin")
-    if opt_algo != "default":
-        print(f"Application of {opt_algo} optimisation algorithm on distincts paths")
+    for opt_algo in config["path_optimization"]:
+        if opt_algo["apply"]:
+            name = opt_algo["algorithm"][opt_algo["algorithm"].rfind('\\')+1:]
+            print(f"Application of {name} optimisation algorithm on distincts paths")
     print(f"{nb_graph} graphs generation")
 
     # if input("\nContinue(y) ? ").upper() != "Y":
@@ -104,19 +105,23 @@ if __name__ == "__main__":
     # step3.1 : optional application of post processing
     print(f"{datetime.now().time()} - Optimize paths...\n")
     results_opti = []
-    if opt_algo != "default":
-        inputs = (config["path_optimization"]["algorithm"],
+    for opt_algo in config["path_optimization"]:
+        if not opt_algo["apply"]:
+            continue
+
+        inputs = (opt_algo["algorithm"],
                   file_path,
                   results_gen,
-                  config["path_optimization"]["limit"],
+                  opt_algo["limit"],
                   int(config["back_to_origin"] == True),
                   kpi_weights)
-        results_opti = asyncio.run(path_optimization(*inputs))
+        results_opti.append(asyncio.run(path_optimization(*inputs)))
 
         # step3.2 : optional print of results
         if config["results"]["print_console"]:
+            name = opt_algo["algorithm"][opt_algo["algorithm"].rfind('\\')+1:]
             print(f"{datetime.now().time()} - Display step2 results...\n")
-            print_optimized(local_data, results_opti, results_gen, kpi_names, opt_algo)
+            print_optimized(local_data, results_opti[-1], results_gen, kpi_names, name)
 
     # # step4.1 : collect data for path fusion
     # if fu_algo != "default":

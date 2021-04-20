@@ -49,12 +49,15 @@ def config_verif(path, config_json):
 
     # step2 : path_optimization
     optimizer_path = path+OPTIMIZER_FOLDER
-    if config_json["path_optimization"]["algorithm"] != "default":
-        optimizer_path += OPTIMIZER_EXE+config_json['path_optimization']['algorithm']+".exe"
-        if not os.path.exists(generator_path):
-            print(f"Engine '{OPTIMIZER_EXE[1:]}{config_json['path_optimization']['algorithm']}.exe' doesn't exist")
+    for id, opt_algo in enumerate(config_json["path_optimization"]):
+        if not opt_algo["apply"]:
+            continue
+
+        opti_path = optimizer_path+OPTIMIZER_EXE+opt_algo['algorithm']+".exe"
+        if not os.path.exists(opti_path):
+            print(f"Engine '{OPTIMIZER_EXE[1:]}{opt_algo['algorithm']}.exe' doesn't exist")
             exit()
-        config_json["path_optimization"]["algorithm"] = optimizer_path
+        config_json["path_optimization"][id]["algorithm"] = opti_path
 
     # # step3 : path_fusion
     # fusionner_path = path+FUSIONNER_FOLDER
