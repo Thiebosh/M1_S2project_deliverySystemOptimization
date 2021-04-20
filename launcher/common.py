@@ -1,5 +1,5 @@
 import pandas as pd
-pd.set_option('display.max_rows', None)
+
 
 def origins_to_dests(to_compute, path, algo, id_exe=""):
     if path == [-1]:
@@ -19,9 +19,7 @@ def origins_to_dests(to_compute, path, algo, id_exe=""):
     return assoc
 
 
-def format_csv(local_data, to_compute, results_gen, results_opti):
-    algos = ["LocalSearch", "SimulatedAnnealing"]
-
+def format_csv(local_data, to_compute, results_gen, results_opti, opti_names):
     vertices_df = pd.DataFrame(
         [[id,
           vertice["name"],
@@ -58,7 +56,7 @@ def format_csv(local_data, to_compute, results_gen, results_opti):
     optimized = [[[name, path[-1], id_client] 
                  for id_client in client_df["client_id"] 
                  for path in opti]
-                 for name, opti in zip(algos, results_opti)]
+                 for name, opti in zip(opti_names, results_opti)]
     optimized = [value for sublist in optimized for value in sublist]  # unpack
 
     orders_df = pd.DataFrame(
@@ -75,7 +73,7 @@ def format_csv(local_data, to_compute, results_gen, results_opti):
     paths_per_opti = [[([origins_to_dests(to_compute, travels[1], name, exe[-1])
                         for travels in exe[-2]])
                        for exe in opti]
-                      for name, opti in zip(algos, results_opti)]
+                      for name, opti in zip(opti_names, results_opti)]
     paths_per_exe += [value for sublist in paths_per_opti for value in sublist]  # unpack
 
     # generate lines
@@ -145,7 +143,7 @@ def format_csv(local_data, to_compute, results_gen, results_opti):
                      if gen == "Generated"]
 
     tmp = merge_df[["calculation_type", "generation_id"]].drop_duplicates().to_numpy()
-    for name, opti in zip(algos, results_opti):
+    for name, opti in zip(opti_names, results_opti):
         convertor = {id_exe: id for id, id_exe in enumerate([line[1] for line in tmp if line[0] == name])}
 
         execution_tab += [(gen,

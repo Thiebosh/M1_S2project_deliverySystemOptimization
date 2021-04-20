@@ -77,11 +77,11 @@ if __name__ == "__main__":
     print(f"{nb_exe} executions of {gen_algo} algorithm with recursivity of {max_recurs}, {return_origin} return to origin")
     for opt_algo in config["path_optimization"]:
         if opt_algo["apply"]:
-            print(f"Application of {opt_algo['algorithm']} optimisation algorithm on distincts paths")
+            print(f"Application of {opt_algo['algorithm']} optimisation algorithm on distincts paths with value of {opt_algo['limit']}")
     print(f"{nb_graph} graphs generation")
 
-    # if input("\nContinue(y) ? ").upper() != "Y":
-    #     exit()
+    if input("\nContinue(y) ? ").upper() != "Y":
+        exit()
 
     # step2.1 : compute data
     print(f"{datetime.now().time()} - Simulate paths...\n")
@@ -103,9 +103,7 @@ if __name__ == "__main__":
 
     # step3.1 : optional application of post processing
     results_opti = []
-    for opt_algo in config["path_optimization"]:
-        if not opt_algo["apply"]:
-            continue
+    for opt_algo in [line for line in config["path_optimization"] if line["apply"]]:
         print(f"{datetime.now().time()} - Optimize paths with {opt_algo['algorithm']}...\n")
 
         inputs = (opt_algo["path"],
@@ -132,7 +130,8 @@ if __name__ == "__main__":
 
     # step5.1 : csv formatting and optional saving
     print(f"{datetime.now().time()} - Prepare CSV...\n")
-    coords_csv, orders_csv, execution_csv = format_csv(local_data, to_compute, results_gen, results_opti)
+    opti_names = [line["name"] for line in config["path_optimization"] if line["apply"]]
+    coords_csv, orders_csv, execution_csv = format_csv(local_data, to_compute, results_gen, results_opti, opti_names)
     if config["results"]["keep_local"]:
         result_path = path+RESULT_FOLDER+"\\"+config['input_datafile']+"_{0}.csv"
         save_csv(result_path.format("coords"), coords_csv)
