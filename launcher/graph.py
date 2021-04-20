@@ -14,7 +14,7 @@ from defines import MAPS_FOLDER, RESULT_FOLDER, MAX_COUNTRIES
 
 
 def plot_path(idThread, interrupt_event, fig, results, cities,
-              local_travelers, travel_colors,
+              local_travelers, travel_colors, return_origin,
               path, result_name, save_gif, fps, g_files, g_files_lock):
     try:
         axe = fig.gca()
@@ -33,12 +33,12 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
             city = [local_travelers[idTravel]["x"], local_travelers[idTravel]["y"]]
             nextCity = cities[traveler[1][0]]
 
-            deltaX = nextCity[0]-city[0]
-            deltaY = nextCity[1]-city[1]
+            # deltaX = nextCity[0]-city[0]
+            # deltaY = nextCity[1]-city[1]
 
-            axe.arrow(deltaX*0.05+city[0], deltaY*0.05+city[1], deltaX*0.9, deltaY*0.9,
-                    length_includes_head=True, head_width=0.5, head_length=0.5,
-                    width=0.001, color=travel_colors[idTravel], alpha=0.75)
+            # axe.arrow(deltaX*0.05+city[0], deltaY*0.05+city[1], deltaX*0.9, deltaY*0.9,
+            #         length_includes_head=True, head_width=0.5, head_length=0.5,
+            #         width=0.001, color=travel_colors[idTravel], alpha=0.75)
 
             if(save_gif):
                 b = io.BytesIO()
@@ -63,6 +63,17 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
                     fig.savefig(b, format='png')
                     b.seek(0)  # crucial
                     img_buffers.append(b)
+
+            if return_origin:
+                city = cities[traveler[1][-1]]
+                nextCity = [local_travelers[idTravel]["x"], local_travelers[idTravel]["y"]]
+
+                deltaX = nextCity[0]-city[0]
+                deltaY = nextCity[1]-city[1]
+
+                axe.arrow(deltaX*0.05+city[0], deltaY*0.05+city[1], deltaX*0.9, deltaY*0.9,
+                        length_includes_head=True, head_width=0.5, head_length=0.5,
+                        width=0.001, color=travel_colors[idTravel], alpha=0.75)
 
         # assemble gif
         if(save_gif):
@@ -89,7 +100,7 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
         return
 
 
-def make_graph(path, local_data, compute_data, results, nb_graph, result_name, show_names, link_vertices, background, save_gif, fps):
+def make_graph(path, local_data, compute_data, results, nb_graph, result_name, show_names, link_vertices, background, save_gif, fps, return_origin):
     plt.switch_backend('agg')
 
     # prepare graphs
@@ -172,6 +183,8 @@ def make_graph(path, local_data, compute_data, results, nb_graph, result_name, s
     else:
         axe.legend(ncol=3, loc='lower center', bbox_to_anchor=(0.5, -0.15))
 
+    fig.savefig("graph.png")
+
     # step6 : dump base graph and enrich it in each thread
     graph_buffer = io.BytesIO()
     pickle.dump(fig, graph_buffer)
@@ -186,7 +199,7 @@ def make_graph(path, local_data, compute_data, results, nb_graph, result_name, s
         newfig = pickle.load(graph_buffer)
 
         args = (idThread, interrupt_event, newfig, results[idThread], cities,
-                local_data["traveler"], colors,
+                local_data["traveler"], colors, return_origin,
                 path, result_name, save_gif, fps, g_files, g_files_lock)
         threads.append(Thread(target=plot_path, args=args))
         threads[-1].start()

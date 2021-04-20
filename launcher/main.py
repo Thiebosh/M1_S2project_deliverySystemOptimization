@@ -147,7 +147,8 @@ if __name__ == "__main__":
                   config["results"]["graph"]["link_vertices"],
                   config["results"]["graph"]["map_background"],
                   config["results"]["graph"]["gif_mode"],
-                  config["results"]["graph"]["fps"])
+                  config["results"]["graph"]["fps"],
+                  config["back_to_origin"])
         files = make_graph(path, local_data, to_compute, results_gen, *inputs)
 
     # step6.1 : send results online
