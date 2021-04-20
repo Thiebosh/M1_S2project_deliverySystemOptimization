@@ -80,8 +80,8 @@ if __name__ == "__main__":
         print(f"Application of {opt_algo} optimisation algorithm on distincts paths")
     print(f"{nb_graph} graphs generation")
 
-    if input("\nContinue(y) ? ").upper() != "Y":
-        exit()
+    # if input("\nContinue(y) ? ").upper() != "Y":
+    #     exit()
 
     # step2.1 : compute data
     print(f"{datetime.now().time()} - Simulate paths...\n")
@@ -102,15 +102,16 @@ if __name__ == "__main__":
         print_generated(local_data, results_gen, kpi_names)
 
     # step3.1 : optional application of post processing
+    print(f"{datetime.now().time()} - Optimize paths...\n")
     results_opti = []
     if opt_algo != "default":
-        # exe_path, file_path, generated_paths, nb_tries
         inputs = (config["path_optimization"]["algorithm"],
                   file_path,
                   results_gen,
                   config["path_optimization"]["limit"],
                   kpi_weights)
         results_opti = asyncio.run(path_optimization(*inputs))
+        print(len(results_opti))
 
         # step3.2 : optional print of results
         if config["results"]["print_console"]:

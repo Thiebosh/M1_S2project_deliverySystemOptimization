@@ -72,10 +72,10 @@ void findnei(vector<int> &bestsolution, vector<int> &solution, json const &input
     swap(nei[rand() % solution.size()], nei[rand() % solution.size()]);
 
     if (checknei(nei, input)) {
-        float dis = travelerDistTotal(nei, input, path_id);
-        float dis_solu = travelerDistTotal(solution, input, path_id);
+        float dis = travelerDistTotal(nei, input, path_id, false);
+        float dis_solu = travelerDistTotal(solution, input, path_id, false);
 
-        if (dis < travelerDistTotal(solution, input, path_id)) {
+        if (dis < travelerDistTotal(solution, input, path_id, false)) {
             solution = nei;
             bestsolution = nei;
         }

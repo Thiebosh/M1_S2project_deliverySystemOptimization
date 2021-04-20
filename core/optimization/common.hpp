@@ -42,7 +42,7 @@ void print_results(json const &inputData, json const &path_list, json const &bes
     for (int i = 0; i < path_list.size(); i++)
     {
         if (path_list.at(i)[0] == -1) continue;
-        travelerDist.push_back(travelerDistTotal(path_list.at(i), inputData, i));
+        travelerDist.push_back(travelerDistTotal(path_list.at(i), inputData, i, false));
     }
     double scoreBefore = accumulate(travelerDist.begin(), travelerDist.end(), 0.0);
 
@@ -50,7 +50,7 @@ void print_results(json const &inputData, json const &path_list, json const &bes
     for (int i = 0; i < path_list.size(); i++)
     {
         if (best_path_list.at(i)[0] == -1) travelerDist.push_back(0);
-        else travelerDist.push_back(travelerDistTotal(best_path_list.at(i), inputData, i));
+        else travelerDist.push_back(travelerDistTotal(best_path_list.at(i), inputData, i, false));
     }
     double scoreAfter = accumulate(travelerDist.begin(), travelerDist.end(), 0.0);
 

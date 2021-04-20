@@ -62,7 +62,7 @@ def make_unique(seed, kpi, weights, paths, current):
         dist.append(float(line[0]))  # 0 if not used
         path.append([int(x) for x in line[1].split(",")])  # -1 if not used
 
-    current.append((seed, score, kpi, list(zip(dist, path))))
+    current.append([seed, score, kpi, list(zip(dist, path))])
 
     return current
 
