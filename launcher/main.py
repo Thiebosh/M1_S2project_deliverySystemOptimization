@@ -111,12 +111,11 @@ if __name__ == "__main__":
                   config["path_optimization"]["limit"],
                   kpi_weights)
         results_opti = asyncio.run(path_optimization(*inputs))
-        print(len(results_opti))
 
         # step3.2 : optional print of results
         if config["results"]["print_console"]:
             print(f"{datetime.now().time()} - Display step2 results...\n")
-            print_optimized(local_data, results_opti, kpi_names, opt_algo)
+            print_optimized(local_data, results_opti, results_gen, kpi_names, opt_algo)
 
     # # step4.1 : collect data for path fusion
     # if fu_algo != "default":
