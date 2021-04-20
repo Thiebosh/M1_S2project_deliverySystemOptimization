@@ -80,8 +80,8 @@ if __name__ == "__main__":
             print(f"Application of {opt_algo['algorithm']} optimisation algorithm on distincts paths")
     print(f"{nb_graph} graphs generation")
 
-    if input("\nContinue(y) ? ").upper() != "Y":
-        exit()
+    # if input("\nContinue(y) ? ").upper() != "Y":
+    #     exit()
 
     # step2.1 : compute data
     print(f"{datetime.now().time()} - Simulate paths...\n")
