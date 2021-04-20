@@ -87,15 +87,13 @@ def make_unique_old(seed, data, current):
     return current
 
 
-def print_generated(local_data, results, kpi_names):
-    # higher_dist = max([value for sublist in [([travels[0] for travels in exe[-1]]) for exe in results] for value in sublist])
-
+def print_generated(local_data, results, kpi_names, algo):
     digit_seed = 1+int(math.log10(max([exe[0] for exe in results])))
     digit_score = 1+int(math.log10(max([exe[1] for exe in results])))+3
     digit_name = max([len(x["name"]) for x in local_data["traveler"]])
     digit_kpi = max([len(x) for x in kpi_names])
 
-    print(f"{len(results)} distinc(s) peaks travel(s) order(s) :")
+    print(f"{len(results)} distinc(s) peaks travel(s) order(s) generated with {algo}:")
 
     for id_exe, (seed, score, kpi_values, travel_list) in enumerate(results):
         print(f"- Generation {id_exe}, seed {seed:{digit_seed}d} :")

@@ -65,7 +65,7 @@ if __name__ == "__main__":
     repartition = f"{nb_trav} travelers, {nb_deposit} deposits and {nb_client} clients"
     single_name = config_name[config_name.rfind('\\')+1:]
     nb_exe = config["path_generation"]["nb_process"]
-    gen_algo = config["path_generation"]["algorithm"][config["path_generation"]["algorithm"].rfind('\\')+1:]
+    gen_algo = config["path_generation"]["algorithm"]
     max_recurs = config["path_generation"]["max_recursivity"]
     return_origin = "with" if config["back_to_origin"] else "without"
     nb_graph = f"A maximum of {config['results']['graph']['nb_max']}" if config["results"]["graph"]["make"] else "No"
@@ -77,17 +77,16 @@ if __name__ == "__main__":
     print(f"{nb_exe} executions of {gen_algo} algorithm with recursivity of {max_recurs}, {return_origin} return to origin")
     for opt_algo in config["path_optimization"]:
         if opt_algo["apply"]:
-            name = opt_algo["algorithm"][opt_algo["algorithm"].rfind('\\')+1:]
-            print(f"Application of {name} optimisation algorithm on distincts paths")
+            print(f"Application of {opt_algo['algorithm']} optimisation algorithm on distincts paths")
     print(f"{nb_graph} graphs generation")
 
-    # if input("\nContinue(y) ? ").upper() != "Y":
-    #     exit()
+    if input("\nContinue(y) ? ").upper() != "Y":
+        exit()
 
     # step2.1 : compute data
     print(f"{datetime.now().time()} - Simulate paths...\n")
     kpi_weights = list(config["KPI_weighting"].values())
-    inputs = (config["path_generation"]["algorithm"],
+    inputs = (config["path_generation"]["path"],
               config["path_generation"]["max_recursivity"],
               int(config["back_to_origin"] == True),
               config["path_generation"]["nb_process"],
@@ -100,16 +99,16 @@ if __name__ == "__main__":
     if config["results"]["print_console"]:
         kpi_names = list(config["KPI_weighting"].keys())
         print(f"{datetime.now().time()} - Display step1 results...\n")
-        print_generated(local_data, results_gen, kpi_names)
+        print_generated(local_data, results_gen, kpi_names, config["path_generation"]["algorithm"])
 
     # step3.1 : optional application of post processing
-    print(f"{datetime.now().time()} - Optimize paths...\n")
     results_opti = []
     for opt_algo in config["path_optimization"]:
         if not opt_algo["apply"]:
             continue
+        print(f"{datetime.now().time()} - Optimize paths with {opt_algo['algorithm']}...\n")
 
-        inputs = (opt_algo["algorithm"],
+        inputs = (opt_algo["path"],
                   file_path,
                   results_gen,
                   opt_algo["limit"],
@@ -119,9 +118,8 @@ if __name__ == "__main__":
 
         # step3.2 : optional print of results
         if config["results"]["print_console"]:
-            name = opt_algo["algorithm"][opt_algo["algorithm"].rfind('\\')+1:]
             print(f"{datetime.now().time()} - Display step2 results...\n")
-            print_optimized(local_data, results_opti[-1], results_gen, kpi_names, name)
+            print_optimized(local_data, results_opti[-1], results_gen, kpi_names, opt_algo["algorithm"])
 
     # # step4.1 : collect data for path fusion
     # if fu_algo != "default":

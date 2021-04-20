@@ -38,14 +38,17 @@ def config_verif(path, config_json):
     if config_json["path_generation"]["algorithm"] == "default":
         regex = re.compile(r"^"+GENERATOR_EXE[1:]+r"[0-9]+\.exe$")
         nb_versions = [x for x in os.listdir(generator_path) if regex.match(x)]
-        generator_path += "\\"+sorted(nb_versions, key=lambda x: int(x[len(GENERATOR_EXE)-1:-4]))[-1]
+        nb_versions = sorted(nb_versions, key=lambda x: int(x[len(GENERATOR_EXE)-1:-4]))
+        generator_path += "\\"+nb_versions[-1]
+        config_json["path_generation"]["algorithm"] = nb_versions[-1][:-4]
 
     else:
         generator_path += GENERATOR_EXE+str(config_json['path_generation']['algorithm'])+".exe"
         if not os.path.exists(generator_path):
             print(f"Engine '{GENERATOR_EXE[1:]}{config_json['path_generation']['algorithm']}.exe' doesn't exist")
             exit()
-    config_json["path_generation"]["algorithm"] = generator_path
+        config_json["path_generation"]["algorithm"] = GENERATOR_EXE[1:]+str(config_json['path_generation']['algorithm'])
+    config_json["path_generation"]["path"] = generator_path
 
     # step2 : path_optimization
     optimizer_path = path+OPTIMIZER_FOLDER
@@ -57,7 +60,7 @@ def config_verif(path, config_json):
         if not os.path.exists(opti_path):
             print(f"Engine '{OPTIMIZER_EXE[1:]}{opt_algo['algorithm']}.exe' doesn't exist")
             exit()
-        config_json["path_optimization"][id]["algorithm"] = opti_path
+        config_json["path_optimization"][id]["path"] = opti_path
 
     # # step3 : path_fusion
     # fusionner_path = path+FUSIONNER_FOLDER
