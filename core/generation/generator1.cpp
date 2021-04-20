@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     }
 
     print_kpis(travelerDist);
-
+    int prevElem = -1;
     for (int i = 0; i < inputData.at("traveler").size(); i++)
     {
         if (travelerDist[i] > 0)
@@ -63,7 +63,11 @@ int main(int argc, char *argv[])
             cout << travelerDist[i] << ";";
             for (int elem : res.at(i))
             {
-                cout << elem << ",";
+                if (elem != prevElem)
+                {
+                    cout << elem << ",";
+                }
+                prevElem = elem;
             }
         }
         else
@@ -180,14 +184,13 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                 //case the deliver hasnt moved yet
                 tmpPossiblePoints.insert(tmpPossiblePoints.end(), canBeDelivered.at(i).begin(), canBeDelivered.at(i).end());
             }
-            
 
             if (deliveries.at(i).empty())
             {
                 vector<double> distances;
                 for (auto j : tmpPossiblePoints)
                 {
-                    
+
                     double dist = input.at("traveler").at(i).at("arc").at(j);
                     // dist += computeRecurDistance(deepRecur, input.at("arc"), possiblePoints, j);
                     distances.push_back(dist);
@@ -203,11 +206,9 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                     double dist = input.at("arc").at(curPoint).at(j);
                     // dist += computeRecurDistance(deepRecur, input.at("arc"), possiblePoints, j);
                     distances.push_back(dist);
-
                 }
                 possiblePoints = getPossibleNextPeak(distances, tmpPossiblePoints, tmpPossiblePoints.size());
             }
-
 
             if (possiblePoints.empty())
             {
@@ -241,7 +242,6 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                 deliveredByWhom.at(point).push_back(i);
             }
         }
-
 
         for (map<int, vector<int>>::iterator it = deliveredByWhom.begin(); it != deliveredByWhom.end(); it++)
         {
@@ -300,7 +300,6 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                         tmpDeliveries.push_back(idTraveler);
                         tmpDeliveries.push_back(idPoint);
                         tmpDeliveries.push_back(client);
-                        break;
                     }
                 }
             }
@@ -333,7 +332,7 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
         for (int i = 0; i < tmpDeliveries.size(); i += 2)
         {
             idTraveler = tmpDeliveries.at(i);
-            idPoint = tmpDeliveries.at(i+1);
+            idPoint = tmpDeliveries.at(i + 1);
             if (deliveries.at(idTraveler).empty())
             {
                 avg += (double)input.at("traveler").at(idTraveler).at("arc").at(idPoint);
@@ -341,7 +340,7 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
             }
             else
             {
-                int lastPoint = deliveries.at(idTraveler).at(deliveries.at(idTraveler).size()-1);
+                int lastPoint = deliveries.at(idTraveler).at(deliveries.at(idTraveler).size() - 1);
                 avg += (double)input.at("arc").at(lastPoint).at(idPoint);
                 nbPoint++;
             }
@@ -351,7 +350,6 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
             }
         }
         avg = avg / nbPoint;
-
 
         vector<int> pointsNoSolution;
         int countPoint = 0;
@@ -369,31 +367,36 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
             }
             else
             {
-                int lastPoint = deliveries.at(idTraveler).at(deliveries.at(idTraveler).size()-1);
+                int lastPoint = deliveries.at(idTraveler).at(deliveries.at(idTraveler).size() - 1);
                 dist = input.at("arc").at(lastPoint).at(idPoint);
             }
             if (dist < avg)
             {
-                deliveries.at(idTraveler).push_back(idPoint);
-                solutionFound = true;
                 if (input.at("peak").at(idPoint).at("origin") == 1)
                 {
                     int client = tmpDeliveries.at(i + 2);
-                    storages[idTraveler] -= (int)input.at("peak").at(client).at("qty");
-                    canBeDelivered.at(idTraveler).push_back(client);
-                    vector<int>::iterator it2 = find(restaurantClientLink.at(idPoint).begin(), restaurantClientLink.at(idPoint).end(), client);
-                    if (it2 != restaurantClientLink.at(idPoint).end())
+                    solutionFound = true;
+                    if (storages[idTraveler] - (int)input.at("peak").at(client).at("qty") >= 0)
                     {
-                        restaurantClientLink.at(idPoint).erase(it2);
-                    }
+                        deliveries.at(idTraveler).push_back(idPoint);
+                        storages[idTraveler] -= (int)input.at("peak").at(client).at("qty");
+                        canBeDelivered.at(idTraveler).push_back(client);
+                        vector<int>::iterator it2 = find(restaurantClientLink.at(idPoint).begin(), restaurantClientLink.at(idPoint).end(), client);
+                        if (it2 != restaurantClientLink.at(idPoint).end())
+                        {
+                            restaurantClientLink.at(idPoint).erase(it2);
+                        }
 
-                    if (restaurantClientLink.at(idPoint).empty())
-                    {
-                        restaurantClientLink.erase(idPoint);
+                        if (restaurantClientLink.at(idPoint).empty())
+                        {
+                            restaurantClientLink.erase(idPoint);
+                        }
                     }
                 }
                 else if (input.at("peak").at(idPoint).at("origin") == 0)
                 {
+                    deliveries.at(idTraveler).push_back(idPoint);
+                    solutionFound = true;
                     storages[idTraveler] += (int)input.at("peak").at(idPoint).at("qty");
                     canBeDelivered.at(idTraveler).erase(find(canBeDelivered.at(idTraveler).begin(), canBeDelivered.at(idTraveler).end(), idPoint));
                 }
@@ -423,7 +426,7 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                 }
                 else
                 {
-                    int lastPoint = deliveries.at(idTraveler).at(deliveries.at(idTraveler).size()-1);
+                    int lastPoint = deliveries.at(idTraveler).at(deliveries.at(idTraveler).size() - 1);
                     dists.push_back(input.at("arc").at(lastPoint).at(idPoint));
                 }
             }
