@@ -63,10 +63,10 @@ int main(int argc, char *argv[])
             cout << travelerDist[i] << ";";
             for (int elem : res.at(i))
             {
-                if (elem != prevElem)
-                {
+                // if (elem != prevElem)
+                // {
                     cout << elem << ",";
-                }
+                // }
                 prevElem = elem;
             }
         }
