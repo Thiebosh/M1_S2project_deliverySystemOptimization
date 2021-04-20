@@ -77,7 +77,7 @@ if __name__ == "__main__":
     print(f"{nb_exe} executions of {gen_algo} algorithm with recursivity of {max_recurs}, {return_origin} return to origin")
     for opt_algo in config["path_optimization"]:
         if opt_algo["apply"]:
-            print(f"Application of {opt_algo['algorithm']} optimisation algorithm on distincts paths with value of {opt_algo['limit']}")
+            print(f"Application of {opt_algo['name']} optimisation algorithm on distincts paths with value of {opt_algo['limit']}")
     print(f"{nb_graph} graphs generation")
 
     if input("\nContinue(y) ? ").upper() != "Y":

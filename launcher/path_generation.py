@@ -96,7 +96,7 @@ def print_generated(local_data, results, kpi_names, algo):
     print(f"{len(results)} distinc(s) peaks travel(s) order(s) generated with {algo}:")
 
     for id_exe, (seed, score, kpi_values, travel_list) in enumerate(results):
-        print(f"- Generation {id_exe}, seed {seed:{digit_seed}d} :")
+        print(f"- Generation {id_exe+1}, seed {seed:{digit_seed}d} :")
         print(f"    Score of {score:{digit_score}.2f}")
         print(f"\tKey performance indicators :")
         for id, name in enumerate(kpi_names):
