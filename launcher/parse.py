@@ -88,6 +88,9 @@ def traveler_line(line, id_line):
         print(f"Traveler block, line {id_line+1} : {e}")
         exit()
 
+    if qty == 0:
+        qty = 100000  # "infinite"
+
     return name, x, y, vehicule, speed, qty
 
 
