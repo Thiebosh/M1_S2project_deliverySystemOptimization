@@ -1,6 +1,15 @@
 #include <vector>
 #include "..\json.hpp"
 
+//input args
+#define ARG_ID 1
+#define ARG_SEED 2
+#define ARG_FILE_PATH 3
+#define ARG_PATH 4
+#define ARG_TRIES 5
+#define ARG_BACK_ORIGIN 6
+#define NB_ARGS 7
+
 using namespace std;
 using json = nlohmann::json;
 
@@ -37,12 +46,12 @@ bool checknei(vector<int> const &solution, json const &input) {
 }
 
 
-void print_results(json const &inputData, json const &path_list, json const &best_path_list) {
+void print_results(json const &inputData, json const &path_list, json const &best_path_list, bool back_origin) {
     vector<float> travelerDist;
     for (int i = 0; i < path_list.size(); i++)
     {
         if (path_list.at(i)[0] == -1) continue;
-        travelerDist.push_back(travelerDistTotal(path_list.at(i), inputData, i, false));
+        travelerDist.push_back(travelerDistTotal(path_list.at(i), inputData, i, back_origin));
     }
     double scoreBefore = accumulate(travelerDist.begin(), travelerDist.end(), 0.0);
 
@@ -50,7 +59,7 @@ void print_results(json const &inputData, json const &path_list, json const &bes
     for (int i = 0; i < path_list.size(); i++)
     {
         if (best_path_list.at(i)[0] == -1) travelerDist.push_back(0);
-        else travelerDist.push_back(travelerDistTotal(best_path_list.at(i), inputData, i, false));
+        else travelerDist.push_back(travelerDistTotal(best_path_list.at(i), inputData, i, back_origin));
     }
     double scoreAfter = accumulate(travelerDist.begin(), travelerDist.end(), 0.0);
 

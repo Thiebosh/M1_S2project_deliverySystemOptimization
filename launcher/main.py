@@ -67,13 +67,13 @@ if __name__ == "__main__":
     nb_exe = config["path_generation"]["nb_process"]
     gen_algo = config["path_generation"]["algorithm"][config["path_generation"]["algorithm"].rfind('\\')+1:]
     max_recurs = config["path_generation"]["max_recursivity"]
-    return_origin = "with" if config["path_generation"]["back_to_origin"] else "without"
+    return_origin = "with" if config["back_to_origin"] else "without"
     opt_algo = config["path_optimization"]["algorithm"][config["path_optimization"]["algorithm"].rfind('\\')+1:]
     nb_graph = f"A maximum of {config['results']['graph']['nb_max']}" if config["results"]["graph"]["make"] else "No"
 
     print(f"{datetime.now().time()} - You will run '{config['input_datafile']}' ({repartition}) with '{single_name}' parameters :")
     print("Following KPI values :")
-    for key, value in config["results"]["KPI_weighting"].items():
+    for key, value in config["KPI_weighting"].items():
         print(f"  - {key} : {value}")
     print(f"{nb_exe} executions of {gen_algo} algorithm with recursivity of {max_recurs}, {return_origin} return to origin")
     if opt_algo != "default":
@@ -85,10 +85,10 @@ if __name__ == "__main__":
 
     # step2.1 : compute data
     print(f"{datetime.now().time()} - Simulate paths...\n")
-    kpi_weights = list(config["results"]["KPI_weighting"].values())
+    kpi_weights = list(config["KPI_weighting"].values())
     inputs = (config["path_generation"]["algorithm"],
               config["path_generation"]["max_recursivity"],
-              int(config["path_generation"]["back_to_origin"] == True),
+              int(config["back_to_origin"] == True),
               config["path_generation"]["nb_process"],
               file_path,
               kpi_weights,
@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
     # step2.2 : optional print of results
     if config["results"]["print_console"]:
-        kpi_names = list(config["results"]["KPI_weighting"].keys())
+        kpi_names = list(config["KPI_weighting"].keys())
         print(f"{datetime.now().time()} - Display step1 results...\n")
         print_generated(local_data, results_gen, kpi_names)
 
@@ -109,6 +109,7 @@ if __name__ == "__main__":
                   file_path,
                   results_gen,
                   config["path_optimization"]["limit"],
+                  int(config["back_to_origin"] == True),
                   kpi_weights)
         results_opti = asyncio.run(path_optimization(*inputs))
 

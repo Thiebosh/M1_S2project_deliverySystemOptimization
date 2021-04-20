@@ -5,10 +5,10 @@ import math
 from numpy import average
 
 
-async def path_optimization(exe_path, file_path, generated_paths, nb_tries, kpi_weights):
+async def path_optimization(exe_path, file_path, generated_paths, nb_tries, back_origin, kpi_weights):
     running_procs = [Popen([exe_path, str(id), str(generated_paths[id][0]),
                             file_path, str([path for _, path in generated_paths[id][-1]]),
-                            str(nb_tries)],
+                            str(nb_tries), str(back_origin)],
                      stdout=PIPE, stderr=PIPE, text=True)
                      for id in range(len(generated_paths))]
 

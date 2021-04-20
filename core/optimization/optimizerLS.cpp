@@ -10,19 +10,11 @@
 #include "..\kpi.hpp"
 #include "common.hpp"
 
-//input args
-#define ARG_ID 1
-#define ARG_SEED 2
-#define ARG_FILE_PATH 3
-#define ARG_PATH 4
-#define ARG_TRIES 5
-#define NB_ARGS 6
-
 using namespace std;
 using json = nlohmann::json;
 
 
-void findnei(vector<int> &solution, json const &input, int const path_id);
+void findnei(vector<int> &solution, json const &input, int const path_id, bool back_origin);
 
 
 int main(int argc, char* argv[]) {
@@ -40,6 +32,7 @@ int main(int argc, char* argv[]) {
     json path_list = json::parse(argv[ARG_PATH]);
     json best_path_list = path_list;
 
+    bool back_origin = atoi(argv[ARG_BACK_ORIGIN]) == 1;
     int nb_tries = atoi(argv[ARG_TRIES]);
 
     // search for each traveler path
@@ -49,19 +42,19 @@ int main(int argc, char* argv[]) {
         vector<int> currentpath = best_path_list.at(path_id);
 
         for (int i = 0; i < nb_tries; i++) {
-            findnei(currentpath, inputData, path_id);
+            findnei(currentpath, inputData, path_id, back_origin);
         }
 
         best_path_list.at(path_id) = currentpath;
     }
 
-    print_results(inputData, path_list, best_path_list);
+    print_results(inputData, path_list, best_path_list, back_origin);
 
     return 0;
 }
 
 
-void findnei(vector<int> &solution, json const &input, int const path_id) {
+void findnei(vector<int> &solution, json const &input, int const path_id, bool back_origin) {
     vector<int> bestnei = solution;
 
     for(int a = 0; a < solution.size(); a++){    
@@ -69,8 +62,8 @@ void findnei(vector<int> &solution, json const &input, int const path_id) {
             vector<int> nei = bestnei;
             swap(nei[a], nei[i]);
 
-            double before = travelerDistTotal(bestnei, input, path_id, false);
-            double after = travelerDistTotal(nei, input, path_id, false);
+            double before = travelerDistTotal(bestnei, input, path_id, back_origin);
+            double after = travelerDistTotal(nei, input, path_id, back_origin);
 
             if (checknei(nei, input) && before > after) bestnei = nei;
         }

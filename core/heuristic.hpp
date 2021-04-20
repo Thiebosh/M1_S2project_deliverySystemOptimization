@@ -21,10 +21,10 @@ int getIdPoint(vector<int> const &allPoints, vector<double> const &distances)
 	}
 	// cout << "end" << endl;
 
-	double max_val = *max_element(weights.begin(), weights.end());
+	double max_val_coeff = 100 / (*max_element(weights.begin(), weights.end()));
 	for (auto w : weights)
 	{
-		normalized_weights.push_back(w * 100 / max_val);
+		normalized_weights.push_back(w * max_val_coeff);
 	}
 
 	double randomValue = rand() % 100;
