@@ -102,7 +102,7 @@ double computeRecurDistance(int deep, vector<vector<double>> const &distMatrix, 
     if (!deep || left.size() <= 1 || curPoint == -1)
         return 0;
 
-    left.erase(remove(left.begin(), left.end(), curPoint), left.end());
+    left.erase(find(left.begin(), left.end(), curPoint));
 
     vector<double> distances;
     for (int tmpPoint : left)
@@ -187,7 +187,10 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                 vector<double> distances;
                 for (auto j : tmpPossiblePoints)
                 {
-                    distances.push_back(input.at("traveler").at(i).at("arc").at(j));
+                    
+                    double dist = input.at("traveler").at(i).at("arc").at(j);
+                    // dist += computeRecurDistance(deepRecur, input.at("arc"), possiblePoints, j);
+                    distances.push_back(dist);
                 }
                 possiblePoints = getPossibleNextPeak(distances, tmpPossiblePoints, tmpPossiblePoints.size());
             }
@@ -197,7 +200,10 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                 vector<double> distances;
                 for (auto j : tmpPossiblePoints)
                 {
-                    distances.push_back(input.at("arc").at(curPoint).at(j));
+                    double dist = input.at("arc").at(curPoint).at(j);
+                    // dist += computeRecurDistance(deepRecur, input.at("arc"), possiblePoints, j);
+                    distances.push_back(dist);
+
                 }
                 possiblePoints = getPossibleNextPeak(distances, tmpPossiblePoints, tmpPossiblePoints.size());
             }
@@ -214,8 +220,7 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                 for (int tmpPoint : possiblePoints)
                 {
                     double dist = input.at("traveler").at(i).at("arc").at(tmpPoint);
-                    // vector<int> left(possiblePoints);
-                    // dist += computeRecurDistance(deepRecur, input.at("arc"), left, tmpPoint);
+                    // dist += computeRecurDistance(deepRecur, input.at("arc"), possiblePoints, tmpPoint);
                     distances.push_back(dist);
                 }
             }
@@ -225,8 +230,7 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                 for (int tmpPoint : possiblePoints)
                 {
                     double dist = input.at("arc").at(curPoint).at(tmpPoint);
-                    // vector<int> left(possiblePoints);
-                    // dist += computeRecurDistance(deepRecur, input.at("arc"), left, tmpPoint);
+                    // dist += computeRecurDistance(deepRecur, input.at("arc"), possiblePoints, tmpPoint);
                     distances.push_back(dist);
                 }
             }
@@ -250,11 +254,13 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
             {
                 if (deliveries.at(curDeliver).empty())
                 {
-                    distances.push_back(input.at("traveler").at(curDeliver).at("arc").at(it->first));
+                    double dist = input.at("traveler").at(curDeliver).at("arc").at(it->first);
+                    distances.push_back(dist);
                 }
                 else
                 {
-                    distances.push_back(input.at("arc").at(deliveries.at(curDeliver).at(deliveries.at(curDeliver).size() - 1)).at(it->first));
+                    double dist = input.at("arc").at(deliveries.at(curDeliver).at(deliveries.at(curDeliver).size() - 1)).at(it->first);
+                    distances.push_back(dist);
                 }
             }
 
@@ -359,6 +365,7 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
             if (deliveries.at(idTraveler).empty())
             {
                 dist = input.at("traveler").at(idTraveler).at("arc").at(idPoint);
+                // dist += computeRecurDistance(deepRecur, input.at("arc"), possiblePoints, idPoint);
             }
             else
             {
