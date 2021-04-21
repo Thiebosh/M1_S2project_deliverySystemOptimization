@@ -33,7 +33,7 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
             city = [local_travelers[idTravel]["x"], local_travelers[idTravel]["y"]]
             nextCity = cities[traveler[1][0]]
 
-            if True:  # if distinct
+            if city != nextCity:  # if distinct
                 deltaX = nextCity[0]-city[0]
                 deltaY = nextCity[1]-city[1]
 
@@ -50,6 +50,9 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
             for idCity, city in enumerate(traveler[1][:-1]):
                 city = cities[city]
                 nextCity = cities[traveler[1][idCity+1]]
+
+                if city == nextCity:
+                    continue
 
                 deltaX = nextCity[0]-city[0]
                 deltaY = nextCity[1]-city[1]
@@ -183,8 +186,6 @@ def make_graph(path, local_data, compute_data, results, nb_graph, result_name, s
         axe.legend(handles, labels, ncol=4, loc='lower center', bbox_to_anchor=(0.5, -0.15))
     else:
         axe.legend(ncol=3, loc='lower center', bbox_to_anchor=(0.5, -0.15))
-
-    fig.savefig("graph.png")
 
     # step6 : dump base graph and enrich it in each thread
     graph_buffer = io.BytesIO()

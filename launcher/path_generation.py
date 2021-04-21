@@ -6,9 +6,9 @@ from numpy import average
 import math
 
 
-async def path_generation(exe_path, back_origin, nb_process, file_path, kpi_weights, nb_trav):
+async def path_generation(exe_path, recurs, back_origin, nb_process, file_path, kpi_weights, nb_trav):
     current_pid = os.getpid()
-    running_procs = [Popen([exe_path, str(current_pid+id), str(back_origin), file_path],
+    running_procs = [Popen([exe_path, str(current_pid+id), str(recurs), str(back_origin), file_path],
                      stdout=PIPE, stderr=PIPE, text=True)
                      for id in range(nb_process)]
 
