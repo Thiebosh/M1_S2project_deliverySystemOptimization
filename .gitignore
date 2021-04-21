@@ -183,3 +183,7 @@ dmypy.json
 *.app
 
 tests/
+
+*.bat
+
+core/V3/common.hpp
