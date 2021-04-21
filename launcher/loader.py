@@ -187,7 +187,9 @@ def distance(const, demiconst, lat1, long1, lat2, long2):
 
     a = deltaPhi * deltaPhi + math.cos(phi1) * math.cos(phi2) * deltaLambda * deltaLambda
 
-    return 12742 * math.atan2(math.sqrt(a), math.sqrt(1 - a))  # earth diameter
+    dist = 12742 * math.atan2(math.sqrt(a), math.sqrt(1 - a))  # earth diameter
+
+    return 0.01 if not dist else dist
 
 
 @njit(nogil=True, fastmath=True)

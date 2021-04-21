@@ -9,9 +9,10 @@
 
 //input args
 #define ARG_ID 1
-#define ARG_BACK_ORIGIN 2
-#define ARG_FILE_PATH 3
-#define NB_ARGS 4
+#define ARG_RECUR 2
+#define ARG_BACK_ORIGIN 3
+#define ARG_FILE_PATH 4
+#define NB_ARGS 5
 
 using namespace std;
 using json = nlohmann::json;
@@ -23,7 +24,7 @@ vector<int> getRemainingClient(map<int, vector<int>> const &map);
 
 double computeRecurDistance(int deep, vector<vector<double>> const &distMatrix, vector<int> &left, int curPoint);
 
-map<int, vector<int>> findsolution(json const &input, int deepRecur = 0);
+map<int, vector<int>> findsolution(json const &input, int deepRecur);
 
 // main function
 int main(int argc, char *argv[])
@@ -43,7 +44,7 @@ int main(int argc, char *argv[])
     json inputData = json::parse((istreambuf_iterator<char>(t)), (istreambuf_iterator<char>()));
 
     // declare result tab
-    map<int, vector<int>> res = findsolution(inputData);
+    map<int, vector<int>> res = findsolution(inputData, atoi(argv[ARG_RECUR]));
 
     // Print results
     vector<float> travelerDist;
@@ -188,9 +189,9 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                 vector<double> distances;
                 for (auto j : tmpPossiblePoints)
                 {
-                    // double dist = input.at("traveler").at(i).at("arc").at(j);
-                    // vector<int> left(tmpPossiblePoints);
-                    // dist += computeRecurDistance(deepRecur, input.at("arc"), left, j);
+                    double dist = input.at("traveler").at(i).at("arc").at(j);
+                    vector<int> left(tmpPossiblePoints);
+                    dist += computeRecurDistance(deepRecur, input.at("arc"), left, j);
                     distances.push_back(input.at("traveler").at(i).at("arc").at(j));
                 }
                 possiblePoints = getPossibleNextPeak(distances, tmpPossiblePoints, tmpPossiblePoints.size());
@@ -201,9 +202,9 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                 vector<double> distances;
                 for (auto j : tmpPossiblePoints)
                 {
-                    // double dist = input.at("arc").at(curPoint).at(j);
-                    // vector<int> left(tmpPossiblePoints);
-                    // dist += computeRecurDistance(deepRecur, input.at("arc"), left, j);
+                    double dist = input.at("arc").at(curPoint).at(j);
+                    vector<int> left(tmpPossiblePoints);
+                    dist += computeRecurDistance(deepRecur, input.at("arc"), left, j);
                     distances.push_back(input.at("arc").at(curPoint).at(j));
                 }
                 possiblePoints = getPossibleNextPeak(distances, tmpPossiblePoints, tmpPossiblePoints.size());
@@ -219,9 +220,9 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
             {
                 for (int tmpPoint : possiblePoints)
                 {
-                    // double dist = input.at("traveler").at(i).at("arc").at(j);
-                    // vector<int> left(possiblePoints);
-                    // dist += computeRecurDistance(deepRecur, input.at("arc"), left, j);
+                    double dist = input.at("traveler").at(i).at("arc").at(tmpPoint);
+                    vector<int> left(possiblePoints);
+                    dist += computeRecurDistance(deepRecur, input.at("arc"), left, tmpPoint);
                     distances.push_back(input.at("traveler").at(i).at("arc").at(tmpPoint));
                 }
             }
@@ -230,9 +231,9 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                 int curPoint = deliveries.at(i).at(deliveries.at(i).size() - 1);
                 for (int tmpPoint : possiblePoints)
                 {
-                    // double dist = input.at("traveler").at(i).at("arc").at(j);
-                    // vector<int> left(possiblePoints);
-                    // dist += computeRecurDistance(deepRecur, input.at("arc"), left, j);
+                    double dist = input.at("traveler").at(i).at("arc").at(tmpPoint);
+                    vector<int> left(possiblePoints);
+                    dist += computeRecurDistance(deepRecur, input.at("arc"), left, tmpPoint);
                     distances.push_back(input.at("arc").at(curPoint).at(tmpPoint));
                 }
             }
