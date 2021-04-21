@@ -8,9 +8,10 @@
 #include "..\kpi.hpp"
 
 //input args
-#define ARG_FILE_PATH 2
 #define ARG_ID 1
-#define NB_ARGS 3
+#define ARG_BACK_ORIGIN 2
+#define ARG_FILE_PATH 3
+#define NB_ARGS 4
 
 using namespace std;
 using json = nlohmann::json;
@@ -20,7 +21,9 @@ vector<int> getRemainingRestaurant(map<int, vector<int>> const &map);
 
 vector<int> getRemainingClient(map<int, vector<int>> const &map);
 
-map<int, vector<int>> findsolution(json const &input);
+double computeRecurDistance(int deep, vector<vector<double>> const &distMatrix, vector<int> &left, int curPoint);
+
+map<int, vector<int>> findsolution(json const &input, int deepRecur = 0);
 
 // main function
 int main(int argc, char *argv[])
@@ -46,10 +49,11 @@ int main(int argc, char *argv[])
     vector<float> travelerDist;
     for (int i = 0; i < inputData.at("traveler").size(); i++)
     {
-        travelerDist.push_back(travelerDistTotal(res.at(i), inputData, i));
+        travelerDist.push_back(travelerDistTotal(res.at(i), inputData, i, atoi(argv[ARG_BACK_ORIGIN]) == 1));
     }
-    print_kpis(travelerDist);
 
+    print_kpis(travelerDist);
+    int prevElem = -1;
     for (int i = 0; i < inputData.at("traveler").size(); i++)
     {
         if (travelerDist[i] > 0)
@@ -57,7 +61,11 @@ int main(int argc, char *argv[])
             cout << travelerDist[i] << ";";
             for (int elem : res.at(i))
             {
-                cout << elem << ",";
+                // if (elem != prevElem)
+                // {
+                    cout << elem << ",";
+                // }
+                prevElem = elem;
             }
         }
         else
@@ -91,16 +99,34 @@ vector<int> getRemainingClient(map<int, vector<int>> const &map)
     return remainingClients;
 }
 
-map<int, vector<int>> findsolution(json const &input)
+double computeRecurDistance(int deep, vector<vector<double>> const &distMatrix, vector<int> &left, int curPoint)
+{
+    if (!deep || left.size() <= 1 || curPoint == -1)
+        return 0;
+
+    left.erase(find(left.begin(), left.end(), curPoint));
+
+    vector<double> distances;
+    for (int tmpPoint : left)
+    {
+        distances.push_back(distMatrix[curPoint][tmpPoint]);
+    }
+
+    int nextPoint = getIdPoint(left, distances);
+
+    return distances[nextPoint] + computeRecurDistance(deep - 1, distMatrix, left, nextPoint);
+}
+
+map<int, vector<int>> findsolution(json const &input, int deepRecur)
 {
     // build list of unselected peaks
     map<int, vector<int>> restaurantClientLink;
     map<int, vector<int>> deliveries;
     map<int, vector<int>> deliveredByWhom;
     map<int, vector<int>> banedDeliveryman;
-    vector<int> bannedPoints;
     map<int, vector<int>> canBeDelivered;
     vector<double> storages;
+    vector<int> tmpDeliveries;
     int nbTravelers = input.at("traveler").size();
     //initializing arrays
     for (int i = 0; i < nbTravelers; i++)
@@ -139,19 +165,14 @@ map<int, vector<int>> findsolution(json const &input)
     int idTraveler;
     bool allEmpty = true;
     // select first restaurant
-    int break_counter = 0;
     do
     {
-        if (break_counter++ == 100) {
-            cout << "error" << endl;
-            exit(1); //erreur
-        }
         //clear deliverByWhom
         for (map<int, vector<int>>::iterator it = deliveredByWhom.begin(); it != deliveredByWhom.end(); it++)
         {
             it->second.clear();
         }
-    
+
         for (int i = 0; i < nbTravelers; i++)
         {
             possiblePoints.clear();
@@ -162,28 +183,30 @@ map<int, vector<int>> findsolution(json const &input)
                 tmpPossiblePoints.insert(tmpPossiblePoints.end(), canBeDelivered.at(i).begin(), canBeDelivered.at(i).end());
             }
 
-            for(auto curPoint: bannedPoints){
-                if(find(tmpPossiblePoints.begin(), tmpPossiblePoints.end(), curPoint) != tmpPossiblePoints.end()){
-                    tmpPossiblePoints.erase(find(tmpPossiblePoints.begin(), tmpPossiblePoints.end(), curPoint));
-                }
-            }
-
-            for (auto tmpPoint : banedDeliveryman.at(i))
-            {
-                if (find(tmpPossiblePoints.begin(), tmpPossiblePoints.end(), tmpPoint) != tmpPossiblePoints.end())
-                {
-                    tmpPossiblePoints.erase(find(tmpPossiblePoints.begin(), tmpPossiblePoints.end(), tmpPoint));
-                }
-            }
-
             if (deliveries.at(i).empty())
             {
-                possiblePoints = getPossibleNextPeak(input.at("traveler").at(i).at("arc"), tmpPossiblePoints, tmpPossiblePoints.size());
+                vector<double> distances;
+                for (auto j : tmpPossiblePoints)
+                {
+                    // double dist = input.at("traveler").at(i).at("arc").at(j);
+                    // vector<int> left(tmpPossiblePoints);
+                    // dist += computeRecurDistance(deepRecur, input.at("arc"), left, j);
+                    distances.push_back(input.at("traveler").at(i).at("arc").at(j));
+                }
+                possiblePoints = getPossibleNextPeak(distances, tmpPossiblePoints, tmpPossiblePoints.size());
             }
             else
             {
                 int curPoint = deliveries.at(i).at(deliveries.at(i).size() - 1);
-                possiblePoints = getPossibleNextPeak(input.at("arc").at(curPoint), tmpPossiblePoints, tmpPossiblePoints.size());
+                vector<double> distances;
+                for (auto j : tmpPossiblePoints)
+                {
+                    // double dist = input.at("arc").at(curPoint).at(j);
+                    // vector<int> left(tmpPossiblePoints);
+                    // dist += computeRecurDistance(deepRecur, input.at("arc"), left, j);
+                    distances.push_back(input.at("arc").at(curPoint).at(j));
+                }
+                possiblePoints = getPossibleNextPeak(distances, tmpPossiblePoints, tmpPossiblePoints.size());
             }
 
             if (possiblePoints.empty())
@@ -196,6 +219,9 @@ map<int, vector<int>> findsolution(json const &input)
             {
                 for (int tmpPoint : possiblePoints)
                 {
+                    // double dist = input.at("traveler").at(i).at("arc").at(j);
+                    // vector<int> left(possiblePoints);
+                    // dist += computeRecurDistance(deepRecur, input.at("arc"), left, j);
                     distances.push_back(input.at("traveler").at(i).at("arc").at(tmpPoint));
                 }
             }
@@ -204,22 +230,24 @@ map<int, vector<int>> findsolution(json const &input)
                 int curPoint = deliveries.at(i).at(deliveries.at(i).size() - 1);
                 for (int tmpPoint : possiblePoints)
                 {
+                    // double dist = input.at("traveler").at(i).at("arc").at(j);
+                    // vector<int> left(possiblePoints);
+                    // dist += computeRecurDistance(deepRecur, input.at("arc"), left, j);
                     distances.push_back(input.at("arc").at(curPoint).at(tmpPoint));
                 }
             }
+
             point = getIdPoint(possiblePoints, distances);
             if (point >= 0)
             {
                 deliveredByWhom.at(point).push_back(i);
             }
         }
-        
+
         for (map<int, vector<int>>::iterator it = deliveredByWhom.begin(); it != deliveredByWhom.end(); it++)
         {
-            solutionFound = false;
             if (it->second.empty())
             {
-                // bannedPoints.push_back(it->first);
                 continue;
             }
             vector<double> distances;
@@ -227,24 +255,39 @@ map<int, vector<int>> findsolution(json const &input)
             {
                 if (deliveries.at(curDeliver).empty())
                 {
-                    distances.push_back(input.at("traveler").at(curDeliver).at("arc").at(it->first));
+                    double dist = input.at("traveler").at(curDeliver).at("arc").at(it->first);
+                    distances.push_back(dist);
                 }
                 else
                 {
-                    distances.push_back(input.at("arc").at(deliveries.at(curDeliver)[deliveries.at(curDeliver).size() - 1]).at(it->first));
+                    double dist = input.at("arc").at(deliveries.at(curDeliver).at(deliveries.at(curDeliver).size() - 1)).at(it->first);
+                    distances.push_back(dist);
                 }
             }
 
             possiblePoints = getPossibleNextPeak(distances, it->second, it->second.size());
+
             if (possiblePoints.empty())
             {
                 continue;
             }
 
+            distances.clear();
+            for (int curDeliver : possiblePoints)
+            {
+                if (deliveries.at(curDeliver).empty())
+                {
+                    distances.push_back(input.at("traveler").at(curDeliver).at("arc").at(it->first));
+                }
+                else
+                {
+                    distances.push_back(input.at("arc").at(deliveries.at(curDeliver).at(deliveries.at(curDeliver).size() - 1)).at(it->first));
+                }
+            }
+
             idTraveler = getIdPoint(possiblePoints, distances);
             idPoint = it->first;
-
-            if (input.at("peak").at(point).at("origin") == 1 && restaurantClientLink.find(idPoint) != restaurantClientLink.end())
+            if (input.at("peak").at(idPoint).at("origin") == 1 && restaurantClientLink.find(idPoint) != restaurantClientLink.end())
             {
                 //if point is a restaurant check every clients of this restaurant
                 for (int client : restaurantClientLink.at(idPoint))
@@ -255,56 +298,179 @@ map<int, vector<int>> findsolution(json const &input)
                         if deliveryman can store the order, we add this restaurant to the path and this client to 
                         the client that can be delivered and we reduce the storage space.
                     */
-                        solutionFound = true;
-                        storages[idTraveler] -= (int)input.at("peak").at(client).at("qty");
+                        tmpDeliveries.push_back(idTraveler);
+                        tmpDeliveries.push_back(idPoint);
+                        tmpDeliveries.push_back(client);
+                    }
+                }
+            }
+            if (input.at("peak").at(idPoint).at("origin") == 0)
+            {
+                /*
+                point is a client ready to be delivered, we remove it from the client ready to be delivered and
+                we increase the storage space of the deliveryman
+                */
+                tmpDeliveries.push_back(idTraveler);
+                tmpDeliveries.push_back(idPoint);
+            }
+        }
+
+        //check avg;
+        double avg = 0;
+        int nbPoint = 0;
+
+        for (map<int, vector<int>>::iterator i = deliveries.begin(); i != deliveries.end(); i++)
+        {
+            if (i->second.empty())
+                continue;
+            avg += (double)input.at("traveler").at(i->first).at("arc").at(i->second.at(0));
+            for (auto j = 1; j < i->second.size(); j++)
+            {
+                avg += (double)input.at("arc").at(i->second.at(j - 1)).at(i->second.at(j));
+                nbPoint++;
+            }
+        }
+        for (int i = 0; i < tmpDeliveries.size(); i += 2)
+        {
+            idTraveler = tmpDeliveries.at(i);
+            idPoint = tmpDeliveries.at(i + 1);
+            if (deliveries.at(idTraveler).empty())
+            {
+                avg += (double)input.at("traveler").at(idTraveler).at("arc").at(idPoint);
+                nbPoint++;
+            }
+            else
+            {
+                int lastPoint = deliveries.at(idTraveler).at(deliveries.at(idTraveler).size() - 1);
+                avg += (double)input.at("arc").at(lastPoint).at(idPoint);
+                nbPoint++;
+            }
+            if (input.at("peak").at(tmpDeliveries.at(i + 1)).at("origin") == 1)
+            {
+                i += 1;
+            }
+        }
+        avg = avg / nbPoint;
+
+        vector<int> pointsNoSolution;
+        int countPoint = 0;
+        for (int i = 0; i < tmpDeliveries.size(); i += 2)
+        {
+            countPoint++;
+            solutionFound = false;
+            idTraveler = tmpDeliveries.at(i);
+            idPoint = tmpDeliveries.at(i + 1);
+            double dist;
+            if (deliveries.at(idTraveler).empty())
+            {
+                dist = input.at("traveler").at(idTraveler).at("arc").at(idPoint);
+                // dist += computeRecurDistance(deepRecur, input.at("arc"), possiblePoints, idPoint);
+            }
+            else
+            {
+                int lastPoint = deliveries.at(idTraveler).at(deliveries.at(idTraveler).size() - 1);
+                dist = input.at("arc").at(lastPoint).at(idPoint);
+            }
+            if (dist < avg)
+            {
+                if (input.at("peak").at(idPoint).at("origin") == 1)
+                {
+                    int client = tmpDeliveries.at(i + 2);
+                    solutionFound = true;
+                    if (storages[idTraveler] - (int)input.at("peak").at(client).at("qty") >= 0)
+                    {
                         deliveries.at(idTraveler).push_back(idPoint);
+                        storages[idTraveler] -= (int)input.at("peak").at(client).at("qty");
                         canBeDelivered.at(idTraveler).push_back(client);
-                        vector<int>::iterator it = find(restaurantClientLink.at(idPoint).begin(), restaurantClientLink.at(idPoint).end(), client);
-                        if (it != restaurantClientLink.at(idPoint).end())
+                        vector<int>::iterator it2 = find(restaurantClientLink.at(idPoint).begin(), restaurantClientLink.at(idPoint).end(), client);
+                        if (it2 != restaurantClientLink.at(idPoint).end())
                         {
-                            restaurantClientLink.at(idPoint).erase(it);
+                            restaurantClientLink.at(idPoint).erase(it2);
                         }
 
                         if (restaurantClientLink.at(idPoint).empty())
                         {
                             restaurantClientLink.erase(idPoint);
                         }
-                        break;
                     }
                 }
-            }
-            if (input.at("peak").at(idPoint).at("origin") == 0 && find(canBeDelivered.at(idTraveler).begin(), canBeDelivered.at(idTraveler).end(), idPoint) != canBeDelivered.at(idTraveler).end())
-            {
-                /*
-                point is a client ready to be delivered, we remove it from the client ready to be delivered and
-                we increase the storage space of the deliveryman
-                */
-                solutionFound = true;
-                storages[idTraveler] += (int)input.at("peak").at(idPoint).at("qty");
-                deliveries.at(idTraveler).push_back(idPoint);
-                canBeDelivered.at(idTraveler).erase(find(canBeDelivered.at(idTraveler).begin(), canBeDelivered.at(idTraveler).end(), idPoint));
-            }
-
-            if (!solutionFound)
-            {
-                banedDeliveryman.at(idTraveler).push_back(idPoint);
-            }
-            else
-            {
-                bannedPoints.clear();
+                else if (input.at("peak").at(idPoint).at("origin") == 0)
+                {
+                    deliveries.at(idTraveler).push_back(idPoint);
+                    solutionFound = true;
+                    storages[idTraveler] += (int)input.at("peak").at(idPoint).at("qty");
+                    canBeDelivered.at(idTraveler).erase(find(canBeDelivered.at(idTraveler).begin(), canBeDelivered.at(idTraveler).end(), idPoint));
+                }
                 banedDeliveryman.at(idTraveler).clear();
             }
+            if (!solutionFound)
+            {
+                pointsNoSolution.push_back(i);
+            }
+
+            if (input.at("peak").at(idPoint).at("origin") == 1)
+            {
+                i += 1;
+            }
         }
+
+        if (pointsNoSolution.size() == countPoint && !tmpDeliveries.empty())
+        {
+            vector<double> dists;
+            for (auto i : pointsNoSolution)
+            {
+                idTraveler = tmpDeliveries.at(i);
+                idPoint = tmpDeliveries.at(i + 1);
+                if (deliveries.at(idTraveler).empty())
+                {
+                    dists.push_back(input.at("traveler").at(idTraveler).at("arc").at(idPoint));
+                }
+                else
+                {
+                    int lastPoint = deliveries.at(idTraveler).at(deliveries.at(idTraveler).size() - 1);
+                    dists.push_back(input.at("arc").at(lastPoint).at(idPoint));
+                }
+            }
+            int id = pointsNoSolution.at(min_element(dists.begin(), dists.end()) - dists.begin());
+            idTraveler = tmpDeliveries.at(id);
+            idPoint = tmpDeliveries.at(id + 1);
+            deliveries.at(idTraveler).push_back(idPoint);
+            if (input.at("peak").at(idPoint).at("origin") == 1)
+            {
+                int client = tmpDeliveries.at(id + 2);
+                storages[idTraveler] -= (int)input.at("peak").at(client).at("qty");
+                canBeDelivered.at(idTraveler).push_back(client);
+                vector<int>::iterator it2 = find(restaurantClientLink.at(idPoint).begin(), restaurantClientLink.at(idPoint).end(), client);
+                if (it2 != restaurantClientLink.at(idPoint).end())
+                {
+                    restaurantClientLink.at(idPoint).erase(it2);
+                }
+
+                if (restaurantClientLink.at(idPoint).empty())
+                {
+                    restaurantClientLink.erase(idPoint);
+                }
+            }
+            else if (input.at("peak").at(idPoint).at("origin") == 0)
+            {
+                storages[idTraveler] += (int)input.at("peak").at(idPoint).at("qty");
+                canBeDelivered.at(idTraveler).erase(find(canBeDelivered.at(idTraveler).begin(), canBeDelivered.at(idTraveler).end(), idPoint));
+            }
+        }
+        tmpDeliveries.clear();
+        pointsNoSolution.clear();
 
         allEmpty = true;
         for (auto k : canBeDelivered)
         {
+
             if (!k.second.empty())
             {
                 allEmpty = false;
                 break;
             }
         }
+
     } while (!(restaurantClientLink.empty()) || !allEmpty);
     return deliveries;
 }

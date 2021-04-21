@@ -8,10 +8,10 @@ from parse import user_args, config_verif
 from synchronize import Synchronize
 from loader import compile_loader, load_data
 from files import load_file, save_csv
-from path_generation import path_generation
-from path_optimization import path_optimization
-from path_fusion import path_fusion
-from common import print_generated, print_fusionned, format_csv
+from path_generation import path_generation, print_generated
+from path_optimization import path_optimization, print_optimized
+# from path_fusion import path_fusion, print_fusionned
+from common import format_csv
 from graph import make_graph
 
 from defines import ENGINE_FOLDER, TMP_FILE, RESULT_FOLDER, DASHBOAD_URL
@@ -58,41 +58,78 @@ if __name__ == "__main__":
     file_path = path+ENGINE_FOLDER+TMP_FILE
     open(file_path, "w").write(data)
 
+    # step1.4 : confirm
+    nb_trav = len(local_data["traveler"])
+    nb_deposit = len([line for line in local_data["peak"] if line["origin"]])
+    nb_client = len([line for line in local_data["peak"] if not line["origin"]])
+    repartition = f"{nb_trav} travelers, {nb_deposit} deposits and {nb_client} clients"
+    single_name = config_name[config_name.rfind('\\')+1:]
+    nb_exe = config["path_generation"]["nb_process"]
+    gen_algo = config["path_generation"]["algorithm"]
+    return_origin = "with" if config["back_to_origin"] else "without"
+    nb_graph = f"A maximum of {config['results']['graph']['nb_max']}" if config["results"]["graph"]["make"] else "No"
+
+    print(f"{datetime.now().time()} - You will run '{config['input_datafile']}' ({repartition}) with '{single_name}' parameters :")
+    print("Following KPI values :")
+    for key, value in config["KPI_weighting"].items():
+        print(f"  - {key} : {value}")
+    print(f"{nb_exe} executions of {gen_algo} algorithm {return_origin} return to origin")
+    for opt_algo in config["path_optimization"]:
+        if opt_algo["apply"]:
+            print(f"Application of {opt_algo['name']} optimisation algorithm on distincts paths with value of {opt_algo['limit']}")
+    print(f"{nb_graph} graphs generation")
+
+    if input("\nContinue(y) ? ").upper() != "Y":
+        exit()
+
     # step2.1 : compute data
     print(f"{datetime.now().time()} - Simulate paths...\n")
-    inputs = (config["path_generation"]["algorithm"],
+    kpi_weights = list(config["KPI_weighting"].values())
+    inputs = (config["path_generation"]["path"],
+              int(config["back_to_origin"] == True),
               config["path_generation"]["nb_process"],
               file_path,
-              list(config["results"]["KPI_weighting"].values()))
-    results_gen = asyncio.run(path_generation(*inputs, to_compute))
+              kpi_weights,
+              len(to_compute["traveler"]))
+    results_gen = asyncio.run(path_generation(*inputs))
 
     # step2.2 : optional print of results
     if config["results"]["print_console"]:
+        kpi_names = list(config["KPI_weighting"].keys())
         print(f"{datetime.now().time()} - Display step1 results...\n")
-        print_generated(local_data, results_gen,
-                        list(config["results"]["KPI_weighting"].keys()))
+        print_generated(local_data, results_gen, kpi_names, config["path_generation"]["algorithm"])
 
-    # # step3.1 : apply post processing
-    # async run path_optimization()
-    results_opti = [-1]*len(results_gen)
-    # results_opti[2] = 1
+    # step3.1 : optional application of post processing
+    results_opti = []
+    for opt_algo in [line for line in config["path_optimization"] if line["apply"]]:
+        print(f"{datetime.now().time()} - Optimize paths with {opt_algo['algorithm']}...\n")
 
-    # # step3.2 : optional print of results
-    # if config["results"]["print_console"]:
-    #     print(f"{datetime.now().time()} - Display step2 results...\n")
-    #     print_optimized(fusionned_path)
+        inputs = (opt_algo["path"],
+                  file_path,
+                  results_gen,
+                  opt_algo["limit"],
+                  int(config["back_to_origin"] == True),
+                  kpi_weights)
+        results_opti.append(asyncio.run(path_optimization(*inputs)))
+
+        # step3.2 : optional print of results
+        if config["results"]["print_console"]:
+            print(f"{datetime.now().time()} - Display step2 results...\n")
+            print_optimized(local_data, results_opti[-1], results_gen, kpi_names, opt_algo["algorithm"])
 
     # # step4.1 : collect data for path fusion
-    # result_fusion = path_fusion(to_compute["arc"], results, config["path_fusion"]["algorithm"])
+    # if fu_algo != "default":
+    #     result_fusion = path_fusion(to_compute["arc"], results, config["path_fusion"]["algorithm"])
 
-    # # step4.2 : optional print of results
-    # if config["results"]["print_console"]:
-    #     print(f"{datetime.now().time()} - Display step3 results...\n")
-    #     print_fusionned(fusionned_path)
+    #     # step4.2 : optional print of results
+    #     if config["results"]["print_console"]:
+    #         print(f"{datetime.now().time()} - Display step3 results...\n")
+    #         print_fusionned(fusionned_path)
 
     # step5.1 : csv formatting and optional saving
     print(f"{datetime.now().time()} - Prepare CSV...\n")
-    coords_csv, orders_csv, execution_csv = format_csv(local_data, to_compute, results_gen, results_opti)
+    opti_names = [line["name"] for line in config["path_optimization"] if line["apply"]]
+    coords_csv, orders_csv, execution_csv = format_csv(local_data, to_compute, results_gen, results_opti, opti_names)
     if config["results"]["keep_local"]:
         result_path = path+RESULT_FOLDER+"\\"+config['input_datafile']+"_{0}.csv"
         save_csv(result_path.format("coords"), coords_csv)
@@ -102,12 +139,14 @@ if __name__ == "__main__":
     # step5.2 : optional graph generation
     if config["results"]["graph"]["make"]:
         print(f"{datetime.now().time()} - Generate graphs...\n")
-        inputs = (config["input_datafile"],
+        inputs = (config['results']['graph']['nb_max'],
+                  config["input_datafile"],
                   config["results"]["graph"]["show_names"],
                   config["results"]["graph"]["link_vertices"],
                   config["results"]["graph"]["map_background"],
                   config["results"]["graph"]["gif_mode"],
-                  config["results"]["graph"]["fps"])
+                  config["results"]["graph"]["fps"],
+                  config["back_to_origin"])
         files = make_graph(path, local_data, to_compute, results_gen, *inputs)
 
     # step6.1 : send results online
