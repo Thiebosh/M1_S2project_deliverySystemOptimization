@@ -14,7 +14,7 @@ using namespace std;
 using json = nlohmann::json;
 
 
-void findnei(vector<int> &solution, json const &input, int const path_id, bool back_origin);
+void findnei(vector<int> &solution, json const &input, int const path_id, bool back_origin, int trav_id);
 
 
 int main(int argc, char* argv[]) {
@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
         vector<int> currentpath = best_path_list.at(path_id);
 
         for (int i = 0; i < nb_tries; i++) {
-            findnei(currentpath, inputData, path_id, back_origin);
+            findnei(currentpath, inputData, path_id, back_origin, path_id);
         }
 
         best_path_list.at(path_id) = currentpath;
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 }
 
 
-void findnei(vector<int> &solution, json const &input, int const path_id, bool back_origin) {
+void findnei(vector<int> &solution, json const &input, int const path_id, bool back_origin, int trav_id) {
     vector<int> bestnei = solution;
 
     for(int a = 0; a < solution.size(); a++){    
@@ -65,7 +65,7 @@ void findnei(vector<int> &solution, json const &input, int const path_id, bool b
             double before = travelerDistTotal(bestnei, input, path_id, back_origin);
             double after = travelerDistTotal(nei, input, path_id, back_origin);
 
-            if (checknei(nei, input) && before > after) bestnei = nei;
+            if (checknei(nei, input, trav_id) && before > after) bestnei = nei;
         }
     }
 

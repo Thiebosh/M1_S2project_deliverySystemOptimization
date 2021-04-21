@@ -14,35 +14,29 @@ using namespace std;
 using json = nlohmann::json;
 
 
-bool checknei(vector<int> const &solution, json const &input) {
+bool checknei(vector<int> const &solution, json const &input, int trav_id) {
     vector<int> ableclient(input["peak"].size(), 0);
-    int storage = input["traveler"][0]["qty"];
-    int des = 0;
+    int storage = input["traveler"][trav_id]["qty"];
 
     for (int i = 0; i < solution.size(); i++) {
         if (input["peak"][solution[i]]["origin"] == 1) {
-            if (!storage) {
-                des++;
-                break;
-            }
+            if (!storage) return false;
             int j = 0;
+            // reduce here by quantity ordered by client ?
             while(j++ < input["peak"][solution[i]]["link"].size() && storage-- > 0) {
                 ableclient[solution[i]]++;
             }
         }
 
         if (input["peak"][solution[i]]["origin"] == 0) {
-            storage++;
+            storage++; // input["peak"][solution[i]]["qty"]
             int position = input["peak"][solution[i]]["link"];
             if(ableclient[position] > 0) ableclient[position]--;
-            else {
-                des++;
-                break;
-            }
-        }        
+            else return false;
+        }
     }
 
-    return !des;
+    return true;
 }
 
 
