@@ -1,5 +1,10 @@
+#include <iostream>
+#include <fstream>
+#include <time.h>
 #include <vector>
+#include <map>
 #include "..\json.hpp"
+#include "..\kpi.hpp"
 
 //input args
 #define ARG_ID 1
@@ -13,6 +18,26 @@
 using namespace std;
 using json = nlohmann::json;
 
+
+void initalize(int argc, char *argv[], json &inputData, json &path_list, int &nb_tries, bool &back_origin) {
+    int id = atoi(argv[ARG_ID]);
+    cout << id << endl;
+
+    if (argc < NB_ARGS)
+        exit(-1);
+
+    srand(atoi(argv[ARG_SEED])); // reuse seed
+
+    ifstream t(argv[ARG_FILE_PATH], ios::in);
+    t.seekg(0);
+    inputData = json::parse((istreambuf_iterator<char>(t)), (istreambuf_iterator<char>()));
+
+    path_list = json::parse(argv[ARG_PATH]);
+    // json best_path_list = path_list;
+
+    nb_tries = atoi(argv[ARG_TRIES]);
+    back_origin = atoi(argv[ARG_BACK_ORIGIN]) == 1;
+}
 
 bool checknei(vector<int> const &solution, json const &input, int trav_id) {
     vector<int> ableclient(input["peak"].size(), 0);
