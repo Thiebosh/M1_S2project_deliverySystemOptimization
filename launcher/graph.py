@@ -14,7 +14,7 @@ from defines import MAPS_FOLDER, RESULT_FOLDER, MAX_COUNTRIES
 
 
 def plot_path(idThread, interrupt_event, fig, results, cities,
-              local_travelers, travel_colors, return_origin,
+              local_travelers, travel_color, return_origin,
               path, result_name, save_gif, fps, g_files, g_files_lock):
     try:
         axe = fig.gca()
@@ -39,7 +39,7 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
 
                 axe.arrow(deltaX*0.05+city[0], deltaY*0.05+city[1], deltaX*0.9, deltaY*0.9,
                         length_includes_head=True, head_width=0.5, head_length=0.5,
-                        width=0.001, color=travel_colors[idTravel], alpha=0.75)
+                        width=0.001, color=travel_color, alpha=0.75)
 
             if(save_gif):
                 b = io.BytesIO()
@@ -59,7 +59,7 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
 
                 axe.arrow(deltaX*0.05+city[0], deltaY*0.05+city[1], deltaX*0.9, deltaY*0.9,
                         length_includes_head=True, head_width=0.5, head_length=0.5,
-                        width=0.001, color=travel_colors[idTravel], alpha=0.75)
+                        width=0.001, color=travel_color, alpha=0.75)
 
                 # gif img
                 if(save_gif):
@@ -77,7 +77,7 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
 
                 axe.arrow(deltaX*0.05+city[0], deltaY*0.05+city[1], deltaX*0.9, deltaY*0.9,
                         length_includes_head=True, head_width=0.5, head_length=0.5,
-                        width=0.001, color=travel_colors[idTravel], alpha=0.75)
+                        width=0.001, color=travel_color, alpha=0.75)
 
         # assemble gif
         if(save_gif):
@@ -201,7 +201,7 @@ def make_graph(path, local_data, compute_data, results, nb_graph, result_name, s
         newfig = pickle.load(graph_buffer)
 
         args = (idThread, interrupt_event, newfig, results[idThread], cities,
-                local_data["traveler"], colors, return_origin,
+                local_data["traveler"], colors[idThread % len(colors)], return_origin,
                 path, result_name, save_gif, fps, g_files, g_files_lock)
         threads.append(Thread(target=plot_path, args=args))
         threads[-1].start()
