@@ -21,12 +21,15 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur);
 // main function
 int main(int argc, char *argv[])
 {
-    json inputData = initalize(argc, argv);
+    json inputData;
+    int recurs;
+    bool back_origin;
+    initalize(argc, argv, inputData, recurs, back_origin);
 
     // declare result tab
-    map<int, vector<int>> res = findsolution(inputData, atoi(argv[ARG_RECUR]));
+    map<int, vector<int>> res = findsolution(inputData, recurs);
 
-    print_results(inputData, res, atoi(argv[ARG_BACK_ORIGIN]) == 1);
+    print_results(inputData, res, back_origin);
 
     return 0;
 }

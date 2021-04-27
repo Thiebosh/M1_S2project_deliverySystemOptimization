@@ -17,7 +17,7 @@ using namespace std;
 using json = nlohmann::json;
 
 
-json initalize(int argc, char *argv[]) {
+void initalize(int argc, char *argv[], json &inputData, int &recurs, bool &back_origin) {
     int id = atoi(argv[ARG_ID]);
     cout << id << endl;
 
@@ -30,7 +30,10 @@ json initalize(int argc, char *argv[]) {
 
     ifstream t(argv[ARG_FILE_PATH], ios::in);
     t.seekg(0);
-    return json::parse((istreambuf_iterator<char>(t)), (istreambuf_iterator<char>()));
+    inputData = json::parse((istreambuf_iterator<char>(t)), (istreambuf_iterator<char>()));
+
+    recurs = atoi(argv[ARG_RECUR]);
+    back_origin = atoi(argv[ARG_BACK_ORIGIN]) == 1;
 }
 
 void print_results(json const &inputData, map<int, vector<int>> const &res, bool back_origin) {
