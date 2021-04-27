@@ -21,9 +21,9 @@ int main(int argc, char* argv[]) {
 
     // search for each traveler path
     for (int path_id = 0; path_id < path_list.size(); path_id++) {
-        if (path_list.at(path_id).size() <= 2) continue; //not enough vertices
+        if (path_list[path_id].size() <= 2) continue; //not enough vertices
 
-        vector<int> currentpath = path_list.at(path_id);
+        vector<int> currentpath = path_list[path_id];
         vector<int> bestpath = currentpath;
 
         double q = 0.99;

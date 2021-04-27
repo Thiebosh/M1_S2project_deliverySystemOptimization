@@ -20,15 +20,15 @@ int main(int argc, char* argv[]) {
 
     // search for each traveler path
     for (int path_id = 0; path_id < best_path_list.size(); path_id++) {
-        if (best_path_list.at(path_id).size() <= 2) continue; //not enough vertices
+        if (best_path_list[path_id].size() <= 2) continue; //not enough vertices
 
-        vector<int> currentpath = best_path_list.at(path_id);
+        vector<int> currentpath = best_path_list[path_id];
 
         for (int i = 0; i < nb_tries; i++) {
             findnei(currentpath, inputData, path_id, back_origin, path_id);
         }
 
-        best_path_list.at(path_id) = currentpath;
+        best_path_list[path_id] = currentpath;
     }
 
     print_results(inputData, path_list, best_path_list, back_origin);

@@ -69,16 +69,16 @@ void print_results(json const &inputData, json const &path_list, json const &bes
     vector<float> travelerDist;
     for (int i = 0; i < path_list.size(); i++)
     {
-        if (path_list.at(i)[0] == -1) continue;
-        travelerDist.push_back(travelerDistTotal(path_list.at(i), inputData, i, back_origin));
+        if (path_list[i][0] == -1) continue;
+        travelerDist.push_back(travelerDistTotal(path_list[i], inputData, i, back_origin));
     }
     double scoreBefore = accumulate(travelerDist.begin(), travelerDist.end(), 0.0);
 
     travelerDist.clear();
     for (int i = 0; i < path_list.size(); i++)
     {
-        if (best_path_list.at(i)[0] == -1) travelerDist.push_back(0);
-        else travelerDist.push_back(travelerDistTotal(best_path_list.at(i), inputData, i, back_origin));
+        if (best_path_list[i][0] == -1) travelerDist.push_back(0);
+        else travelerDist.push_back(travelerDistTotal(best_path_list[i], inputData, i, back_origin));
     }
     double scoreAfter = accumulate(travelerDist.begin(), travelerDist.end(), 0.0);
 
@@ -94,7 +94,7 @@ void print_results(json const &inputData, json const &path_list, json const &bes
         if (travelerDist[i] > 0)
         {
             cout << travelerDist[i] << ";";
-            for (int elem : best_path_list.at(i))
+            for (int elem : best_path_list[i])
             {
                 cout << elem << ",";
             }

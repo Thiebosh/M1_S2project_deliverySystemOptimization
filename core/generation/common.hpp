@@ -38,7 +38,7 @@ void initalize(int argc, char *argv[], json &inputData, int &recurs, bool &back_
 
 void print_results(json const &inputData, map<int, vector<int>> const &res, bool back_origin) {
     vector<float> travelerDist;
-    for (int i = 0; i < inputData.at("traveler").size(); i++)
+    for (int i = 0; i < inputData["traveler"].size(); i++)
     {
         travelerDist.push_back(travelerDistTotal(res.at(i), inputData, i, back_origin));
     }
@@ -46,7 +46,7 @@ void print_results(json const &inputData, map<int, vector<int>> const &res, bool
     print_kpis(travelerDist);
 
     int prevElem = -1;
-    for (int i = 0; i < inputData.at("traveler").size(); i++)
+    for (int i = 0; i < inputData["traveler"].size(); i++)
     {
         if (travelerDist[i] > 0)
         {

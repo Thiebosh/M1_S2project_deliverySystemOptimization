@@ -65,7 +65,7 @@ vector<int> getPossibleNextPeak(vector<double> const &arc, vector<int> const &po
 			vector<double>::iterator itr = find(allDistances.begin(), allDistances.end(), allDistances[i]);
 			// cout << "size1: " << possiblePoints.size() << endl;
 			// cout << "dist: " << (int)distance(allDistances.begin(), itr) << endl;
-			points.push_back(possiblePoints.at((int)distance(allDistances.begin(), itr)));
+			points.push_back(possiblePoints[(int)distance(allDistances.begin(), itr)]);
 		}
 	}
 	// cout << ":!\\" << endl;
