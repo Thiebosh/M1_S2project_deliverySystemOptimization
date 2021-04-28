@@ -80,11 +80,11 @@ def acquire_data(file_content):
             print("no vertices")
             exit()
 
-        return vehicule_lines, travel_lines, peak_lines
-
     except Exception as e:
         print(f"Data acquisition error : {e}")
         exit()
+
+    return vehicule_lines, travel_lines, peak_lines
 
 
 def list_travelers(travel_lines, local_data, compute_data, nb_peak):
