@@ -6,6 +6,7 @@ from distutils.util import strtobool
 from defines import ENGINE_FOLDER
 from defines import GENERATOR_FOLDER, GENERATOR_EXE
 from defines import OPTIMIZER_FOLDER, OPTIMIZER_EXE
+from defines import TRAV_INF_CAPACITY
 
 
 def user_args(path):
@@ -89,7 +90,7 @@ def traveler_line(line, id_line):
         exit()
 
     if qty == 0:
-        qty = 100000  # "infinite"
+        qty = TRAV_INF_CAPACITY  # "infinite"
 
     return name, x, y, vehicule, speed, qty
 
