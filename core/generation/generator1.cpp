@@ -151,7 +151,7 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                     dist += computeRecurDistance(deepRecur, input["arc"], left, j);
                     distances.push_back(input["traveler"][i]["arc"][j]);
                 }
-                possiblePoints = getPossibleNextPeak(distances, tmpPossiblePoints, tmpPossiblePoints.size());
+                possiblePoints = getPossibleNextPeak(distances, tmpPossiblePoints);
             }
             else
             {
@@ -164,7 +164,7 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                     dist += computeRecurDistance(deepRecur, input["arc"], left, j);
                     distances.push_back(input["arc"][curPoint][j]);
                 }
-                possiblePoints = getPossibleNextPeak(distances, tmpPossiblePoints, tmpPossiblePoints.size());
+                possiblePoints = getPossibleNextPeak(distances, tmpPossiblePoints);
             }
 
             if (possiblePoints.empty())
@@ -223,7 +223,7 @@ map<int, vector<int>> findsolution(json const &input, int deepRecur)
                 }
             }
 
-            possiblePoints = getPossibleNextPeak(distances, it->second, it->second.size());
+            possiblePoints = getPossibleNextPeak(distances, it->second);
 
             if (possiblePoints.empty())
             {

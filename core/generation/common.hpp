@@ -53,8 +53,8 @@ void print_results(json const &inputData, map<int, vector<int>> const &res, bool
             cout << travelerDist[i] << ";";
             for (int elem : res.at(i))
             {
-                if (elem == prevElem)
-                    continue;
+            //     if (elem == prevElem)
+            //         continue;
                 cout << elem << ",";
                 prevElem = elem;
             }
