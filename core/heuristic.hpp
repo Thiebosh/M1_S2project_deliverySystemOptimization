@@ -1,7 +1,6 @@
 #include <vector>
 #include <algorithm>
 #include <random>
-#include <iostream>
 #include "json.hpp"
 
 using namespace std;
@@ -14,12 +13,9 @@ int getIdPoint(vector<int> const &allPoints, vector<double> const &distances)
 	double sum = 0;
 	for (int i = allPoints.size() - 1; i >= 0; i--)
 	{
-		// cout << "dist: " << distances[i] << endl;
 		sum += 1 / distances[i];
-		// cout << "sum: " << sum << endl;
 		weights.push_back(sum);
 	}
-	// cout << "end" << endl;
 
 	double max_val_coeff = 100 / (*max_element(weights.begin(), weights.end()));
 	for (auto w : weights)
