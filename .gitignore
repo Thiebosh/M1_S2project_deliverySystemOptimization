@@ -8,6 +8,7 @@
 **/*.flag
 **/*.tmp
 **/*.data
+**/*.exe
 
 **/*.shp
 **/*.shx
