@@ -14,11 +14,11 @@ from defines import MAPS_FOLDER, RESULT_FOLDER, MAX_COUNTRIES
 
 
 def plot_path(idThread, interrupt_event, fig, results, cities,
-              local_travelers, travel_color, return_origin,
+              local_travelers, travel_colors, return_origin,
               path, result_name, save_gif, fps, g_files, g_files_lock):
     try:
         axe = fig.gca()
-        axe.title.set_text(f"{results[2][0]}km")  # :.1f
+        axe.title.set_text(f"{results[4]} : {results[2][0]}km")  # :.1f
 
         img_buffers = []
         if(save_gif):
@@ -28,7 +28,7 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
             img_buffers.append(b)
 
         # travel between peaks
-        for idTravel, traveler in enumerate(results[-1]):
+        for idTravel, traveler in enumerate(results[3]):
             # print travel from origin to first peak
             city = [local_travelers[idTravel]["x"], local_travelers[idTravel]["y"]]
             nextCity = cities[traveler[1][0]]
@@ -39,7 +39,7 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
 
                 axe.arrow(deltaX*0.05+city[0], deltaY*0.05+city[1], deltaX*0.9, deltaY*0.9,
                         length_includes_head=True, head_width=0.5, head_length=0.5,
-                        width=0.001, color=travel_color, alpha=0.75)
+                        width=0.001, color=travel_colors[idTravel % len(travel_colors)], alpha=0.75)
 
             if(save_gif):
                 b = io.BytesIO()
@@ -59,7 +59,7 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
 
                 axe.arrow(deltaX*0.05+city[0], deltaY*0.05+city[1], deltaX*0.9, deltaY*0.9,
                         length_includes_head=True, head_width=0.5, head_length=0.5,
-                        width=0.001, color=travel_color, alpha=0.75)
+                        width=0.001, color=travel_colors[idTravel % len(travel_colors)], alpha=0.75)
 
                 # gif img
                 if(save_gif):
@@ -76,8 +76,8 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
                 deltaY = nextCity[1]-city[1]
 
                 axe.arrow(deltaX*0.05+city[0], deltaY*0.05+city[1], deltaX*0.9, deltaY*0.9,
-                        length_includes_head=True, head_width=0.5, head_length=0.5,
-                        width=0.001, color=travel_color, alpha=0.75)
+                          length_includes_head=True, head_width=0.5, head_length=0.5,
+                          width=0.001, color=travel_colors[idTravel % len(travel_colors)], alpha=0.75)
 
         # assemble gif
         if(save_gif):
@@ -104,7 +104,7 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
         return
 
 
-def make_graph(path, local_data, compute_data, results, nb_graph, result_name, show_names, link_vertices, background, save_gif, fps, return_origin):
+def make_graph(path, local_data, compute_data, results, results_opti, opti_names, nb_graph, result_name, show_names, link_vertices, background, save_gif, fps, return_origin):
     plt.switch_backend('agg')
 
     # prepare graphs
@@ -112,6 +112,19 @@ def make_graph(path, local_data, compute_data, results, nb_graph, result_name, s
 
     cities = [(peak["x"], peak["y"]) for peak in local_data["peak"]]
     x, y = zip(*cities)  # zip because of tuples : extract couples [x, y]
+
+    # take most optimized path for selected graph range
+    for name, opti in zip(opti_names, results_opti):
+        convertor = {id_exe: counter for counter, (*_, id_exe) in enumerate(opti) if counter < nb_graph}  # id translation
+        for id_exe, id_convert in convertor.items():
+            if results[id_exe][1] > opti[id_convert][1]:  # lower score = better path
+                results[id_exe] = opti[id_convert]
+                del results[id_exe][-1]
+                results[id_exe].append(name)
+
+    for id, line in enumerate(results):
+        if len(line) < 5:
+            results[id].append("Generated")
 
     # plot common part
     fig = plt.figure(figsize=(6, 3))
@@ -201,7 +214,7 @@ def make_graph(path, local_data, compute_data, results, nb_graph, result_name, s
         newfig = pickle.load(graph_buffer)
 
         args = (idThread, interrupt_event, newfig, results[idThread], cities,
-                local_data["traveler"], colors[idThread % len(colors)], return_origin,
+                local_data["traveler"], colors, return_origin,
                 path, result_name, save_gif, fps, g_files, g_files_lock)
         threads.append(Thread(target=plot_path, args=args))
         threads[-1].start()

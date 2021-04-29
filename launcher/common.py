@@ -144,7 +144,7 @@ def format_csv(local_data, to_compute, results_gen, results_opti, opti_names):
 
     tmp = merge_df[["calculation_type", "generation_id"]].drop_duplicates().to_numpy()
     for name, opti in zip(opti_names, results_opti):
-        convertor = {id_exe: id for id, id_exe in enumerate([line[1] for line in tmp if line[0] == name])}
+        convertor = {id_exe: id for id, id_exe in enumerate([line[1] for line in tmp if line[0] == name])}  # id translation
 
         execution_tab += [(gen,
                            id_exe,
