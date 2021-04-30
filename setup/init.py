@@ -175,7 +175,7 @@ def compile_cpp(path):
             exe_name = exe_path[:-4]
 
             print(f"Compile {file[:-4]}...")
-            check_call(["g++", exe_path, "-o", exe_name])
+            check_call(["g++", "-std=c++11", exe_path, "-o", exe_name])
             print("Done\n")
 
 
