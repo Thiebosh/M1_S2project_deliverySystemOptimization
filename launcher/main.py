@@ -149,7 +149,7 @@ if __name__ == "__main__":
                   config["results"]["graph"]["gif_mode"],
                   config["results"]["graph"]["fps"],
                   config["back_to_origin"])
-        files = make_graph(path, local_data, to_compute, results_gen, *inputs)
+        files = make_graph(path, local_data, to_compute, results_gen, results_opti, opti_names, *inputs)
 
     # step6.1 : send results online
     if online:

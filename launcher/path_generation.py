@@ -15,15 +15,17 @@ async def path_generation(exe_path, recurs, back_origin, nb_process, file_path, 
     results = []
     time1 = time.time()
     while running_procs:
+        ended_proc = False
         for proc in running_procs:
             retcode = proc.poll()  # check if available
             if not retcode:  # Process finished.
                 running_procs.remove(proc)
+                ended_proc = True
                 break
 
-            else:  # No process is done, wait a bit and check again.
-                await asyncio.sleep(.4)
-                continue
+        if not ended_proc:  # No process is done, wait a bit and check again.
+            await asyncio.sleep(.4)
+            continue
 
         lines = proc.communicate()[0].split("\n")
         if lines[2] == "error":  # retcode and retcode != 0:  # execution error

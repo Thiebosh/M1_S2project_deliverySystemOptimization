@@ -1,7 +1,6 @@
 #include <vector>
 #include <algorithm>
 #include <random>
-#include <iostream>
 #include "json.hpp"
 
 using namespace std;
@@ -14,12 +13,9 @@ int getIdPoint(vector<int> const &allPoints, vector<double> const &distances)
 	double sum = 0;
 	for (int i = allPoints.size() - 1; i >= 0; i--)
 	{
-		// cout << "dist: " << distances[i] << endl;
 		sum += 1 / distances[i];
-		// cout << "sum: " << sum << endl;
 		weights.push_back(sum);
 	}
-	// cout << "end" << endl;
 
 	double max_val_coeff = 100 / (*max_element(weights.begin(), weights.end()));
 	for (auto w : weights)
@@ -43,32 +39,29 @@ vector<int> getNthClosest(int n, vector<double> &arc)
 	vector<int> closest;
 	vector<double> sortedArc = arc;
 	sort(sortedArc.begin(), sortedArc.end());
+	int limit = min(n, (int)arc.size());
 
-	for (auto i = 0; i < min(n, (int)arc.size()); i++)
+	for (auto i = 0; i < limit; i++)
 	{
 		vector<double>::iterator itr = find(arc.begin(), arc.end(), sortedArc[i]);
 		closest.push_back(distance(arc.begin(), itr));
 	}
+
 	return closest;
 }
 
-vector<int> getPossibleNextPeak(vector<double> const &arc, vector<int> const &possiblePoints, int nbClosest)
+vector<int> getPossibleNextPeak(vector<double> &allDistances, vector<int> const &possiblePoints)
 {
-	vector<double> allDistances = arc;
-	vector<int> closestPoints;
 	vector<int> points;
 
-	for (auto i : getNthClosest(nbClosest, allDistances))
+	for (int i : getNthClosest(possiblePoints.size(), allDistances))
 	{
-		if (allDistances[i] != 0)
-		{
-			vector<double>::iterator itr = find(allDistances.begin(), allDistances.end(), allDistances[i]);
-			// cout << "size1: " << possiblePoints.size() << endl;
-			// cout << "dist: " << (int)distance(allDistances.begin(), itr) << endl;
-			points.push_back(possiblePoints.at((int)distance(allDistances.begin(), itr)));
-		}
+		if (allDistances[i] == 0)
+			continue;
+
+		vector<double>::iterator itr = find(allDistances.begin(), allDistances.end(), allDistances[i]);
+		points.push_back(possiblePoints[(int)distance(allDistances.begin(), itr)]);
 	}
-	// cout << ":!\\" << endl;
-	// cout << "size:" << points.size() << endl;
+
 	return points;
 }

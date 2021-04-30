@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
 vector<int> findsolution(json const &input)
 {
-    vector<int> currSolution(input.at(0).size(), -1);
+    vector<int> currSolution(input[0].size(), -1);
 
 	// build list of unselected peaks
 	vector<int> remainingPeaks;
@@ -53,14 +53,16 @@ vector<int> findsolution(json const &input)
 	vector<int> closestPeaks;
 	vector<double> distances;
 
+
 	while (!remainingPeaks.empty())
 	{
 		distances.clear();
-		closestPeaks = getPossibleNextPeak(input.at(currentPeak), remainingPeaks, remainingPeaks.size());
+		vector<double> arc_distances = input[currentPeak];
+		closestPeaks = getPossibleNextPeak(arc_distances, remainingPeaks);
 
 		for (int i : closestPeaks)
 		{
-			distances.push_back(input.at(currentPeak).at(i));
+			distances.push_back(input[currentPeak].at(i));
 		}
 
 		// select one of the closest remaining

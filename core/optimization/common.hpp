@@ -1,5 +1,10 @@
+#include <iostream>
+#include <fstream>
+#include <time.h>
 #include <vector>
+#include <map>
 #include "..\json.hpp"
+#include "..\kpi.hpp"
 
 //input args
 #define ARG_ID 1
@@ -13,6 +18,26 @@
 using namespace std;
 using json = nlohmann::json;
 
+
+void initalize(int argc, char *argv[], json &inputData, json &path_list, int &nb_tries, bool &back_origin) {
+    int id = atoi(argv[ARG_ID]);
+    cout << id << endl;
+
+    if (argc < NB_ARGS)
+        exit(-1);
+
+    srand(atoi(argv[ARG_SEED])); // reuse seed
+
+    ifstream t(argv[ARG_FILE_PATH], ios::in);
+    t.seekg(0);
+    inputData = json::parse((istreambuf_iterator<char>(t)), (istreambuf_iterator<char>()));
+
+    path_list = json::parse(argv[ARG_PATH]);
+    // json best_path_list = path_list;
+
+    nb_tries = atoi(argv[ARG_TRIES]);
+    back_origin = atoi(argv[ARG_BACK_ORIGIN]) == 1;
+}
 
 bool checknei(vector<int> const &solution, json const &input, int trav_id) {
     vector<int> ableclient(input["peak"].size(), 0);
@@ -44,16 +69,16 @@ void print_results(json const &inputData, json const &path_list, json const &bes
     vector<float> travelerDist;
     for (int i = 0; i < path_list.size(); i++)
     {
-        if (path_list.at(i)[0] == -1) continue;
-        travelerDist.push_back(travelerDistTotal(path_list.at(i), inputData, i, back_origin));
+        if (path_list[i][0] == -1) continue;
+        travelerDist.push_back(travelerDistTotal(path_list[i], inputData, i, back_origin));
     }
     double scoreBefore = accumulate(travelerDist.begin(), travelerDist.end(), 0.0);
 
     travelerDist.clear();
     for (int i = 0; i < path_list.size(); i++)
     {
-        if (best_path_list.at(i)[0] == -1) travelerDist.push_back(0);
-        else travelerDist.push_back(travelerDistTotal(best_path_list.at(i), inputData, i, back_origin));
+        if (best_path_list[i][0] == -1) travelerDist.push_back(0);
+        else travelerDist.push_back(travelerDistTotal(best_path_list[i], inputData, i, back_origin));
     }
     double scoreAfter = accumulate(travelerDist.begin(), travelerDist.end(), 0.0);
 
@@ -69,7 +94,7 @@ void print_results(json const &inputData, json const &path_list, json const &bes
         if (travelerDist[i] > 0)
         {
             cout << travelerDist[i] << ";";
-            for (int elem : best_path_list.at(i))
+            for (int elem : best_path_list[i])
             {
                 cout << elem << ",";
             }

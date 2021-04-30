@@ -15,9 +15,12 @@ EXT_CPP_FOLDER = "\\ext_cpp_libs\\"
 DEPENDENCIES_FLAG = "\\dep_v2.flag"  # dependencies versionning
 COUNTRIES_FLAG = "\\countries.flag"
 
-PATH_TO_PROJECT = "\\..\\launcher"
-MAPS_FOLDER = PATH_TO_PROJECT+"\\country_maps"
-DRIVE_FOLDER = PATH_TO_PROJECT+"\\driveAccess"
+PATH_TO_WRAPPER = "\\..\\launcher"
+MAPS_FOLDER = PATH_TO_WRAPPER+"\\country_maps"
+DRIVE_FOLDER = PATH_TO_WRAPPER+"\\driveAccess"
+
+PATH_TO_CORE = "\\..\\core"
+
 CREDS_REQUIRED = 2
 
 
@@ -159,6 +162,23 @@ def dl_specific_lib(path):
     print()
 
 
+def compile_cpp(path):
+    path += PATH_TO_CORE
+    regex = re.compile(r"[a-zA-Z0-9]*\.cpp")
+
+    for dirpath, _, filenames in os.walk(path):
+        for file in filenames:
+            if not regex.match(file):
+                continue
+
+            exe_path = os.path.join(dirpath, file)
+            exe_name = exe_path[:-4]
+
+            print(f"Compile {file[:-4]}...")
+            check_call(["g++", "-std=c++11", exe_path, "-o", exe_name])
+            print("Done\n")
+
+
 if __name__ == "__main__":
     path = str(pathlib.Path(__file__).parent.absolute())
 
@@ -193,5 +213,8 @@ if __name__ == "__main__":
             pass
     else:
         print("Already installed country files\n")
+
+    # IV. Compile C++
+    compile_cpp(path)
 
     print("Setup done, ready to execute project")

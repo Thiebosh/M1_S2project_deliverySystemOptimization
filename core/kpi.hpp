@@ -11,14 +11,14 @@ float travelerDistTotal(vector<int> const &path, json const &input, int traveler
 {
     float total = 0;
     if (path.size() > 0) {
-        total += (float)input.at("traveler").at(traveler).at("arc").at(path[0]);
+        total += (float)input["traveler"][traveler]["arc"][path[0]];
         if (back_origin) {
-            total += (float)input.at("traveler").at(traveler).at("arc").at(path[path.size()-1]);
+            total += (float)input["traveler"][traveler]["arc"][path[path.size()-1]];
         }
     }
     for (int i = 1; i < path.size(); i++)
     {
-        total += (float)input.at("arc").at(path[i - 1]).at(path[i]);
+        total += (float)input["arc"][path[i - 1]][path[i]];
     }
     return total;
 }
