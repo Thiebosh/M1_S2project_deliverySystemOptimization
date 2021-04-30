@@ -43,3 +43,7 @@ User need to prepare the execution in two steps, either in local (root folder) o
 
 Then, the command to execute from the root folder is: python launcher/main.py < configName > < optionnal: true(default) | false >
 The optional parameter specifies if the execution is online or not.
+
+
+## Results
+Results can be analyzed as shown here: https://datastudio.google.com/u/2/reporting/719e36c2-23e3-4697-8a94-30e2cb147167/
