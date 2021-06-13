@@ -1,3 +1,10 @@
+**Mars à avr. 2021 – C++, Python, DataStudio : optimisation de livraison de colis**
+- Responsable technique et chef d’équipe d’un groupe international de 6 personnes.
+- 4 cas d’usages (Travelling Salesman Problem, Vehicle Routing Problem, Package Delivery Routing Problem, Multiple Package Delivery Routing Problem), souplesse d’exécution (21+4n paramètres avec n le nombre d'algorithmes d'optimisations).
+- Application multicouche : moteurs de génération et d'optimisation C++, wrapper Python et dashboard Data Studio.
+
+<br><hr><br>
+
 # M1_S2project_deliverySystemOptimization
 
 
