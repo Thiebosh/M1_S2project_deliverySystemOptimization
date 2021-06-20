@@ -10,7 +10,7 @@ from defines import DRIVE_FOLDER, RESULT_FOLDER
 
 # elements to reach into drive account
 DRIVE_FOLDER_IMGS = 'images'
-DRIVE_CSV_RESULTS = 'Results_project'
+DRIVE_CSV_RESULTS = 'Results_project_bis'
 CSV_RESULT_SHEET_ORD = "Orders!A:"  # fin calculée
 CSV_RESULT_SHEET_MAP = "Map_coordinates!A:"  # fin calculée
 CSV_RESULT_SHEET_EXE = "Executions!A:"  # fin calculée

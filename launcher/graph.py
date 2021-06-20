@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import imageio
-import os
 import geopandas
 from geopip import search
-from threading import Thread, Lock, Event
+import multiprocessing
+import ctypes
 from pygifsicle import optimize
 import pickle
 import io
@@ -13,9 +13,9 @@ import random
 from defines import MAPS_FOLDER, RESULT_FOLDER, MAX_COUNTRIES
 
 
-def plot_path(idThread, interrupt_event, fig, results, cities,
+def plot_path(idProc, interrupt_event, fig, results, cities,
               local_travelers, travel_colors, return_origin,
-              path, result_name, save_gif, fps, g_files, g_files_lock):
+              path, result_name, save_gif, fps, retval):
     try:
         axe = fig.gca()
         axe.title.set_text(f"{results[4]} : {results[2][0]}km")  # :.1f
@@ -81,10 +81,8 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
 
         # assemble gif
         if(save_gif):
-            gifname = path+RESULT_FOLDER+f"\\{result_name}_{idThread}.gif"
-
-            with g_files_lock:
-                g_files.append(gifname)
+            gifname = path+RESULT_FOLDER+f"\\{result_name}_{idProc}.gif"
+            retval.value = gifname
 
             frames = [imageio.imread(buffer.read()) for buffer in img_buffers]
             frames.append(frames[-1])
@@ -94,9 +92,8 @@ def plot_path(idThread, interrupt_event, fig, results, cities,
             optimize(gifname)
 
         else:
-            filename = path+RESULT_FOLDER+f"\\{result_name}_{idThread}.png"
-            with g_files_lock:
-                g_files.append(filename)
+            filename = path+RESULT_FOLDER+f"\\{result_name}_{idProc}.png"
+            retval.value = filename
             fig.savefig(filename)
 
     except KeyboardInterrupt:
@@ -200,30 +197,33 @@ def make_graph(path, local_data, compute_data, results, results_opti, opti_names
     else:
         axe.legend(ncol=3, loc='lower center', bbox_to_anchor=(0.5, -0.15))
 
-    # step6 : dump base graph and enrich it in each thread
+    # step6 : dump base graph and enrich it in each proc
     graph_buffer = io.BytesIO()
     pickle.dump(fig, graph_buffer)
 
-    # step7 : start threads
+    # step7 : start process
     g_files = []
-    g_files_lock = Lock()
-    interrupt_event = Event()
-    threads = []
-    for idThread in range(nb_graph):
+    interrupt_event = multiprocessing.Event()
+    process = []
+    for idProc in range(nb_graph):
         graph_buffer.seek(0)  # crucial
         newfig = pickle.load(graph_buffer)
+        g_files.append(multiprocessing.Manager().Value(ctypes.c_char_p, "", lock=False))
 
-        args = (idThread, interrupt_event, newfig, results[idThread], cities,
+        args = (idProc, interrupt_event, newfig, results[idProc], cities,
                 local_data["traveler"], colors, return_origin,
-                path, result_name, save_gif, fps, g_files, g_files_lock)
-        threads.append(Thread(target=plot_path, args=args))
-        threads[-1].start()
+                path, result_name, save_gif, fps, g_files[-1])
+        process.append(multiprocessing.Process(target=plot_path, args=args))
+        process[-1].start()
 
-    for thread in threads:
-        thread.join()
+    for proc in process:
+        proc.join()
 
     if interrupt_event.is_set():
         print("Close program")
         exit()
 
+    g_files = [filename.value for filename in g_files]
+
+    print(g_files)
     return g_files
