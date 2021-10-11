@@ -55,6 +55,7 @@ The optional parameter specifies if the execution is online or not.
 ## Results
 Results can be analyzed as shown here: https://datastudio.google.com/u/2/reporting/719e36c2-23e3-4697-8a94-30e2cb147167/
 
-
-## TODO
-graph.py : replace multithreading by multiprocessing as far as we need power more than IO operations
+## Notes
+- Multiprocessing for graph generation seems slower than multithreading (see process_for_graph branch)
+- Img uploads are in parallel for better performances
+- Optimizations are in parallel and not sequentials : one good update would be to create pipelines of optimizations

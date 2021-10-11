@@ -5,6 +5,9 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 import os
 import re
+from threading import Thread, Lock, Event
+import io
+import pickle
 
 from defines import DRIVE_FOLDER, RESULT_FOLDER
 
@@ -33,6 +36,13 @@ FOLDER = 'application/vnd.google-apps.folder'
 CSV = 'application/vnd.google-apps.spreadsheet'
 DOC = 'application/vnd.google-apps.document'
 IMG_URL_ACCESS = "https://drive.google.com/uc?export=view&id="
+
+
+def dumpObject(object):
+    buffer = io.BytesIO()
+    pickle.dump(object, buffer)
+    buffer.seek(0)  # crucial
+    return pickle.load(buffer)
 
 
 class Synchronize:
@@ -148,22 +158,37 @@ class Synchronize:
 
         regex = re.compile(r""+reg.format("gif" if is_gif else "png"))
 
-        file_metadata = {'name': '', 'parents': [self.img_folder_id]}
+        imgs_id_lock = Lock()
+        interrupt_event = Event()
+        threads = []
+        for file in [file for file in os.listdir(self.path+RESULT_FOLDER) if regex.match(file)]:
+            metadata = {'name': file, 'parents': [self.img_folder_id]}
+            args = (interrupt_event, dumpObject(self.serviceDrive), self.path+RESULT_FOLDER+"\\"+file, metadata, self.imgs_id, imgs_id_lock)
+            threads.append(Thread(target=self.execute_upload, args=args))
+            threads[-1].start()
 
-        for file in os.listdir(self.path+RESULT_FOLDER):
-            if not regex.match(file):
-                continue
+        for thread in threads:
+            thread.join()
 
-            file_metadata['name'] = file
+        if interrupt_event.is_set():
+            print("Close program")
+            exit()
 
-            media = MediaFileUpload(self.path+RESULT_FOLDER+"\\"+file, mimetype='image/gif')
+    def execute_upload(self, interrupt_event, serviceDrive, filenamepath, metadata, imgs_id, imgs_id_lock):
+        try:
+            media = MediaFileUpload(filenamepath, mimetype='image/gif')
 
             # pylint: disable=maybe-no-member
-            res = self.serviceDrive.files().create(body=file_metadata,
-                                                   media_body=media,
-                                                   fields='id')\
-                                           .execute()
-            self.imgs_id.append(res["id"])
+            res = serviceDrive.files().create(body=metadata,
+                                              media_body=media,
+                                              fields='id')\
+                                      .execute()
+            with imgs_id_lock:
+                imgs_id.append(res["id"])
+
+        except KeyboardInterrupt:
+            interrupt_event.set()
+            return
 
     def upload_csv(self, valuesOrders, valuesCoords, valuesExes, nb_exe):
         nb_exe = max(nb_exe, len(self.imgs_id))

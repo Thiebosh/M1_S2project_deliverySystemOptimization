@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import imageio
-import os
 import geopandas
 from geopip import search
 from threading import Thread, Lock, Event
